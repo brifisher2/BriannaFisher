@@ -1,0 +1,134 @@
+---
+title: "Assignment 1"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 1
+    #code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
+```
+
+# Assignment 1
+
+### Problem 1 
+Install the datasets package on the console below using `install.packages("datasets")`. Now load the library.
+```{r}
+#Install the dataset package  
+#install.packages("datasets")
+
+#load in the library 
+library(datasets)
+```
+
+Load the USArrests dataset and rename it `dat`. Note that this dataset comes with R, in the package datasets, so there's no need to load data from your computer. Why is it useful to rename the dataset?
+```{r}
+#Load in the dataset
+USArrests
+
+#rename the USArrests dataset
+dat <- USArrests
+```
+It is useful to rename the dataset because it is easier to work with. If the data set had a longer or more complicated name, it would be difficult and time consuming to type out the dataset name every time when you want to perform a function on the data. It also lets you keep track of your work if you make different versions of it so that it is not contaminated by changes that were meant to be on one version and not the other. This will let you replicate the work if changes were made to different versions.
+
+### Problem 2
+Use this command to make the state names into a new variable called State. 
+```{r, eval=FALSE}
+dat$state <- tolower(rownames(USArrests))
+```
+
+This dataset has the state names as row names, so we just want to make them into a new variable. We also make them all lower case, because that will help us draw a map later - the map function requires the states to be lower case.
+
+List the variables contained in the dataset `USArrests`.
+
+```{r}
+#find the variables in the dataset
+names(dat)
+```
+ 
+The variables in the USArrests dataset are Murder, Assault, UrbanPop, Rape, and State. 
+ 
+### Problem 3 
+
+What type of variable (from the DVB chapter) is `Murder`? 
+
+Answer: Murder is a quantitative variable from the DVB chapter since it is a count of numbers.
+
+What R Type of variable is it?
+
+Answer: Murder is a numeric variable from the R type since it is also a count of numbers and functions such as
+        mean or median can be applied.
+        
+### Problem 4
+
+What information is contained in this dataset, in general? What do the numbers mean? 
+
+Answer: The dataset contains arrest numbers for 4 types of crimes within all 50 states. Each state has a corresponding arrest rate for murder, assault, and rape, as well as the percent of urban population within the state. The numbers mean the number of arrests per 100,000 people in that state.
+
+### Problem 5
+
+Draw a histogram of `Murder` with proper labels and title.
+```{r}
+hist(dat$Murder, main = "Histogram of Murder Arrests", xlab = "Number of Murder Arrests", ylab = "Frequency")
+```
+ 
+### Problem 6
+
+Please summarize `Murder` quantitatively. What are its mean and median? What is the difference between mean and median? What is a quartile, and why do you think R gives you the 1st Qu. and 3rd Qu.?
+
+```{r}
+#finding the summary statistics of the murder variable
+summary(dat$Murder)
+```
+The mean of the murder variable is 7.788 murders, while the median is 7.250 murders. The mean is the sum of all data values divided by the number of values, or the average of the values within the dataset. The median, however, is the middle value after all of the values are put in numerical order. When distributions are skewed or there are outliers in the data, the median is better to use than the mean because the mean changes with skew or outliers and the median is more robust. A quartile is each of three values in which the data can be distributed into even fourths. I think that R gives us the 1st quartile and 3rd quartile because they can be used to calculate the interquartile range, which tells us the interval where half of the values within the data set lie. The median is also the 2nd quartile, so the three groups are given that split the data in even fourths.
+ 
+### Problem 7
+
+Repeat the same steps you followed for `Murder`, for the variables `Assault` and `Rape`. Now plot all three histograms together. You can do this by using the command `par(mfrow=c(3,1))` and then plotting each of the three. 
+
+```{r, echo = TRUE, fig.width = 5, fig.height = 8}
+#make a histogram of assault
+hist(dat$Assault, main = "Histogram of Assault Arrests", xlab = "Number of Assault Arrests", ylab = "Frequency")
+
+#make a histogram of rape
+hist(dat$Rape, main = "Histogram of Rape Arrests", xlab = "Number of Rape Arrests", ylab = "Frequency")
+
+#plot all three histograms together
+par(mfrow=c(3,1))
+hist(dat$Murder, main = "Histogram of Murder Arrests", xlab = "Number of Murder Arrests", ylab = "Frequency")
+hist(dat$Assault, main = "Histogram of Assault Arrests", xlab = "Number of Assault Arrests", ylab = "Frequency")
+hist(dat$Rape, main = "Histogram of Rape Arrests", xlab = "Number of Rape Arrests", ylab = "Frequency")
+```
+
+What does the command par do, in your own words (you can look this up by asking R `?par`)?
+
+Answer: Par can be used to set the parameters on a graph, making it easier to combine multiple graphs into one.
+
+What can you learn from plotting the histograms together?
+
+Answer: By plotting these histograms together, you can compare the arrest rates for each crime. Murders happen the least frequently and assaults happen the most frequently. You can also see that the histogram for murder is unimodal and skewed, the histogram for assaults is bimodal, and the histogram for rapes is also unimodal and skewed. 
+
+### Problem 8
+
+In the console below (not in text), type `install.packages("maps")` and press Enter, and then type `install.packages("ggplot2")` and press Enter. This will install the packages so you can load the libraries.
+
+```{r, eval = FALSE, fig.width = 7.5, fig.height = 4}
+#install and load in the maps and ggplot2 packages
+library('maps') 
+library('ggplot2') 
+```
+
+Run this code:
+```{r, eval = FALSE, fig.width = 7.5, fig.height = 4}
+ggplot(dat, aes(map_id=state, fill=Murder)) + 
+  geom_map(map=map_data("state")) + 
+  expand_limits(x=map_data("state")$long, y=map_data("state")$lat)
+```
+What does this code do? Explain what each line is doing.
+
+Answer: The first line above the map code loads the library for both packages. The first line of the map code is creating a plot of murder. The ggplot function is telling R to create a plot, the "dat" is telling R which dataset to use in the plot, and the "aes(map_id=state, fill=Murder))" is telling R to plot each state and fill it with the corresponding murder arrest rate. The geom_map function creates shapes for a reference map, and the map=map_data("state") function is telling R to map the data that corresponds with the state variable that we created earlier. The expand_limits function makes sure that the entire map fits within the plot of the graph and the (x=map_data("state")$long, y=map_data("state")$lat) tells R which data to base the plot limits off of, which in this case is the state data. 
