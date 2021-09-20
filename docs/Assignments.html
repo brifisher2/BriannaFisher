@@ -509,7 +509,7 @@ library(&#39;ggplot2&#39;) </code></pre>
 <pre class="r"><code>ggplot(dat, aes(map_id=state, fill=Murder)) + 
   geom_map(map=map_data(&quot;state&quot;)) + 
   expand_limits(x=map_data(&quot;state&quot;)$long, y=map_data(&quot;state&quot;)$lat)</code></pre>
-<p>What does this code do? Explain what each line is doing.</p>
+<p><img src="Assignments_files/figure-html/unnamed-chunk-9-1.png" width="720" /> What does this code do? Explain what each line is doing.</p>
 <p>Answer: The first line above the map code loads the library for both packages. The first line of the map code is creating a plot of murder. The ggplot function is telling R to create a plot, the “dat” is telling R which dataset to use in the plot, and the “aes(map_id=state, fill=Murder))” is telling R to plot each state and fill it with the corresponding murder arrest rate. The geom_map function creates shapes for a reference map, and the map=map_data(“state”) function is telling R to map the data that corresponds with the state variable that we created earlier. The expand_limits function makes sure that the entire map fits within the plot of the graph and the (x=map_data(“state”)<span class="math inline">\(long, y=map_data(&quot;state&quot;)\)</span>lat) tells R which data to base the plot limits off of, which in this case is the state data.</p>
 </div>
 </div>

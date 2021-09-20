@@ -38,7 +38,7 @@ It is useful to rename the dataset because it is easier to work with. If the dat
 
 ### Problem 2
 Use this command to make the state names into a new variable called State. 
-```{r, eval=FALSE}
+```{r}
 dat$state <- tolower(rownames(USArrests))
 ```
 
@@ -117,14 +117,14 @@ Answer: By plotting these histograms together, you can compare the arrest rates 
 
 In the console below (not in text), type `install.packages("maps")` and press Enter, and then type `install.packages("ggplot2")` and press Enter. This will install the packages so you can load the libraries.
 
-```{r, eval = FALSE, fig.width = 7.5, fig.height = 4}
+```{r, fig.width = 7.5, fig.height = 4}
 #install and load in the maps and ggplot2 packages
 library('maps') 
 library('ggplot2') 
 ```
 
 Run this code:
-```{r, eval = FALSE, fig.width = 7.5, fig.height = 4}
+```{r, fig.width = 7.5, fig.height = 4}
 ggplot(dat, aes(map_id=state, fill=Murder)) + 
   geom_map(map=map_data("state")) + 
   expand_limits(x=map_data("state")$long, y=map_data("state")$lat)
