@@ -38,7 +38,7 @@ It is useful to rename the dataset because it is easier to work with. If the dat
 
 ### Problem 2
 Use this command to make the state names into a new variable called State. 
-```{r}
+```{r, eval=TRUE}
 dat$state <- tolower(rownames(USArrests))
 ```
 
@@ -46,7 +46,7 @@ This dataset has the state names as row names, so we just want to make them into
 
 List the variables contained in the dataset `USArrests`.
 
-```{r}
+```{r, eval=TRUE}
 #find the variables in the dataset
 names(dat)
 ```
