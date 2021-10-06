@@ -131,3 +131,160 @@ ggplot(dat, aes(map_id=state, fill=Murder)) +
 What does this code do? Explain what each line is doing.
 
 __The first line above the map code loads the library for both packages. The first line of the map code is creating a plot of murder. The ggplot function is telling R to create a plot, the "dat" is telling R which dataset to use in the plot, and the "aes(map_id=state, fill=Murder))" is telling R to plot each state and fill it with the corresponding murder arrest rate. The geom_map function creates shapes for a reference map, and the map=map_data("state") function is telling R to map the data that corresponds with the state variable that we created earlier. The expand_limits function makes sure that the entire map fits within the plot of the graph and the (x=map_data("state")$long, y=map_data("state")$lat) tells R which data to base the plot limits off of, which in this case is the state data.__
+
+
+# Assignment 2
+
+### Problem 1
+Load in the data.
+```{r}
+dat <- read.csv(file = "Assignment2data copy.csv")
+```
+
+What are the dimensions of the dataset? 
+```{r}
+dim(dat)
+```
+__There are 171 columns and 7 rows (or 171 respondents and 7 questions)__
+
+### Problem 2
+Describe the variables in the dataset.
+```{r}
+names(dat)
+```
+__There are 7 variables in the dataset:__
+__1. "mjage" (How old were you the first time you used marijuana or hashish?)__
+__2. "cigage" (How old were you when you first started smoking cigarettes everyday?)__
+__3. "iralcage" (How old were you when you first tried alcohol?)__
+__4. "age2" (Recoded final edited age (since respondents had multiple chances to change their age throughout the survey))__
+__5. "sexatract" (Sexual attraction)__
+__6. "speakengl" (How well do you speak English)__
+__7. "irsex" (Imputation revised gender)__
+
+__Mjage, cigage, and iralcage are numeric variables (or quantitative) because the respondent gave an exact number for their answers for each variable and functions like mean can be applied to find the average age the respondents tried marijuana, cigarettes, and alcohol. Age2, sexatract, speakengl, and irsex are categorical variables because the respondents' answers were split into categories when coded. Because respondents had the opportunity to change their age throughout the interview, the age variable was calculated from the raw birth date and the final edited interview date, the age entered in the questionnaire roster (if it exists), and the pre-interview screener age because interviewees had the opportunity to change their age throughout the interview.__
+
+What is this dataset about? Who collected the data, what kind of sample is it, and what was the purpose of generating the data?
+__The dataset is a small sample from the National Survey of Drug Use and Health, which was conducted by the Center for Behavioral Health Statistics and Quality (CBHSQ, formerly the Office of Applied Studies) within the Substance Abuse and Mental Health Services Administration (SAMHSA) and is conducted by RTI International, Research Triangle Park, North Carolina. The survey was conducted through a computer assisted administration, and was changed from a strictly national design to a state-based sampling plan in 1999. The primary purpose of generating the data was to measure the prevalence and correlation of substance use and mental health issues in the United States, according to the NSDUH 2019 Codebook.__
+
+### Problem 3: Age and gender
+What is the age distribution of the sample like? Make sure you read the codebook to know what the variable values mean.
+```{r}
+hist(dat$age2, main = "Histogram of Recoded Final Edited Age Categories", xlab = "Recoded Final Edited Age Categories")
+```
+__The age variable is skewed to the left, with the majority of the values in the 14-16 bin (which means that the majority of the people in the dataset are 30 to 64 years old, according to the codebook). There are fewer people who were very young when filling out the survey, with only a few in the 4-6 and 6-8 bins (meaning that the respondents in these bins were 15-17 and 18-19, respectively).__
+
+Do you think this age distribution representative of the US population? Why or why  not?
+```{r}
+min(dat$age2) #the youngest respondent was 15 (category 4)
+max(dat$age2) #the oldest respondent was 65 years old or older (category 17)
+```
+__Yes, I think that this age distribution is representative of the US population. The survey was conducted in order to evaluate drug use, and I would think that people would not try drugs before turning 15 (the youngest respondent) and very few people would continue using drugs when they are 65 years old or older (the oldest respondent). Also, according to the codebook, the participants were randomly selected to complete the survey, which fulfills one requirement of a representative sample. It makes sense that the number of respondents increased when the respondents were 19 to 23 (8 to 12 categories) as those are the ages when most people would be exposed to marijuana, drugs, and alcohol for the first time, and that the number of respondents increased again when the respondents were 24 to 64 (categories 12 to 16), as those are the ages that people would continue to use marijuana, drugs, and alcohol as adults (especially after potentially being exposed in college). I also think that it makes sense that the majority of respondents were 34 to 64 years old, because older generations are more likely to have smoked cigarettes everyday before perception and knowledge changed.__
+
+Is the sample balanced in terms of gender? If not, are there more females or males?
+```{r}
+table(dat$irsex, dat$age2)
+```
+__The sample is not balanced in terms of gender. There were 91 males included in the dataset and 80 females included.__
+
+Use this code to draw a stacked bar plot to view the relationship between sex and age. What can you conclude from this plot?
+```{r}
+tab.agesex <- table(dat$irsex, dat$age2)
+barplot(tab.agesex,
+        main = "Stacked barchart",
+        xlab = "Age category", ylab = "Frequency",
+        legend.text = rownames(tab.agesex),
+        beside = FALSE) # Stacked bars (default)
+```
+__From this plot, I can conclude that more males answered the survey than females, as most age categories have a higher frequency of males than females (especially in categories 6 and 7). I can also conclude than more older males answered the survey than older females. As indicated in both the plot and the table of sex and age categories, the highest five categories (13, 14, 15, 16, and 17) had more male responses than females (1 more, 4 more, 4 more, 4 more, and 5 more, respectively).__
+
+### Problem 4: Substance use
+For which of the three substances included in the dataset (marijuana, alcohol, and cigarettes) do individuals tend to use the substance earlier?
+```{r}
+boxplot(dat$mjage, dat$cigage, dat$iralcage, main = "Substance Usage and Age",
+        ylab="Age", xlab="Types of Substances", 
+        names=c("Marijuana or Hashish","Cigarettes","Alcohol"))
+```
+__Based on the boxplot of substance usage and age, it looks like individuals tend to use alcohol earlier than marijuana / hashish or earlier than they started smoking cigarettes every day.__
+
+```{r}
+min(dat$mjage) 
+min(dat$cigage) 
+min(dat$iralcage) 
+```
+__Looking at the minimum values for each type of substance, the minimum recorded age for when an individual first tried marijuana / hashish was 7, the minimum recorded age for when an individual first started smoking cigarettes everyday was 10, and the minimum recorded age for when an individual first tried alcohol was 5. This also confirms that like individuals tend to use alcohol earlier than marijuana / hashish or earlier than they started smoking cigarettes every day.__
+
+### Problem 5: Sexual attraction
+What does the distribution of sexual attraction look like? Is this what you expected?
+```{r}
+dat.sexat <- subset(dat$sexatract, subset = dat$sexatract<7)
+
+hist(dat.sexat, main = "Distribution of Sexual Attraction", xlab = "Sexual Attraction")
+```
+__The distribution of sexual attraction is skewed to the right, with the majority of respondents answering that they are only attracted to the opposite sex (category one). The next greatest frequency of response is that the respondent is mostly attracted to the opposite sex (category 2), and then followed by the respondent is equally attracted to males and females (category 3). This is exactly what I expected because I would think that an overwhelming majority of people would be straight as that is most common in the United States.__
+
+What is the distribution of sexual attraction by gender?
+```{r}
+table(dat$irsex, dat$sexatract)
+
+library(dplyr) 
+
+dat$sexatract <- dat$sexatract %>% na_if(., "85")
+dat$sexatract <- dat$sexatract %>% na_if(., "94")
+dat$sexatract <- dat$sexatract %>% na_if(., "97")
+dat$sexatract <- dat$sexatract %>% na_if(., "98")
+dat$sexatract <- dat$sexatract %>% na_if(., "99")
+
+dat.five <- data.frame(dat$sexatract, dat$irsex)
+
+barplot <- barplot(table(dat.five$dat.irsex, dat.five$dat.sexatract),
+        main = "Sexual Attraction and Gender",
+        xlab = "Sexaul Attraction Category",
+        ylab = "Count",
+        border = "black",
+        col = c("hotpink1", "blue"),
+        ylim = c(0,171),
+        )
+barplot
+```
+__Looking at the stacked bar plot of sexual attraction and gender, it confirms what was seen in the table that more males than females responded that they are only attracted to the opposite sex (category one). It also confirms that more females than males answered that they are mostly attracted to the opposite sex (category 2) and are equally attracted to males and females (category 3).__
+
+### Problem 6: English speaking
+What does the distribution of English speaking look like in the sample? 
+```{r}
+hist(dat$speakengl, main = "Histogram of English Speakers", xlab = "How Well You Speak English (1 - lowest, 4 - highest)")
+```
+__The distribution of English speaking looks extremely skewed to the right, with the majority of respondents answering that they speak English very well (category one).__
+
+```{r}
+table(dat$speakengl)
+```
+__Looking at the table of respondents who answered the “Speak English” question,161 people answered that the speak English very well, eight answered that they speak English well, and only two answered that they speak English not well. This confirms the skew seen in the histogram.__
+
+Is this what you might expect for a random sample of the US population?
+__This is what I would expect a random sample of the US population to look like, as the majority of people in the US speak English and speak it very well. Even if there were people included in the random sample from places that do not speak as much English, like Texas or Miami, for example, the large amount of people who do speak English well would account for what is seen in the histogram.__
+
+Are there more English speaker females or males?
+```{r}
+table(dat$irsex, dat$speakengl)
+
+barplot(table(dat$irsex, dat$speakengl),
+        main="English Speaking Level and Gender",
+        xlab="English Speaking Level Category",
+        ylab="Count",
+        col=c("hotpink1", "mediumpurple1"),
+        ylim = c(0,200)
+)
+```
+__Looking at the stacked bar plot of English speaking level and gender, it looks like the number of males and females that answered that they spoke English very well was pretty close, will a few more males (exactly 11, according to the table). The plot also confirms that more men responded that they spoke English well than women, and that no men responded that they spoke English not well.__
+
+
+
+
+
+
+
+
+
+
+
+
