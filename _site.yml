@@ -1,10 +1,10 @@
-name: "CRIM250 - Brianna Fisher"
+name: "Brianna Fisher"
 navbar:
-  title: "CRIM250 - Brianna Fisher"
+  title: "Brianna Fisher"
   left:
     - text: "Home"
       href: index.html
-    - text: "Assignments"
+    - text: "CRIM 250 Assignments"
       href: Assignments.html
     - text: "Links"
       href: Links.html
