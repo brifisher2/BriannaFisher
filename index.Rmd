@@ -19,7 +19,9 @@ output: html_document
 
 # **Brianna Fisher**
 
-This is a template example for lab journaling. Students in Matt Crump's Human Cognition and Performance Lab will use this template to learn R, and other things. Students can replace this text with more fun things. People not in my lab can use this too.
+Hi! My name is Brianna Fisher and I am currently a sophomore at the University of Pennsylvania. I am majoring in Criminology and minoring in Survey Research and Data Analytics, with the goal of going to law school. 
+
+This website is a compilation of projects that I have completed in R Studio, demonstrating both my coding and analytic skills. 
 
 ## How to use
 

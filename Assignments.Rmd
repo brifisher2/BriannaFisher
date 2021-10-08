@@ -315,7 +315,7 @@ __The "body_camera" variable indicates whether or not news reports stated that a
 
 d. What are three weapons that you are surprised to find in the "armed" variable? Make a table of the values in "armed" to see the options.
 ```{r}
-table(dat$armed)
+head(table(dat$armed))
 ```
 
 __Three weapons that I was surprised to find in the dataset were an air conditioner, microphone, and pen.I feel like an air conditioner and microphone are definitely unusual weapons, and the pen does not seem like it would do anything against an officer's gun.__
