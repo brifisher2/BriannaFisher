@@ -518,7 +518,7 @@ library(&#39;ggplot2&#39;) </code></pre>
 <div id="problem-1-1" class="section level3">
 <h3>Problem 1</h3>
 <p>Load in the data.</p>
-<pre class="r"><code>dat &lt;- read.csv(file = &quot;Assignment2data copy.csv&quot;)</code></pre>
+<pre class="r"><code>dat &lt;- read.csv(file = &quot;data/Assignment2datacopy.csv&quot;)</code></pre>
 <p>What are the dimensions of the dataset?</p>
 <pre class="r"><code>dim(dat)</code></pre>
 <pre><code>## [1] 171   7</code></pre>
@@ -605,7 +605,7 @@ barplot &lt;- barplot(table(dat.five$dat.irsex, dat.five$dat.sexatract),
         ylab = &quot;Count&quot;,
         border = &quot;black&quot;,
         col = c(&quot;hotpink1&quot;, &quot;blue&quot;),
-        ylim = c(0,171),
+        ylim = c(0,171), legend.text = c(&quot;Males&quot;,&quot;Females&quot;),
         )</code></pre>
 <p><img src="Assignments_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <pre class="r"><code>barplot</code></pre>
@@ -634,7 +634,7 @@ barplot &lt;- barplot(table(dat.five$dat.irsex, dat.five$dat.sexatract),
         xlab=&quot;English Speaking Level Category&quot;,
         ylab=&quot;Count&quot;,
         col=c(&quot;hotpink1&quot;, &quot;mediumpurple1&quot;),
-        ylim = c(0,200)
+        ylim = c(0,200),  legend.text = c(&quot;Males&quot;,&quot;Females&quot;)
 )</code></pre>
 <p><img src="Assignments_files/figure-html/unnamed-chunk-23-1.png" width="672" /> <strong>Looking at the stacked bar plot of English speaking level and gender, it looks like the number of males and females that answered that they spoke English very well was pretty close, will a few more males (exactly 11, according to the table). The plot also confirms that more men responded that they spoke English well than women, and that no men responded that they spoke English not well.</strong></p>
 </div>
