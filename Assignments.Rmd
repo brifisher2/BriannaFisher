@@ -271,7 +271,7 @@ barplot(table(dat$irsex, dat$speakengl),
         main="English Speaking Level and Gender",
         xlab="English Speaking Level Category",
         ylab="Count",
-        col=c("hotpink1", "mediumpurple1"),
+        col=c("hotpink1", "blue"),
         ylim = c(0,200),  legend.text = c("Males","Females")
 )
 ```
