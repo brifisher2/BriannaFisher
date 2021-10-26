@@ -2,3 +2,5 @@ base
 maps
 ggplot2
 dplyr
+readr
+knitr
