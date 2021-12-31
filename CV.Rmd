@@ -10,10 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 #### __Here is my resume:__
+[Brianna Fisher Resume 12:21.pdf](https://github.com/brifisher2/BriannaFisher/files/7796931/Brianna.Fisher.Resume.12.21.pdf)
 
-<a href = "https://crumplab.github.io">
-![](images/respix.jpg)
-</a>
 
 #### __And here is some of my published work:__
 
