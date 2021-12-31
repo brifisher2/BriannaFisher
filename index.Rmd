@@ -17,11 +17,11 @@ output: html_document
 <div class="row" style="padding-top: 30px;">
 <div class="col-sm-6">
 
-# **Brianna Fisher**
+# **Hi! My name is Brianna Fisher.**
 
-Hi! My name is Brianna Fisher and I am currently a sophomore at the University of Pennsylvania. I am majoring in Criminology and minoring in Survey Research and Data Analytics, with the goal of going to law school. 
+I’m a positive, passionate, perfectionist college student trying to make the world a better place. Coffee & Criminal Justice reform enthusiast.
 
-This website is a compilation of projects that I have completed in R Studio, demonstrating both my coding and analytic skills. 
+This website is an introduction to me and my interests, including a compilation of projects that I have completed in R Studio which demonstrate both my coding and analytic skills. 
 
 
 </div>

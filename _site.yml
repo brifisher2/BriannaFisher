@@ -4,10 +4,14 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "CRIM 250"
+    - text: "About"
+      href: About.html
+    - text: "CV / Published Work"
+      href: CV.html
+    - text: "Stat for the Social Sciences"
       href: CRIM250.html
-    - text: "PSCI 107"
+    - text: "Intro to Data Sciences"
       href: Links.html
-    - text: "PSCI 338"
+    - text: "Statistical Methods for Poli Sci"
       href: PSCI338.html
 output_dir: "docs"
