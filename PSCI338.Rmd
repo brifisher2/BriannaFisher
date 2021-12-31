@@ -16,17 +16,18 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 
 # Portfolio {.tabset}
 
-<h2>Introduction to Data Science</h2>
-
 ## Introduction to Data Science
 
-<h2>Statistical Methods for Political Science</h2>
+<h2>Introduction to Data Science</h2>
 
 ## Statistical Methods for Political Science
 
-<h2>Statistics for the Social Sciences</h2>
+<h2>Statistical Methods for Political Science</h2>
 
 ## Statistics for the Social Sciences
+
+<h2>Statistics for the Social Sciences</h2>
+
 ### Assignment 1
 Install the datasets package on the console below using `install.packages("datasets")`. Now load the library.
 ```{r}
