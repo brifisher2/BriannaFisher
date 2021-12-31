@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #### __Here is my resume:__
 
 <a href = "https://crumplab.github.io">
-![](images/resume.jpeg)
+![](images/respix.jpg)
 </a>
 
 #### __And here is some of my published work:__

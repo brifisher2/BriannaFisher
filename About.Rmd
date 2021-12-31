@@ -7,9 +7,32 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+</style>
+
+<div class="row" style="padding-top: 30px;">
+<div class="col-sm-6">
+
 I am currently a sophomore at the University of Pennsylvania, majoring in Criminology and minoring in Survey Research and Data Analytics. Ever since taking my first Criminal Justice class in high school, I have been particularly interested in Criminal law and Criminal Justice reform, with the goals of going to law school and becoming a lawyer. Not only do I want to protect the victims of heinous crimes from getting hurt again, but also help criminals get the help they need to better themselves through diversion programs and prison reform. While this might sound like an incredibly large feat, I have always loved learning and am using my time at Penn to explore and expand upon these interests.
 
 Outside of the classroom, I love to explore Philadelphia with my friends, go kick boxing, window shopping, and am currently on the hunt for the best sushi in the city. I am a tutor for the West Philadelphia Tutoring Project, Research Fellow for the Penn Program on Opinion Research and Election Studies, and wannabe Jeopardy contestant. 
+
+</div>
+<div class="col-sm-6">
+
+
+
+<a href = "https://crumplab.github.io">
+![](images/penn2.jpeg)
+
+
+
+
+
+
+
+
+
+
 
 
 
