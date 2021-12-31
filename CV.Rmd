@@ -10,10 +10,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 #### __Here is my resume:__
+![resume2](https://user-images.githubusercontent.com/90274509/147838001-8187fca8-cf8c-48d7-a006-e758290c3f9a.jpeg)
 
+
+<<<<<<< HEAD
 <a href = "https://crumplab.github.io">
 ![](images/resume.jpg)
 </a>
+=======
+>>>>>>> b4c68d55de4cae1cb6033fc815d312e0fa4a85a4
 
 #### __And here is some of my published work:__
 
