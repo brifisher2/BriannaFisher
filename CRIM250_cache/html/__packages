@@ -1,0 +1,13 @@
+base
+maps
+ggplot2
+dplyr
+readr
+knitr
+tidyverse
+tibble
+tidyr
+purrr
+stringr
+forcats
+stargazer
