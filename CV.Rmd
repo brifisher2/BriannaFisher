@@ -10,7 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 #### __Here is my resume:__
-[Brianna Fisher Resume 12:21.pdf](https://github.com/brifisher2/BriannaFisher/files/7796931/Brianna.Fisher.Resume.12.21.pdf)
+![resume2](https://user-images.githubusercontent.com/90274509/147838001-8187fca8-cf8c-48d7-a006-e758290c3f9a.jpeg)
+
 
 
 #### __And here is some of my published work:__
