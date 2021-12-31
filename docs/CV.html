@@ -11,7 +11,7 @@
 
 
 
-<title>Resume and Published Work</title>
+<title>Learn more about me!</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,6 +19,9 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -248,6 +251,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -255,6 +321,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -301,17 +377,17 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Resume and Published Work</h1>
+<h1 class="title toc-ignore">Learn more about me!</h1>
 
 </div>
 
 
-<div id="here-is-my-resume" class="section level3">
-<h3><strong>Here is my resume:</strong></h3>
+<div id="here-is-my-resume" class="section level1">
+<h1><strong>Here is my resume:</strong></h1>
 <p><a href = "https://crumplab.github.io"> <img src="images/resume.jpg" /> </a></p>
 </div>
-<div id="and-here-is-some-of-my-published-work" class="section level3">
-<h3><strong>And here is some of my published work:</strong></h3>
+<div id="and-here-is-some-of-my-published-work" class="section level1">
+<h1><strong>And here is some of my published work:</strong></h1>
 <p><a href="https://doi.org/10.47611/jsrhs.v8i2.1286"><strong>AP Research Paper published in the Journal of Student Research</strong></a></p>
 <p><a href="https://www.nytimes.com/2019/04/16/us/pulitzer-parkland-stoneman-douglas-eagle-eye.html"><strong>“Parkland Students Bask in Pulitzer Mention: ‘They Took Us Seriously’”</strong></a></p>
 <p><a href="https://www.theguardian.com/us-news/2019/jan/01/parkland-students-five-ways-fight-gun-violence-2019"><strong>“Take action: Parkland students on five ways to fight gun violence in 2019”</strong></a></p>
@@ -320,6 +396,8 @@ $(document).ready(function () {
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -352,6 +430,32 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
