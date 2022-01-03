@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # __Here is my resume:__
 
-<a href = "https://crumplab.github.io">
+
 ![](images/resume.jpg)
 </a>
 

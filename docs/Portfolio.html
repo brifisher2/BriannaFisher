@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Here is some of my work in R Studio!</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Brianna Fisher</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="About.html">About</a>
+</li>
+<li>
+  <a href="CV.html">CV / Published Work</a>
+</li>
+<li>
+  <a href="Portfolio.html">Portfolio</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Here is some of my work in R Studio!</h1>
+
+</div>
+
+
+<div id="portfolio" class="section level1 tabset">
+<h1>Portfolio</h1>
+<div id="introduction-to-data-science" class="section level2">
+<h2>Introduction to Data Science</h2>
+<h2>
+Introduction to Data Science
+</h2>
+</div>
+<div id="statistical-methods-for-political-science" class="section level2">
+<h2>Statistical Methods for Political Science</h2>
+<h2>
+Statistical Methods for Political Science
+</h2>
+</div>
+<div id="statistics-for-the-social-sciences" class="section level2">
+<h2>Statistics for the Social Sciences</h2>
+<h2>
+Statistics for the Social Sciences
+</h2>
+<div id="assignment-1" class="section level3">
+<h3>Assignment 1</h3>
+<p><strong>Problem 1</strong></p>
+<p>Install the datasets package on the console below using <code>install.packages("datasets")</code>. Now load the library.</p>
+<pre class="r"><code>#Install the dataset package  
+#install.packages(&quot;datasets&quot;)
+
+#load in the library 
+library(datasets)</code></pre>
+<p>Load the USArrests dataset and rename it <code>dat</code>. Note that this dataset comes with R, in the package datasets, so there’s no need to load data from your computer. Why is it useful to rename the dataset?</p>
+<pre class="r"><code>#Load in the dataset
+USArrests</code></pre>
+<pre><code>##                Murder Assault UrbanPop Rape
+## Alabama          13.2     236       58 21.2
+## Alaska           10.0     263       48 44.5
+## Arizona           8.1     294       80 31.0
+## Arkansas          8.8     190       50 19.5
+## California        9.0     276       91 40.6
+## Colorado          7.9     204       78 38.7
+## Connecticut       3.3     110       77 11.1
+## Delaware          5.9     238       72 15.8
+## Florida          15.4     335       80 31.9
+## Georgia          17.4     211       60 25.8
+## Hawaii            5.3      46       83 20.2
+## Idaho             2.6     120       54 14.2
+## Illinois         10.4     249       83 24.0
+## Indiana           7.2     113       65 21.0
+## Iowa              2.2      56       57 11.3
+## Kansas            6.0     115       66 18.0
+## Kentucky          9.7     109       52 16.3
+## Louisiana        15.4     249       66 22.2
+## Maine             2.1      83       51  7.8
+## Maryland         11.3     300       67 27.8
+## Massachusetts     4.4     149       85 16.3
+## Michigan         12.1     255       74 35.1
+## Minnesota         2.7      72       66 14.9
+## Mississippi      16.1     259       44 17.1
+## Missouri          9.0     178       70 28.2
+## Montana           6.0     109       53 16.4
+## Nebraska          4.3     102       62 16.5
+## Nevada           12.2     252       81 46.0
+## New Hampshire     2.1      57       56  9.5
+## New Jersey        7.4     159       89 18.8
+## New Mexico       11.4     285       70 32.1
+## New York         11.1     254       86 26.1
+## North Carolina   13.0     337       45 16.1
+## North Dakota      0.8      45       44  7.3
+## Ohio              7.3     120       75 21.4
+## Oklahoma          6.6     151       68 20.0
+## Oregon            4.9     159       67 29.3
+## Pennsylvania      6.3     106       72 14.9
+## Rhode Island      3.4     174       87  8.3
+## South Carolina   14.4     279       48 22.5
+## South Dakota      3.8      86       45 12.8
+## Tennessee        13.2     188       59 26.9
+## Texas            12.7     201       80 25.5
+## Utah              3.2     120       80 22.9
+## Vermont           2.2      48       32 11.2
+## Virginia          8.5     156       63 20.7
+## Washington        4.0     145       73 26.2
+## West Virginia     5.7      81       39  9.3
+## Wisconsin         2.6      53       66 10.8
+## Wyoming           6.8     161       60 15.6</code></pre>
+<pre class="r"><code>#rename the USArrests dataset
+dat &lt;- USArrests</code></pre>
+<p><strong>It is useful to rename the dataset because it is easier to work with. If the data set had a longer or more complicated name, it would be difficult and time consuming to type out the dataset name every time when you want to perform a function on the data. It also lets you keep track of your work if you make different versions of it so that it is not contaminated by changes that were meant to be on one version and not the other. This will let you replicate the work if changes were made to different versions.</strong></p>
+<p><strong>Problem 2</strong> Use this command to make the state names into a new variable called State.</p>
+<pre class="r"><code>dat$state &lt;- tolower(rownames(USArrests))</code></pre>
+<p>This dataset has the state names as row names, so we just want to make them into a new variable. We also make them all lower case, because that will help us draw a map later - the map function requires the states to be lower case.</p>
+<p>List the variables contained in the dataset <code>USArrests</code>.</p>
+<pre class="r"><code>#find the variables in the dataset
+names(dat)</code></pre>
+<pre><code>## [1] &quot;Murder&quot;   &quot;Assault&quot;  &quot;UrbanPop&quot; &quot;Rape&quot;     &quot;state&quot;</code></pre>
+<p><strong>The variables in the USArrests dataset are Murder, Assault, UrbanPop, Rape, and State.</strong></p>
+<p><strong>Problem 3</strong></p>
+<p>What type of variable (from the DVB chapter) is <code>Murder</code>?</p>
+<p><strong>Murder is a quantitative variable from the DVB chapter since it is a count of numbers.</strong></p>
+<p>What R Type of variable is it?</p>
+<p><strong>Murder is a numeric variable from the R type since it is also a count of numbers and functions such as mean or median can be applied.</strong></p>
+<p><strong>Problem 4</strong></p>
+<p>What information is contained in this dataset, in general? What do the numbers mean?</p>
+<p><strong>The dataset contains arrest numbers for 4 types of crimes within all 50 states. Each state has a corresponding arrest rate for murder, assault, and rape, as well as the percent of urban population within the state. The numbers mean the number of arrests per 100,000 people in that state.</strong></p>
+<p><strong>Problem 5</strong></p>
+<p>Draw a histogram of <code>Murder</code> with proper labels and title.</p>
+<pre class="r"><code>hist(dat$Murder, main = &quot;Histogram of Murder Arrests&quot;, xlab = &quot;Number of Murder Arrests&quot;, ylab = &quot;Frequency&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><strong>Problem 6</strong></p>
+<p>Please summarize <code>Murder</code> quantitatively. What are its mean and median? What is the difference between mean and median? What is a quartile, and why do you think R gives you the 1st Qu. and 3rd Qu.?</p>
+<pre class="r"><code>#finding the summary statistics of the murder variable
+summary(dat$Murder)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   0.800   4.075   7.250   7.788  11.250  17.400</code></pre>
+<p><strong>The mean of the murder variable is 7.788 murders, while the median is 7.250 murders. The mean is the sum of all data values divided by the number of values, or the average of the values within the dataset. The median, however, is the middle value after all of the values are put in numerical order. When distributions are skewed or there are outliers in the data, the median is better to use than the mean because the mean changes with skew or outliers and the median is more robust. A quartile is each of three values in which the data can be distributed into even fourths. I think that R gives us the 1st quartile and 3rd quartile because they can be used to calculate the interquartile range, which tells us the interval where half of the values within the data set lie. The median is also the 2nd quartile, so the three groups are given that split the data in even fourths.</strong></p>
+<p><strong>Problem 7</strong></p>
+<p>Repeat the same steps you followed for <code>Murder</code>, for the variables <code>Assault</code> and <code>Rape</code>. Now plot all three histograms together. You can do this by using the command <code>par(mfrow=c(3,1))</code> and then plotting each of the three.</p>
+<pre class="r"><code>#make a histogram of assault
+hist(dat$Assault, main = &quot;Histogram of Assault Arrests&quot;, xlab = &quot;Number of Assault Arrests&quot;, ylab = &quot;Frequency&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-7-1.png" width="480" /></p>
+<pre class="r"><code>#make a histogram of rape
+hist(dat$Rape, main = &quot;Histogram of Rape Arrests&quot;, xlab = &quot;Number of Rape Arrests&quot;, ylab = &quot;Frequency&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-7-2.png" width="480" /></p>
+<pre class="r"><code>#plot all three histograms together
+par(mfrow=c(3,1))
+hist(dat$Murder, main = &quot;Histogram of Murder Arrests&quot;, xlab = &quot;Number of Murder Arrests&quot;, ylab = &quot;Frequency&quot;)
+hist(dat$Assault, main = &quot;Histogram of Assault Arrests&quot;, xlab = &quot;Number of Assault Arrests&quot;, ylab = &quot;Frequency&quot;)
+hist(dat$Rape, main = &quot;Histogram of Rape Arrests&quot;, xlab = &quot;Number of Rape Arrests&quot;, ylab = &quot;Frequency&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-7-3.png" width="480" /></p>
+<p>What does the command par do, in your own words (you can look this up by asking R <code>?par</code>)?</p>
+<p><strong>Par can be used to set the parameters on a graph, making it easier to combine multiple graphs into one.</strong></p>
+<p>What can you learn from plotting the histograms together?</p>
+<p><strong>By plotting these histograms together, you can compare the arrest rates for each crime. Murders happen the least frequently and assaults happen the most frequently. You can also see that the histogram for murder is unimodal and skewed, the histogram for assaults is bimodal, and the histogram for rapes is also unimodal and skewed.</strong></p>
+<p><strong>Problem 8</strong></p>
+<p>In the console below (not in text), type <code>install.packages("maps")</code> and press Enter, and then type <code>install.packages("ggplot2")</code> and press Enter. This will install the packages so you can load the libraries.</p>
+<pre class="r"><code>#install and load in the maps and ggplot2 packages
+library(&#39;maps&#39;) 
+library(&#39;ggplot2&#39;) </code></pre>
+<p>Run this code:</p>
+<pre class="r"><code>ggplot(dat, aes(map_id=state, fill=Murder)) + 
+  geom_map(map=map_data(&quot;state&quot;)) + 
+  expand_limits(x=map_data(&quot;state&quot;)$long, y=map_data(&quot;state&quot;)$lat)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-9-1.png" width="720" /> What does this code do? Explain what each line is doing.</p>
+<p><strong>The first line above the map code loads the library for both packages. The first line of the map code is creating a plot of murder. The ggplot function is telling R to create a plot, the “dat” is telling R which dataset to use in the plot, and the “aes(map_id=state, fill=Murder))” is telling R to plot each state and fill it with the corresponding murder arrest rate. The geom_map function creates shapes for a reference map, and the map=map_data(“state”) function is telling R to map the data that corresponds with the state variable that we created earlier. The expand_limits function makes sure that the entire map fits within the plot of the graph and the (x=map_data(“state”)<span class="math inline">\(long, y=map_data(&quot;state&quot;)\)</span>lat) tells R which data to base the plot limits off of, which in this case is the state data.</strong></p>
+</div>
+<div id="assignment-2" class="section level3">
+<h3>Assignment 2</h3>
+<p><strong>Problem 1</strong></p>
+<p>Load in the data.</p>
+<pre class="r"><code>dat &lt;- read.csv(file = &quot;data/Assignment2datacopy.csv&quot;)</code></pre>
+<p>What are the dimensions of the dataset?</p>
+<pre class="r"><code>dim(dat)</code></pre>
+<pre><code>## [1] 171   7</code></pre>
+<p><strong>There are 171 columns and 7 rows (or 171 respondents and 7 questions)</strong></p>
+<p><strong>Problem 2</strong></p>
+<p>Describe the variables in the dataset.</p>
+<pre class="r"><code>names(dat)</code></pre>
+<pre><code>## [1] &quot;mjage&quot;     &quot;cigage&quot;    &quot;iralcage&quot;  &quot;age2&quot;      &quot;sexatract&quot; &quot;speakengl&quot;
+## [7] &quot;irsex&quot;</code></pre>
+<p><strong>There are 7 variables in the dataset:</strong> <strong>1. “mjage” (How old were you the first time you used marijuana or hashish?)</strong> <strong>2. “cigage” (How old were you when you first started smoking cigarettes everyday?)</strong> <strong>3. “iralcage” (How old were you when you first tried alcohol?)</strong> <strong>4. “age2” (Recoded final edited age (since respondents had multiple chances to change their age throughout the survey))</strong> <strong>5. “sexatract” (Sexual attraction)</strong> <strong>6. “speakengl” (How well do you speak English)</strong> <strong>7. “irsex” (Imputation revised gender)</strong></p>
+<p><strong>Mjage, cigage, and iralcage are numeric variables (or quantitative) because the respondent gave an exact number for their answers for each variable and functions like mean can be applied to find the average age the respondents tried marijuana, cigarettes, and alcohol. Age2, sexatract, speakengl, and irsex are categorical variables because the respondents’ answers were split into categories when coded. Because respondents had the opportunity to change their age throughout the interview, the age variable was calculated from the raw birth date and the final edited interview date, the age entered in the questionnaire roster (if it exists), and the pre-interview screener age because interviewees had the opportunity to change their age throughout the interview.</strong></p>
+<p>What is this dataset about? Who collected the data, what kind of sample is it, and what was the purpose of generating the data? <strong>The dataset is a small sample from the National Survey of Drug Use and Health, which was conducted by the Center for Behavioral Health Statistics and Quality (CBHSQ, formerly the Office of Applied Studies) within the Substance Abuse and Mental Health Services Administration (SAMHSA) and is conducted by RTI International, Research Triangle Park, North Carolina. The survey was conducted through a computer assisted administration, and was changed from a strictly national design to a state-based sampling plan in 1999. The primary purpose of generating the data was to measure the prevalence and correlation of substance use and mental health issues in the United States, according to the NSDUH 2019 Codebook.</strong></p>
+<p><strong>Problem 3: Age and gender</strong></p>
+<p>What is the age distribution of the sample like? Make sure you read the codebook to know what the variable values mean.</p>
+<pre class="r"><code>hist(dat$age2, main = &quot;Histogram of Recoded Final Edited Age Categories&quot;, xlab = &quot;Recoded Final Edited Age Categories&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-13-1.png" width="672" /> <strong>The age variable is skewed to the left, with the majority of the values in the 14-16 bin (which means that the majority of the people in the dataset are 30 to 64 years old, according to the codebook). There are fewer people who were very young when filling out the survey, with only a few in the 4-6 and 6-8 bins (meaning that the respondents in these bins were 15-17 and 18-19, respectively).</strong></p>
+<p>Do you think this age distribution representative of the US population? Why or why not?</p>
+<pre class="r"><code>min(dat$age2) #the youngest respondent was 15 (category 4)</code></pre>
+<pre><code>## [1] 4</code></pre>
+<pre class="r"><code>max(dat$age2) #the oldest respondent was 65 years old or older (category 17)</code></pre>
+<pre><code>## [1] 17</code></pre>
+<p><strong>Yes, I think that this age distribution is representative of the US population. The survey was conducted in order to evaluate drug use, and I would think that people would not try drugs before turning 15 (the youngest respondent) and very few people would continue using drugs when they are 65 years old or older (the oldest respondent). Also, according to the codebook, the participants were randomly selected to complete the survey, which fulfills one requirement of a representative sample. It makes sense that the number of respondents increased when the respondents were 19 to 23 (8 to 12 categories) as those are the ages when most people would be exposed to marijuana, drugs, and alcohol for the first time, and that the number of respondents increased again when the respondents were 24 to 64 (categories 12 to 16), as those are the ages that people would continue to use marijuana, drugs, and alcohol as adults (especially after potentially being exposed in college). I also think that it makes sense that the majority of respondents were 34 to 64 years old, because older generations are more likely to have smoked cigarettes everyday before perception and knowledge changed.</strong></p>
+<p>Is the sample balanced in terms of gender? If not, are there more females or males?</p>
+<pre class="r"><code>table(dat$irsex, dat$age2)</code></pre>
+<pre><code>##    
+##      4  6  7  8  9 10 11 12 13 14 15 16 17
+##   1  1  1  1  0  1  1  3  3 14 10 33 14  9
+##   2  1  0  0  2  6  2  3  4 13  6 29 10  4</code></pre>
+<p><strong>The sample is not balanced in terms of gender. There were 91 males included in the dataset and 80 females included.</strong></p>
+<p>Use this code to draw a stacked bar plot to view the relationship between sex and age. What can you conclude from this plot?</p>
+<pre class="r"><code>tab.agesex &lt;- table(dat$irsex, dat$age2)
+barplot(tab.agesex,
+        main = &quot;Stacked barchart&quot;,
+        xlab = &quot;Age category&quot;, ylab = &quot;Frequency&quot;,
+        legend.text = rownames(tab.agesex),
+        beside = FALSE) # Stacked bars (default)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-16-1.png" width="672" /> <strong>From this plot, I can conclude that more males answered the survey than females, as most age categories have a higher frequency of males than females (especially in categories 6 and 7). I can also conclude than more older males answered the survey than older females. As indicated in both the plot and the table of sex and age categories, the highest five categories (13, 14, 15, 16, and 17) had more male responses than females (1 more, 4 more, 4 more, 4 more, and 5 more, respectively).</strong></p>
+<p><strong>Problem 4: Substance use</strong></p>
+<p>For which of the three substances included in the dataset (marijuana, alcohol, and cigarettes) do individuals tend to use the substance earlier?</p>
+<pre class="r"><code>boxplot(dat$mjage, dat$cigage, dat$iralcage, main = &quot;Substance Usage and Age&quot;,
+        ylab=&quot;Age&quot;, xlab=&quot;Types of Substances&quot;, 
+        names=c(&quot;Marijuana or Hashish&quot;,&quot;Cigarettes&quot;,&quot;Alcohol&quot;))</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-17-1.png" width="672" /> <strong>Based on the boxplot of substance usage and age, it looks like individuals tend to use alcohol earlier than marijuana / hashish or earlier than they started smoking cigarettes every day.</strong></p>
+<pre class="r"><code>min(dat$mjage) </code></pre>
+<pre><code>## [1] 7</code></pre>
+<pre class="r"><code>min(dat$cigage) </code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="r"><code>min(dat$iralcage) </code></pre>
+<pre><code>## [1] 5</code></pre>
+<p><strong>Looking at the minimum values for each type of substance, the minimum recorded age for when an individual first tried marijuana / hashish was 7, the minimum recorded age for when an individual first started smoking cigarettes everyday was 10, and the minimum recorded age for when an individual first tried alcohol was 5. This also confirms that like individuals tend to use alcohol earlier than marijuana / hashish or earlier than they started smoking cigarettes every day.</strong></p>
+<p><strong>Problem 5: Sexual attraction</strong></p>
+<p>What does the distribution of sexual attraction look like? Is this what you expected?</p>
+<pre class="r"><code>dat.sexat &lt;- subset(dat$sexatract, subset = dat$sexatract&lt;7)
+
+hist(dat.sexat, main = &quot;Distribution of Sexual Attraction&quot;, xlab = &quot;Sexual Attraction&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-19-1.png" width="672" /> <strong>The distribution of sexual attraction is skewed to the right, with the majority of respondents answering that they are only attracted to the opposite sex (category one). The next greatest frequency of response is that the respondent is mostly attracted to the opposite sex (category 2), and then followed by the respondent is equally attracted to males and females (category 3). This is exactly what I expected because I would think that an overwhelming majority of people would be straight as that is most common in the United States.</strong></p>
+<p>What is the distribution of sexual attraction by gender?</p>
+<pre class="r"><code>table(dat$irsex, dat$sexatract)</code></pre>
+<pre><code>##    
+##      1  2  3  4  5  6 99
+##   1 82  3  0  1  2  1  2
+##   2 54 13  9  2  1  0  1</code></pre>
+<pre class="r"><code>library(dplyr) 
+
+dat$sexatract &lt;- dat$sexatract %&gt;% na_if(., &quot;85&quot;)
+dat$sexatract &lt;- dat$sexatract %&gt;% na_if(., &quot;94&quot;)
+dat$sexatract &lt;- dat$sexatract %&gt;% na_if(., &quot;97&quot;)
+dat$sexatract &lt;- dat$sexatract %&gt;% na_if(., &quot;98&quot;)
+dat$sexatract &lt;- dat$sexatract %&gt;% na_if(., &quot;99&quot;)
+
+dat.five &lt;- data.frame(dat$sexatract, dat$irsex)
+
+barplot &lt;- barplot(table(dat.five$dat.irsex, dat.five$dat.sexatract),
+        main = &quot;Sexual Attraction and Gender&quot;,
+        xlab = &quot;Sexaul Attraction Category&quot;,
+        ylab = &quot;Count&quot;,
+        border = &quot;black&quot;,
+        col = c(&quot;hotpink1&quot;, &quot;blue&quot;),
+        ylim = c(0,171), legend.text = c(&quot;Males&quot;,&quot;Females&quot;),
+        )</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<pre class="r"><code>barplot</code></pre>
+<pre><code>## [1] 0.7 1.9 3.1 4.3 5.5 6.7</code></pre>
+<p><strong>Looking at the stacked bar plot of sexual attraction and gender, it confirms what was seen in the table that more males than females responded that they are only attracted to the opposite sex (category one). It also confirms that more females than males answered that they are mostly attracted to the opposite sex (category 2) and are equally attracted to males and females (category 3).</strong></p>
+<p><strong>Problem 6: English speaking</strong></p>
+<p>What does the distribution of English speaking look like in the sample?</p>
+<pre class="r"><code>hist(dat$speakengl, main = &quot;Histogram of English Speakers&quot;, xlab = &quot;How Well You Speak English (1 - lowest, 4 - highest)&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-21-1.png" width="672" /> <strong>The distribution of English speaking looks extremely skewed to the right, with the majority of respondents answering that they speak English very well (category one).</strong></p>
+<pre class="r"><code>table(dat$speakengl)</code></pre>
+<pre><code>## 
+##   1   2   3 
+## 161   8   2</code></pre>
+<p><strong>Looking at the table of respondents who answered the “Speak English” question,161 people answered that the speak English very well, eight answered that they speak English well, and only two answered that they speak English not well. This confirms the skew seen in the histogram.</strong></p>
+<p>Is this what you might expect for a random sample of the US population? <strong>This is what I would expect a random sample of the US population to look like, as the majority of people in the US speak English and speak it very well. Even if there were people included in the random sample from places that do not speak as much English, like Texas or Miami, for example, the large amount of people who do speak English well would account for what is seen in the histogram.</strong></p>
+<p>Are there more English speaker females or males?</p>
+<pre class="r"><code>table(dat$irsex, dat$speakengl)</code></pre>
+<pre><code>##    
+##      1  2  3
+##   1 84  7  0
+##   2 77  1  2</code></pre>
+<pre class="r"><code>barplot(table(dat$irsex, dat$speakengl),
+        main=&quot;English Speaking Level and Gender&quot;,
+        xlab=&quot;English Speaking Level Category&quot;,
+        ylab=&quot;Count&quot;,
+        col=c(&quot;hotpink1&quot;, &quot;blue&quot;),
+        ylim = c(0,200),  legend.text = c(&quot;Males&quot;,&quot;Females&quot;)
+)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-23-1.png" width="672" /> <strong>Looking at the stacked bar plot of English speaking level and gender, it looks like the number of males and females that answered that they spoke English very well was pretty close, will a few more males (exactly 11, according to the table). The plot also confirms that more men responded that they spoke English well than women, and that no men responded that they spoke English not well.</strong></p>
+</div>
+<div id="exam-1" class="section level3">
+<h3>Exam 1</h3>
+<p>Load the data into an R data frame.</p>
+<pre class="r"><code>dat &lt;- read.csv(file = &quot;data/fatal-police-shootings-datacopy.csv&quot;)</code></pre>
+<p><strong>Problem 1 (10 points)</strong></p>
+<ol style="list-style-type: lower-alpha">
+<li>Describe the dataset. This is the source: <a href="https://github.com/washingtonpost/data-police-shootings" class="uri">https://github.com/washingtonpost/data-police-shootings</a> . Write two sentences (max.) about this.</li>
+</ol>
+<p><strong>The dataset is made up of every fatal police shooting in the US since January 1, 2015, as collected by the Washington Post. The dataset includes 6594 people and 17 variables, which contain important information about each shooting, such as the name of the person shot, their mental health status, and their race.</strong></p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>How many observations are there in the data frame?</li>
+</ol>
+<pre class="r"><code>dim(dat)</code></pre>
+<pre><code>## [1] 6594   17</code></pre>
+<p><strong>There are 6594 observations in the data frame.</strong></p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Look at the names of the variables in the data frame. Describe what “body_camera”, “flee”, and “armed” represent, according to the codebook. Again, only write one sentence (max) per variable.</li>
+</ol>
+<pre class="r"><code>names(dat)</code></pre>
+<pre><code>##  [1] &quot;id&quot;                      &quot;name&quot;                   
+##  [3] &quot;date&quot;                    &quot;manner_of_death&quot;        
+##  [5] &quot;armed&quot;                   &quot;age&quot;                    
+##  [7] &quot;gender&quot;                  &quot;race&quot;                   
+##  [9] &quot;city&quot;                    &quot;state&quot;                  
+## [11] &quot;signs_of_mental_illness&quot; &quot;threat_level&quot;           
+## [13] &quot;flee&quot;                    &quot;body_camera&quot;            
+## [15] &quot;longitude&quot;               &quot;latitude&quot;               
+## [17] &quot;is_geocoding_exact&quot;</code></pre>
+<p><strong>The “body_camera” variable indicates whether or not news reports stated that a police officer that was at the scene of the incident was wearing a body camera and may have recorded parts of the incident. The “flee” variable indicates whether or not news reports have started that the victim was moving away from the officer during the incident. The “armed” variable indicates whether or not the victim was armed with any type of weapon that could have been thought to as possible to cause harm by an officer.</strong></p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>What are three weapons that you are surprised to find in the “armed” variable? Make a table of the values in “armed” to see the options.</li>
+</ol>
+<pre class="r"><code>head(table(dat$armed))</code></pre>
+<pre><code>## 
+##                 air conditioner      air pistol  Airsoft pistol              ax 
+##             207               1               1               3              24 
+##        barstool 
+##               1</code></pre>
+<p><strong>Three weapons that I was surprised to find in the dataset were an air conditioner, microphone, and pen.I feel like an air conditioner and microphone are definitely unusual weapons, and the pen does not seem like it would do anything against an officer’s gun.</strong></p>
+<p><strong>Problem 2 (10 points)</strong></p>
+<ol style="list-style-type: lower-alpha">
+<li>Describe the age distribution of the sample. Is this what you would expect to see?</li>
+</ol>
+<pre class="r"><code>hist(dat$age, main = &quot;Age Distribution of the Sample&quot;, xlab = &quot;Age&quot;, xlim = c(0, 100))</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p><strong>The age distribution of the sample is skewed to the right, with a large number of values between ages 20 and 40. This indicates that most people killed by the police in fatal shootings are young, and that older people between ages 60 and 100 are being killed in fatal police shootings at a much lower rate. This is exactly what I expected to see in the age distribution because younger people, especially in the 20 to 40 year old range, are more likely to have encounters with the police, as well as be healthy and be able to try to talk to or provoke the police and try to run away.</strong></p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>To understand the center of the age distribution, would you use a mean or a median, and why? Find the one you picked.</li>
+</ol>
+<pre class="r"><code>median(dat$age, na.rm = TRUE)</code></pre>
+<pre><code>## [1] 35</code></pre>
+<p><strong>To understand the center of the age distribution, I would use the median because the data is skewed to the right and the median is a more robust measure of skewed data as the mean changes with skew or outliers. The median of the age distribution for this dataset is 35 years old, and I removed the missing values since there are only 308 of them out of 6594 observations and they indicate that the person’s age was unknown or missing.</strong></p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Describe the gender distribution of the sample. Do you find this surprising?</li>
+</ol>
+<pre class="r"><code>table(dat$gender)</code></pre>
+<pre><code>## 
+##         F    M 
+##    3  293 6298</code></pre>
+<pre class="r"><code>counts &lt;- table(dat$gender, useNA = &quot;ifany&quot;)
+barplot(counts, main = &quot;Gender Distrubution&quot;, xlab = &quot;Gender&quot;, ylab = &quot;Counts&quot;, names=c(&quot;None&quot;, &quot;Females&quot;, &quot;Males&quot;))</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<p><strong>The gender distribution is definitely skewed, with 6005 more males being fatally shot by police officers than females. This can also be seen in the barplot, with the majority of respondents being males. There were also 3 unknown values in the data, indicating no gender according to the codebook. I do not find this surprising, however, because the majority of police shootings that we hear about in the news are of males, with the rare occurrence of a female. While females are definitely still being killed by the police, it is happening disproportionately to males which is indicated by both the news and the data.</strong></p>
+<p><strong>Problem 3 (10 points)</strong></p>
+<ol style="list-style-type: lower-alpha">
+<li>How many police officers had a body camera, according to news reports? What proportion is this of all the incidents in the data? Are you surprised that it is so high or low?</li>
+</ol>
+<pre class="r"><code>table(dat$body_camera)</code></pre>
+<pre><code>## 
+## False  True 
+##  5684   910</code></pre>
+<pre class="r"><code>910/6594</code></pre>
+<pre><code>## [1] 0.1380042</code></pre>
+<p><strong>According to the news reports, 910 police officers had a body camera, which is about 13.80% of all incidents in the data. I am surprised that this is so low because I would think that after the 2014 killing of Michael Brown and subsequent police shootings, police offices and the public would call for an increased use of body cameras.</strong></p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>In how many of the incidents was the victim fleeing? What proportion is this of the total number of incidents in the data? Is this what you would expect?</li>
+</ol>
+<pre class="r"><code>table(dat$flee)</code></pre>
+<pre><code>## 
+##                     Car        Foot Not fleeing       Other 
+##         491        1058         845        3952         248</code></pre>
+<pre class="r"><code>1058+845+248 #fleeing</code></pre>
+<pre><code>## [1] 2151</code></pre>
+<pre class="r"><code>2151/6594</code></pre>
+<pre><code>## [1] 0.3262056</code></pre>
+<p><strong>There are 2151 incidents of the victim fleeing, which is about 32.62% of all incidents in the data. This was calculated by including the 491 unknown observations in the “not fleeing” group, as what this category of observations represents was not included in the codebook and cannot be assumed to be fleeing, especially since there is already an “other” group. This is pretty much what I would expect because I would think that the majority of people when interacting with the police would not flee, since it is known that the consequences would probably be worse because of it.</strong></p>
+<p><strong>Problem 4 (10 points)</strong></p>
+<ol style="list-style-type: lower-alpha">
+<li>Describe the relationship between the variables “body camera” and “flee” using a stacked barplot. What can you conclude from this relationship?</li>
+</ol>
+<p><em>Hint 1: The categories along the x-axis are the options for “flee”, each bar contains information about whether the police officer had a body camera (vertically), and the height along the y-axis shows the frequency of that category).</em></p>
+<p><em>Hint 2: Also, if you are unsure about the syntax for barplot, run ?barplot in R and see some examples at the bottom of the documentation. This is usually a good way to look up the syntax of R code. You can also Google it.</em></p>
+<pre class="r"><code>library(ggplot2) 
+ggplot(dat, aes(fill=body_camera, y=frequency(body_camera), x=flee)) + 
+  geom_bar(position=&quot;stack&quot;, stat=&quot;identity&quot;) +
+  ggtitle(&quot;Stacked Barplot of Body Camera Usage and Victim Fleeing&quot;) +
+  labs(y=&quot;Frequency of Body Camera Usage&quot;, x = &quot;How the Victim Fled&quot;) +
+  labs(fill = &quot;Body Camera Usage&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p><strong>From the plot, it can be seen that everybody that fled from the police did so more often when the police were not wearing a body camera. It looks like not fleeing and the police wearing a body camera are related, as when more police wore a body camera less people fled (since the not fleeing bar had the most police wearing a body camera). You can also see that the most people fled by using a car, which during those indicidents police were less likely to wear a body camera than to actually have it on. While it is unknown what the first bar represents as it is left out of the codebook, it follows the same pattern of the other bars that the police did not wear body cameras more often than they did.</strong></p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Describe the relationship between age and race by using a boxplot. What can you conclude from this relationship?</li>
+</ol>
+<p><em>Hint 1: The categories along the x-axis are the race categories and the height along the y-axis is age.</em></p>
+<p><em>Hint 2: Also, if you are unsure about the syntax for boxplot, run ?boxplot in R and see some examples at the bottom of the documentation. This is usually a good way to look up the syntax of R code. You can also Google it.</em></p>
+<pre class="r"><code>boxplot &lt;- ggplot(dat, aes(x=race, y=age)) + 
+  geom_boxplot() +
+  ggtitle(&quot;Boxplot of Race and Age&quot;)
+boxplot</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<p><strong>The relationship between race and age looks pretty even, with the median values of age for each race category between 25 and 37. The range for all ages except White is between 12 and 62, while the White range extends from about 5 to 80. There are a significant number of outliers, however, for the Black, Hispanic, and White categories. The NAs for age were removed, and the unknown race category was plotted first on the graph but cannot be interpreted as it is not in the codebook. From this relationship, I can conclude that on average, all races of a similar age between 25 and 37 are killed at similar rates. While there are some outliers to this, especially for the Black and Hispanic categories, all of the medians of age for each race is almost identical.</strong></p>
+<p><strong>Extra credit (10 points)</strong></p>
+<ol style="list-style-type: lower-alpha">
+<li>What does this code tell us?</li>
+</ol>
+<pre class="r"><code>mydates &lt;- as.Date(dat$date)
+head(mydates)
+(mydates[length(mydates)] - mydates[1])</code></pre>
+<p><strong>The as.Date function in R converts the string of date values into actual dates that functions can be applied to. The head function makes sure that this conversion was done correctly by showing us the first 6 values of the data. The “(mydates[length(mydates)] - mydates[1])” function tells us the time difference between the last observation (which is the entire length of mydates) and the first obeservation (which is "mydates[1]), which ends up being 2458 days.</strong></p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>On Friday, a new report was published that was described as follows by The Guardian: “More than half of US police killings are mislabelled or not reported, study finds.” Without reading this article now (due to limited time), why do you think police killings might be mislabelled or underreported?</li>
+</ol>
+<p><strong>I think that police killings may be mislabeled or underreported because police offices do not want to admit to have killing anyone or engaging in illegal or overly forceful activities. I think that there may be disparities between the police reporting shooting and witnesses observing shootings, as police offices may be less likely to do so. I also think that police offices may mislabel the shooting as something that was not their fault so that they do not get attacked by the public for the incident.</strong></p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Regarding missing values in problem 4, do you see any? If so, do you think that’s all that’s missing from the data?</li>
+</ol>
+<p><strong>Yes, I saw missing values in problem 4 in the age category. The race and fleeing variable also had unknown values, as it was not indicated by the codebook. I do not think that this is all that is missing from the data, as other variables, such as gender, also had missing or unknown values. I think that going along with part b, some of the data reported was mislabeled or incorrect, and this may be represented by the missing or unknown values in the data.</strong></p>
+</div>
+<div id="assignment-3" class="section level3">
+<h3>Assignment 3</h3>
+<p>Load the data.</p>
+<pre class="r"><code>library(readr)
+library(knitr)
+dat.crime &lt;- read_delim(&quot;/Users/briannafisher/Dropbox/CRIM250/Data/crime_simple.txt&quot;, delim = &quot;\t&quot;)</code></pre>
+<p>This is a dataset from a textbook by Brian S. Everitt about crime in the US in 1960. The data originate from the Uniform Crime Report of the FBI and other government sources. The data for 47 states of the USA are given.</p>
+<p>Here is the codebook:</p>
+<p>R: Crime rate: # of offenses reported to police per million population</p>
+<p>Age: The number of males of age 14-24 per 1000 population</p>
+<p>S: Indicator variable for Southern states (0 = No, 1 = Yes)</p>
+<p>Ed: Mean of years of schooling x 10 for persons of age 25 or older</p>
+<p>Ex0: 1960 per capita expenditure on police by state and local government</p>
+<p>Ex1: 1959 per capita expenditure on police by state and local government</p>
+<p>LF: Labor force participation rate per 1000 civilian urban males age 14-24</p>
+<p>M: The number of males per 1000 females</p>
+<p>N: State population size in hundred thousands</p>
+<p>NW: The number of non-whites per 1000 population</p>
+<p>U1: Unemployment rate of urban males per 1000 of age 14-24</p>
+<p>U2: Unemployment rate of urban males per 1000 of age 35-39</p>
+<p>W: Median value of transferable goods and assets or family income in tens of $</p>
+<p>X: The number of families per 1000 earning below 1/2 the median income</p>
+<p>We are interested in checking whether the reported crime rate (# of offenses reported to police per million population) and the average education (mean number of years of schooling for persons of age 25 or older) are related.</p>
+<p><strong>Problem 1</strong></p>
+<p>How many observations are there in the dataset? To what does each observation correspond?</p>
+<pre class="r"><code>dim(dat.crime)</code></pre>
+<pre><code>## [1] 47 14</code></pre>
+<p><strong>There are 47 observations in the dataset, with 14 different variables. Each observation corresponds to a particular state.</strong></p>
+<p><strong>Problem 2</strong></p>
+<p>Draw a scatterplot of the two variables. Calculate the correlation between the two variables. Can you come up with an explanation for this relationship?</p>
+<pre class="r"><code>plot(dat.crime$Ed, dat.crime$R, main = &quot;Scatterplot of Average Education and Reported Crime Rate&quot;, xlab = &quot;mean number of years of schooling for persons of age 25 or older times 10&quot;, ylab = &quot;# of offenses reported to police per million population&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-38-1.png" width="576" /></p>
+<pre class="r"><code>cor(dat.crime$R, dat.crime$Ed)</code></pre>
+<pre><code>## [1] 0.3228349</code></pre>
+<p><strong>The correlation of the reported crime rate (measured in the number of offenses reported to police per million population) and average education (measured in the mean number of years of schooling for persons of age 25 or older times 10) is 0.32, which is pretty weak. The scatterplot of these variables proves this, as it is positive but fairly spread out. One explanation for this relationship may be that states with bigger cities are populated by people with more years of education than states with rural areas, and states with bigger cities have higher reported crime rates. While these two variables specificaly are not highly correlated (since the value was 0.32), high average education and high reported crime rates are both characteristic of states with big cities.</strong></p>
+<p><strong>Problem 3</strong></p>
+<p>Regress reported crime rate (y) on average education (x) and call this linear model <code>crime.lm</code> and write the summary of the regression by using this code, which makes it look a little nicer <code>{r, eval=FALSE} kable(summary(crime.lm)$coef, digits = 2)</code>.</p>
+<pre class="r"><code>crime.lm &lt;- lm(formula = R ~ Ed, data = dat.crime)
+
+summary(crime.lm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = R ~ Ed, data = dat.crime)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -60.061 -27.125  -4.654  17.133  91.646 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)  
+## (Intercept) -27.3967    51.8104  -0.529   0.5996  
+## Ed            1.1161     0.4878   2.288   0.0269 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 37.01 on 45 degrees of freedom
+## Multiple R-squared:  0.1042, Adjusted R-squared:  0.08432 
+## F-statistic: 5.236 on 1 and 45 DF,  p-value: 0.02688</code></pre>
+<p><strong>Problem 4</strong> 4. Are the four assumptions of linear regression satisfied? To answer this, draw the relevant plots. (Write a maximum of one sentence per assumption.)</p>
+<pre class="r"><code>#linearity and independence assumptions - residuals vs. x plot
+plot(dat.crime$Ed, crime.lm$residuals, ylim=c(-15,15), main=&quot;Residuals vs. Average Education&quot;, xlab=&quot;mean number of years of schooling for persons of age 25 or older times 10&quot;, ylab=&quot;Residuals&quot;)
+abline(h = 0, lty=&quot;dashed&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+<pre class="r"><code>#linearity assumption - residuals vs. fitted
+plot(crime.lm, which=1)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
+<p><strong>Both the residuals vs. x plot and residuals vs. fitted plot show no clear linear patterns and the residuals appear evenly spread out above and below both lines, so it satisfies the linearity assumption (because there are also only 47 observations, with the number that are given we can assume this is good enough for linear regression).</strong></p>
+<p><strong>Looking again at the residuals vs. x plot, we see that there are no patterns in the plot, so the independence assumption is fulfilled.</strong></p>
+<pre class="r"><code>#equal variance / homoscedasticity assumption - resuiduals vs. predicted values
+plot(crime.lm, which=3)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+<p><strong>Looking at the residuals plotted against the predicted values, the red line looks pretty flat and there are no significant trends in the red line, so the equal variance / homoscedasticity assumption looks satisfied, but the scatterplot we made earlier shows no strong linear association.</strong></p>
+<pre class="r"><code>#Normal population assumption - residuals vs. leverage plot
+plot(crime.lm, which=5)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+<pre class="r"><code>#Normal population assumption - Normal qq plot
+plot(crime.lm, which=2)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-45-1.png" width="672" /></p>
+<p><strong>The residuals vs. leverage plot fulfills the normal population assumption as the values are within Cook’s distance, but the normal qq plot looks like there is an issue with some of the values curving, especially since we know these are not outliers.</strong></p>
+<p><strong>Problem 5</strong></p>
+<p>Is the relationship between reported crime and average education statistically significant? Report the estimated coefficient of the slope, the standard error, and the p-value. What does it mean for the relationship to be statistically significant?</p>
+<p><strong>The relationship between reported crime rates and average education is statistically significant. The coefficient of the slope is 1.1161, which means that on average, for every additional year of average education, the reported crime rate increases by 1.1161 offenses reported to police per million population. The standard error is 0.4878, which means that the number of offenses reported to the police per million population can vary by 0.4878 offenses. The p-value is 0.02688, which means that we can reject the null hypothesis and conclude that there is a relationship between reported crime rates and average education. For the relationship to be statistically significant, it would mean that the p-value is less than 0.05, telling us that it is unlikely that the relationship between reported crime rates and average education is due to chance.</strong></p>
+<p><strong>Problem 6</strong></p>
+<p>How are reported crime and average education related? In other words, for every unit increase in average education, how does reported crime rate change (per million) per state?</p>
+<p><strong>On average, for every additional year of average education, the reported crime rate increases by 1.1161 offenses reported to police per million population per state. </strong></p>
+<p><strong>Problem 7</strong></p>
+<p>Can you conclude that if individuals were to receive more education, then crime will be reported more often? Why or why not?</p>
+<p><strong>You cannot conclude that if individuals were to receive more education, then crime will be reported more often. While the p-value indicates that there is some relationship between the two variables, the correlation between them is only 0.32 and the r-squared value is 0.1042. Neither of these values indicate a strong relationship between average education and reported crime rate. This statement also implies causation, that if people received more education then crime will decrease. Causation cannot be assumed, as there may be other causes or hidden variables that influence the decrease in crime rate with increased education. Similarly, this dataset is in relation to states, not individuals, so this statement could not be proven by this linear model.</strong></p>
+</div>
+<div id="exam-2" class="section level3">
+<h3>Exam 2</h3>
+<p><strong>Instructions</strong></p>
+<ol style="list-style-type: lower-alpha">
+<li><p>Create a folder in your computer (a good place would be under Crim 250, Exams).</p></li>
+<li><p>Download the dataset from the Canvas website (sim.data.csv) onto that folder, and save your Exam 2.Rmd file in the same folder.</p></li>
+<li><p>Data description: This dataset provides (simulated) data about 200 police departments in one year. It contains information about the funding received by the department as well as incidents of police brutality. Suppose this dataset (sim.data.csv) was collected by researchers to answer this question: <strong>“Does having more funding in a police department lead to fewer incidents of police brutality?”</strong></p></li>
+<li><p>Codebook:</p></li>
+</ol>
+<ul>
+<li>funds: How much funding the police department received in that year in millions of dollars.</li>
+<li>po.brut: How many incidents of police brutality were reported by the department that year.</li>
+<li>po.dept.code: Police department code</li>
+</ul>
+<p><strong>Problem 1: EDA (10 points)</strong></p>
+<p>Describe the dataset and variables. Perform exploratory data analysis for the two variables of interest: funds and po.brut.</p>
+<pre class="r"><code>dat &lt;- read.csv(file = &#39;/Users/briannafisher/Dropbox/Github/BriannaFisher/data/sim.data.2.csv&#39;)
+
+dim(dat)</code></pre>
+<pre><code>## [1] 200   3</code></pre>
+<pre class="r"><code>names(dat)</code></pre>
+<pre><code>## [1] &quot;po.dept.code&quot; &quot;funds&quot;        &quot;po.brut&quot;</code></pre>
+<p><strong>The dataset has 200 observations and 3 variables, with each observation corresponding to a particular police department. The variables are “po.dept.code”, which is the police department code, “funds”, which is the amount of funding the department received that year in millions of dollars, and “po.brut”, which is the number of incidents of police brutality reported by the department that year.</strong></p>
+<pre class="r"><code>plot(dat$funds, dat$po.brut, main = &quot;Scatterplot of Department Funding and Police Brutality&quot;, xlab = &quot;Department Funding in Millions of Dollars that Year&quot;, ylab = &quot;Number of Incidents of Police Brutality that Year&quot;, xlim = c(0,100))</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-47-1.png" width="672" /></p>
+<pre class="r"><code>cor(dat$funds, dat$po.brut)</code></pre>
+<pre><code>## [1] -0.9854706</code></pre>
+<p><strong>Looking at the scatterplot of department funding and police brutality, it looks like the two have a strong, negative association. As department funding increases, it looks like reported police brutality incidents decreases. The two variables also have a correlation of -0.985, indicating that the two are strongly, negatively correlated.</strong></p>
+<p><strong>Problem 2: Linear regression (30 points)</strong></p>
+<ol style="list-style-type: lower-alpha">
+<li>Perform a simple linear regression to answer the question of interest. To do this, name your linear model “reg.output” and write the summary of the regression by using “summary(reg.output)”.</li>
+</ol>
+<pre class="r"><code>reg.output &lt;- lm(formula = po.brut ~ funds, data = dat)
+summary(reg.output)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = po.brut ~ funds, data = dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -3.9433 -0.2233  0.2544  0.5952  1.1803 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 40.543069   0.282503  143.51   &lt;2e-16 ***
+## funds       -0.367099   0.004496  -81.64   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.9464 on 198 degrees of freedom
+## Multiple R-squared:  0.9712, Adjusted R-squared:  0.971 
+## F-statistic:  6666 on 1 and 198 DF,  p-value: &lt; 2.2e-16</code></pre>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Report the estimated coefficient, standard error, and p-value of the slope. Is the relationship between funds and incidents statistically significant? Explain.</li>
+</ol>
+<p><strong>The relationship between reported incidents of police brutality and department funding is statistically significant. The estimated coefficient is -0.367, which means that one unit higher of funding is associated with 0.367 less reported incidents of police brutality. The standard error is 0.0045, which means that the number of reported incidents of police brutality can vary by 0.0045 incidents. The p-value is less than 2.2e-16, which means that we can reject the null hypothesis and conclude that there is a relationship between reported incidents of police brutality and department funding. For the relationship to be statistically significant, it would mean that the p-value is less than 0.05 (which 2.2e-16 is), telling us that it is unlikely that the relationship between reported incidents of police brutality and department funding is due to chance.</strong></p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Draw a scatterplot of po.brut (y-axis) and funds (x-axis). Right below your plot command, use abline to draw the fitted regression line, like this:</li>
+</ol>
+<pre class="r"><code>plot(dat$funds, dat$po.brut, main = &quot;Scatterplot of Department Funding and Police Brutality&quot;, xlab = &quot;Department Funding in Millions of Dollars that Year&quot;, ylab = &quot;Number of Incidents of Police Brutality that Year&quot;, xlim = c(0,100))
+abline(reg.output, col = &quot;red&quot;, lwd=2)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-50-1.png" width="576" /> Does the line look like a good fit? Why or why not?</p>
+<p><strong>Looking at the scatterplot, the line does not look like a good fit. The points on the scatterplot look curved, with the values on both ends of the line curving away from the line. If the line was a good fit, it would have no pattern and the data would also form a straight line. However, looking at the regression output, the R squared is 0.9712, indicating that the model fits the data incredibly well. Because my eyes can be deceiving and I changed the x-axis of the plot to include 0 squishing the data more towards the end of the plot, I would go with the R squared value and say that the line is a good fit.</strong></p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>Are the four assumptions of linear regression satisfied? To answer this, draw the relevant plots. (Write a maximum of one sentence per assumption.) If not, what might you try to do to improve this (if you had more time)?</li>
+</ol>
+<p>Assumption 1</p>
+<pre class="r"><code>#linearity and independence assumptions - residuals vs. x plot
+plot(dat$funds, reg.output$residuals, ylim=c(-15,15), main=&quot;Residuals vs. Department Funding&quot;, xlab=&quot;Department Funding in Millions of Dollars that Year&quot;, ylab=&quot;Residuals&quot;)
+abline(h = 0, lty=&quot;dashed&quot;)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-51-1.png" width="672" /></p>
+<pre class="r"><code>#linearity assumption - residuals vs. fitted
+plot(reg.output, which=1)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-52-1.png" width="672" /> <strong>Because both the residuals vs. x plot and residuals vs. fitted plot show clear curved patterns in the plots instead of no pattern at all, I would say that the linearity assumption is not satisfied.</strong></p>
+<p>Assumption 2 <strong>Looking again at the residuals vs. x plot, we see that there is a curved pattern in the plot, so the independence assumption is not satisfied.</strong></p>
+<p>Assumption 3</p>
+<pre class="r"><code>#equal variance / homoscedasticity assumption - resuiduals vs. predicted values
+plot(reg.output, which=3)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-53-1.png" width="672" /> <strong>Looking at both the scatterplot from question 1 and the scale-location plot, there is a clear pattern in the plot, so the equal variance / homoscedasticity assumption is not satisfied.</strong></p>
+<p>Assumption 4</p>
+<pre class="r"><code>#Normal population assumption - residuals vs. leverage plot
+plot(reg.output, which=5)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-54-1.png" width="672" /></p>
+<pre class="r"><code>#Normal population assumption - Normal qq plot
+plot(reg.output, which=2)</code></pre>
+<p><img src="Portfolio_files/figure-html/unnamed-chunk-55-1.png" width="672" /> <strong>Looking at the residuals vs. leverage plot (it looks like many values are clustered at the top of the line) and the normal qq plot (the values on the ends of the line are curving away from the line), the normal population assumption is not satisfied.</strong></p>
+<p><strong>Because none of the assumptions are satisfied, if I had more time I would perform some sort of transformation to the data. I would probably start with logging funds, because I know that wages are usually logged when performing linear regression and funds are a pretty similar type of variable.</strong></p>
+<ol start="5" style="list-style-type: lower-alpha">
+<li>Answer the question of interest based on your analysis: “Does having more funding in a police department lead to fewer incidents of police brutality?”</li>
+</ol>
+<p><strong>Based on my analysis, it cannot be concluded that having more funding in a police department leads to fewer incidents of police brutality, as this implies causation and there could be hidden variables influencing the relationship. However,it does seem like having more funding in a police department is associated with fewer incidents of police brutality. The scatterplot and correlation show a strong negative relationship between the variables, and the p-value is statistically significant indicating that this relationship is not due to chance. Also, I do not think that the linear model is the best way to represent the data without performing any transformations. All of the assumptions were not satisfied, and even the scatterplot indicates a slight curving pattern. Transforming the data may give more insight into the association between department funding and incidents of police brutality.</strong></p>
+<p><strong>Problem 3: Data ethics (10 points)</strong></p>
+<p>Describe the dataset. Considering our lecture on data ethics, what concerns do you have about the dataset? Once you perform your analysis to answer the question of interest using this dataset, what concerns might you have about the results?</p>
+<p><strong>Considering our lecture on data ethics, I am concerned that the dataset is biased because the police brutality variable is based off of the reported incidents of police brutality by the departments themselves. There is no way to know if departments are under reporting brutality, so the numbers in the dataset may not be correct or may not actually be reporting the ground truth of police brutality. Once I performed my analysis, I am concerned that the results may interpreted that more funding leads to less brutality (as even stated in the question of interest). This, however, implies causation, and while there is a relationship between the two variables there may be another hidden variable that is truly causing the association. It may be that having more funding leads to better service programs being provided by the police which leads to decreased police brutality, but that is something that cannot be proven with this dataset and analysis. In terms of implications, a policy maker may look at this analysis and think that increasing funding is the best solution to decreasing police brutality, which other research has proven that may not be the case. This analysis could, essentially, cause more harm if all police departments had an increase in funding but the funding was misused or put towards other things than decreasing police brutality.</strong></p>
+</div>
+<div id="final-project" class="section level3">
+<h3>Final Project</h3>
+<p><strong>Marijuana Possession Charges</strong> <strong>An exploratory look at the relationship between race and sentencing outcomes</strong> <strong>By Brianna Fisher, Sophie Faircloth, Anna Sophia Lotman, Hannah Wassermann</strong></p>
+<p><strong>INTRODUCTION</strong> Following Nixon’s call for the War on Drugs in June 1971, there was a push for mandatory sentencing in drug-related crimes, effectively expanding the role of the federal government in drug-related arrests and sentencing (Drug Policy Alliance, 2021). Recently, there has been an uptick of discussion in the political world and in pop culture of the United States on the War on Drugs, namely regarding the adjustment of the severity of sentencing and its disproportionate effect on minority communities. These racial disparities are particularly discussed in regards to marijuana-related charges, as Black Americans have been found to be four times more likely to be arrested for marijuana charges than White Americans and six times more likely to be incarcerated for drug-related charges (Rahamatulla, 2017). Many agree that a solution to the disproportionate effects of drug-related charges needs to be created, and through the work discussed in this paper, we hope to focus our attention on sentencing outcomes and race for marijuana charges to further understand where disparities lie. Due to the increasing prevalence and history of drug-related sentencing, we wanted to examine the relationships in drug-related sentencing between race and sentencing likelihood, especially focusing on marijuana. We expect, from past studies examined in and outside of this course, that the rate of prison sentencing for Black people would be higher than the rate of prison sentencing of white people. These motivations lead to the research question: Are Black people sentenced federally to prison for marijuana at a higher rate than white people?</p>
+<p><strong>DESCRIPTION OF THE DATA USED</strong> The data set we utilized for this review is a record of federal criminal sentences as provided by the US Sentencing Committee (United States Sentencing Commission, 2007). This data set includes information on federal cases sentenced under the guidelines of the Sentencing Reform Act of 1984. Because of the research question prompting this paper, we chose to look at only cases where the defendant was charged with possession of marijuana. We used the “Drug Type 1” variable in the dataset to create a subset with these cases, as this variable indicated that marijuana was the highest penalty incurring drug the defendant was found with. Because we wanted to look at the relationship between race and being sentenced to prison, our independent variable was the defendant’s race (either Black or white cases) and our dependent variable was the type of sentence (either prison or no prison). We extrapolated specifically Black and white instantiations in the race variable so as to control for the number of independent variables being observed. We also decided to control for the defendant’s age, the defendant’s gender, and whether or not the defendant has a criminal record. We thought that these three variables would be the most influential in determining sentence type, both as legal (criminal record) and extralegal (age and gender) variables.</p>
+<p><strong>EXPLORATORY DATA ANALYSIS</strong> <img src="Portfolio_files/figure-html/unnamed-chunk-59-1.png" width="672" /> To most successfully represent the variables being examined in this paper, we chose to create a bar plot representing the proportion of people sentenced and not sentenced to prison for both races included in the dataset.</p>
+<p><strong>REPRESENTATIVE MODEL AND DIAGNOSTIC INFORMATION</strong> For the sake of our data set, we used a logistic regression. A logistic regression model is very similar to a linear regression; however, it is used to evaluate relationships between binary variables. Because our variables - race and sentencing outcome - both have only two options for the purpose of our study, we can examine this relationship between the binaries. Rather than a standard line, the graph of fit is a logit. The application of this model is to categorical variables, and the dependent variable matches the variable type of the independent.</p>
+<p><strong>LOGISTIC REGRESSION ASSUMPTIONS</strong> <img src="Portfolio_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
+<p>For the sake of our data set, we used a logistic regression. A logistic regression model is very similar to a linear regression; however, it is used to evaluate relationships between binary variables. Because our variables - race and sentencing outcome - both have only two options for the purpose of our study, we can examine this relationship between the binaries. Rather than a standard line, the graph of fit is a logit. The application of this model is to categorical variables, and the dependent variable matches the variable type of the independent.</p>
+<p>The Residual vs. Fitted Plots in this figure look to see if there are any curvilinear trends in the plots that were originally missed. Because logistic regression is already curvilinear - as demonstrated by the logit that was previously displayed - these plots do not tell us any definitive information on the validity of this regression.</p>
+<p>The QQ plot in the figure determines if the residuals are normally distributed. This plot is not indicative of anything definitive either because residuals do not have to be normally distributed in a logistic regression.</p>
+<p>The Residuals vs. Leverage plots help identify outliers, but this plot too is not particularly useful because the results are not definitive either. From the models demonstrated in the assumptions, we do not gain information that definitively determines the strength of the logistic regression model for our data set, but the assumption display is crucial to data analysis so as to examine any particularly significant data that strays from the norm.</p>
+<p><strong>Regression Model</strong></p>
+<pre><code>## 
+## Logistic Regression Outputs
+## ================================================
+##                         Dependent variable:     
+##                     ----------------------------
+##                                prison           
+##                        Baseline      Controls   
+##                          (1)            (2)     
+## ------------------------------------------------
+## Black                 -0.684***      -0.845***  
+##                        (0.132)        (0.140)   
+##                                                 
+## Ages 70-97                             0.260    
+##                                       (1.036)   
+##                                                 
+## Ages 50-69                             0.100    
+##                                       (0.207)   
+##                                                 
+## Ages 30-49                           0.441***   
+##                                       (0.116)   
+##                                                 
+## Female                               -1.194***  
+##                                       (0.120)   
+##                                                 
+## No Criminal History                    0.071    
+##                                       (0.117)   
+##                                                 
+## Constant               2.829***      2.881***   
+##                        (0.060)        (0.102)   
+##                                                 
+## ------------------------------------------------
+## Observations            6,123          6,123    
+## ================================================
+## Note:                *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p>Looking at the baseline regression, we can see that Black people in the dataset were less likely to be sentenced to prison at a significant rate. Similarly, looking at the controlled regression, we can see that Black people were more likely to not be sentenced when compared to white people in the dataset. We split the age variable into three groups (of 16-29, 30-49, 50-69, and 70-97), leaving the 16-29 group out of the regression as our control because we thought that this group would be most likely to be in possession of marijuana. To our surprise, all three age groups were more likely to be sentenced to prison for marijuana charges than people that were 16-29. This may be due to the fact that there could have been more people in these other groups, or there could have been a large number of minors in the 16-29 group that were not sentenced to prison. We split the gender variable into male or female, leaving out the male group since we thought that this group would be more likely to be sentenced to prison. Looking at the model, we can see that this is true, and females were significantly less likely to be sentenced to prison than males. Finally, we split the criminal history variable into yes or no groups, leaving out the yes group since we thought that this group would be more likely to be sentenced to prison. To our surprise, having no criminal history made the defendant more likely to be sentenced to prison, but by an insignificant amount.</p>
+<p><strong>CAUSAL ANALYSIS</strong> Because we used the “Drug Type 1” variable, we assumed that the defendant was either only found with marijuana or the other drug(s) did not incur any penalty. This did not take into account whether or not the defendant was charged with something incurring a felony charge, such as possession of drug paraphernalia or intent to sell. In an ideal world, our data would have been clear about what the defendant was actually charged with on all fronts, rather than just what drugs they were in possession of at the time of their arrest. We also only looked at about 6,000 observations, since we dropped everyone who was not Black or white. However, there were more white people in the dataset and more white people in prison in the dataset, so the groups may not have been proportional.</p>
+<p><strong>DAG:</strong></p>
+<pre><code>BEING ARRESTED 
+^           |
+|           v
+RACE -------&gt; BEING SENTENCED TO PRISON</code></pre>
+<p>Additionally, the DAG portrays the situation where the defendant’s race determines whether or not they will be arrested, and therefore the arrest determines whether they will be sentenced. Not everyone who is caught with marijuana is arrested, and not everyone who is arrested for marijuana charges is convicted. Similarly, the biases of the police and prosecutors could be at play, influencing both the arrest and sentence outcome. Because of these confounders, we would not be able to conclude that there was a causal analysis.</p>
+<p><strong>LIMITATIONS AND FUTURE DIRECTIONS</strong></p>
+<p>While setting out to examine sentencing outcomes and their relationship to race for marijuana-related charges, we observed a series of confounds:</p>
+<ol style="list-style-type: decimal">
+<li>Sentencing charges are not equated to arrests. It is worth looking in the future into the relationship between arrests and race for marijuana-related charges.</li>
+<li>Our analysis did not include sentencing duration. Sentencing severity is a large component of the discussion for racial disparities in sentencing, not just the binary of whether someone was sentenced or not.</li>
+<li>Though we controlled for different factors such as past arrests because they are crucial in determining sentencing outcomes they should be analyzed further in conjunction with the information we observed for future studies.</li>
+</ol>
+<p>This dataset is also a really interesting example of how a failure through data analysis can lead to false projections and misleading statistics. This is also a useful showcase of how easily data can also be manipulated depending on the neglect of specific outliers or parameters for the research. As previously stated, this data set is very limited. We don’t feel it can answer our research question in an accurate way, but it still provides a good lesson on the sensitivity of datasets with outlying variables and unobserved confounders.</p>
+<p>For future research, it could be extremely valuable to look at the current different sentencing rates across states with different laws regarding the legality and decriminalization of marijuana. All marijuana usage (whether medical or recreational) is a federal crime, so theoretically everyone in the dataset should have been arrested regardless of race. However, this is not the case, and it is important to look at how there are disparities between federal and state sentences. Additionally, state police and prosecutors have much more discretion in deciding who to arrest, and what crimes to charge. We also were only able to look at sentencing as a binary factor without the important information of arrests records in general or whether or not the defendant has been arrested for marijuana in the past. In the future, we want to do a more well-rounded in-depth data analysis including everyone who was arrested (regardless of their conviction status), as well as the state’s current laws regarding marijuana.</p>
+<p><strong>References</strong> Commission, U. S. S. (2014, June 25). Monitoring of federal criminal sentences, [united states], 2007. Monitoring of Federal Criminal Sentences, [United States], 2007. Retrieved December 12, 2021, from <a href="https://www.icpsr.umich.edu/web/NACJD/studies/22623" class="uri">https://www.icpsr.umich.edu/web/NACJD/studies/22623</a>. Cusick Director, J., Cusick, J., Director, Director, C. M. A., Montecinos, C., Director, A., Director, S. H. A., Hananel, S., Oduyeru Manager, L., Oduyeru, L., Manager, Gordon Director, P., Gordon, P., Director, J. P. D., Parshall, J., Director, D., Pearl, B., Perez, M., Chung, E., … Simpson, E. (2021, October 28). Ending the war on drugs: By the numbers. Center for American Progress. Retrieved December 12, 2021, from <a href="https://www.americanprogress.org/article/ending-war-drugs-numbers/" class="uri">https://www.americanprogress.org/article/ending-war-drugs-numbers/</a>. Rahamatulla, A. (2017, March 23). The War on Drugs has failed. what’s next? Ford Foundation. Retrieved December 12, 2021, from <a href="https://www.fordfoundation.org/just-matters/just-matters/posts/the-war-on-drugs-has-failed-what-s-next/" class="uri">https://www.fordfoundation.org/just-matters/just-matters/posts/the-war-on-drugs-has-failed-what-s-next/</a>. We Are The Drug Policy Alliance. (n.d.). A history of the Drug War. Drug Policy Alliance. Retrieved December 12, 2021, from <a href="https://drugpolicy.org/issues/brief-history-drug-war" class="uri">https://drugpolicy.org/issues/brief-history-drug-war</a>.</p>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

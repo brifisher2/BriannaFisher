@@ -32,7 +32,7 @@ You can reach me at brifish@sas.upenn.edu or 954-439-1414!
 
 
 
-<a href = "https://crumplab.github.io">
+
 ![](images/websitepic.jpeg)
 </a>
 </div>
