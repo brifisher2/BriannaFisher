@@ -5,3 +5,17 @@ dplyr
 readr
 knitr
 stargazer
+foreign
+lattice
+survival
+Formula
+Hmisc
+gdata
+mice
+weights
+tidyverse
+tibble
+tidyr
+purrr
+stringr
+forcats

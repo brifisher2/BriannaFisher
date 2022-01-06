@@ -24,6 +24,1064 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 
 <h2>Statistical Methods for Political Science</h2>
 
+### Midterm
+
+```{r, echo=FALSE, results=FALSE} 
+library(foreign)
+library(dplyr)
+library(stargazer)
+library(Hmisc)
+library(weights)
+
+Kaiser <- read.dta("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/KaiserFamilyFoundationPoll.DTA", convert.factors = T)
+head(Kaiser)
+```
+
+__Theory__
+
+As COVID-19 started to worsen throughout the country, there was a stark difference in the way that Democratic versus Republican government officials handled the outbreak. States with Republican governors quickly ended stay at home orders and reopened nonessential businesses, while states with Democratic governors saw extensive statewide lockdowns and stricter rules about going out in public. These two ideals were met with both support and criticism from higher ranking government officials, such as praise by the President for reopening states and criticism from Democratic congressmen who supported a lockdown. These differing views on how to handle the virus were also seen at the local level, with everyday citizens sharing the same ideas about social distancing practices depending on their ideology. Similarly, the support from higher ranking government officials for one practice over the other influenced how people followed protocol. 
+
+I theorize that people who identify as liberal are more likely to socially distance than those who identify as conservative. States with a majority of people who identify as liberal have Democratic governors and state governments, so these areas already had lengthy stay at home orders and strict rules in place to limit the virus. People in these states mostly agreed with their government’s policies and were already used to social distancing and quarantining when the states reopened. States with a majority of people who identify as conservative, however, have Republican governments that emphasized keeping businesses and schools open. Florida and Texas, for example, saw crowded beaches and malls all summer while New York, and especially New York City, had quiet streets and closed restaurants. The reasons why people with different ideologies followed different social distancing practices also has to do with the core beliefs of those ideologies. Conservatives heavily value the economy, so it was expected for conservative governments to not order mandatory lockdowns in order for nonessential businesses to stay open. Liberals, however, generally believe in government action to solve problems and protect its citizens, so following lockdown orders and strictly social distancing was expected. I hypothesize that ideological views caused liberals to socially distance more than conservatives.
+
+__Empirical Tests__
+
+Based on my theory, I hypothesize that people who identify as liberal were less likely to partake in everyday activities (such as shopping for food, medicine, or essential household items, visiting close friends or family, going to work, using public transportation, and dining at a restaurant) than people who identify as conservative. A maintained assumption for this theory is that all of these activities have the same level of importance to each person. Shopping for food, medicine, or essential household items is necessary for people to survive, while dining at a restaurant depends on the person’s comfort level. This would cause me to expect that the percentage of people who were liberal and went shopping for those items is similar to the percentage of people who were conservative and went shopping for those items, while the other activities would vary depending on how greatly that person needed to complete them. 
+
+Additionally, I hypothesize that people who approve of Trump were more likely to partake in these activities than people who don’t approve of Trump. A maintained assumption of this is that people who approve of Trump therefore value his opinion and will follow his example (such as not socially distancing). However, some people may not take his opinion into consideration when deciding whether or not to participate in these activities. Also, people who approve of Trump mostly identify as conservative, while those who do not identify as liberal. Thus, I would expect the same as before that people who are liberal were less likely to partake in these activities then people who are conservative. 
+
+__Variable Coding__
+```{r, echo=FALSE, results=FALSE}
+#visiting close family or friends
+Kaiser$AA2 <- 0
+Kaiser$AA2[Kaiser$Q18B == "Not at all"] = 1
+
+#going to work
+Kaiser$AA3 <- 0
+Kaiser$AA3[Kaiser$Q18C == "Not at all"] = 1
+
+#using public transit
+Kaiser$AA4 <- 0
+Kaiser$AA4[Kaiser$Q18D == "Not at all"] = 1
+
+#dining at a restaurant
+Kaiser$AA5 <- 0
+Kaiser$AA5[Kaiser$Q18E == "Not at all"] = 1
+
+#whether or not they did not go to work, visit family or friends, use public transit, and
+#dine at a restaurant
+Kaiser$Abstained.activities <- 0
+Kaiser$Abstained.activities[Kaiser$AA2 == 1 & Kaiser$AA3 == 1  & 
+                               Kaiser$AA4 == 1 & Kaiser$AA5 == 1] = 1
+
+table(Kaiser$Abstained.activities)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for conservative ideology  
+Kaiser$Conservative <- NA
+Kaiser$Conservative[Kaiser$ideology == "Liberal"] = 0
+Kaiser$Conservative[Kaiser$ideology == "Conservative"] = 1
+Kaiser$Conservative[Kaiser$ideology == "Moderate"] = 0
+Kaiser$Conservative[Kaiser$ideology == "Don't Know"] = 0
+Kaiser$Conservative[Kaiser$ideology == "Refused"] = 0
+
+#creating a variable for moderate ideology  
+Kaiser$Moderate <- NA
+Kaiser$Moderate[Kaiser$ideology == "Liberal"] = 0
+Kaiser$Moderate[Kaiser$ideology == "Conservative"] = 0
+Kaiser$Moderate[Kaiser$ideology == "Moderate"] = 1
+Kaiser$Moderate[Kaiser$ideology == "Don't Know"] = 0
+Kaiser$Moderate[Kaiser$ideology == "Refused"] = 0
+```
+In order to test my theory and hypothesis, I use data from a study completed by the Kaiser Family Foundation. The study was completed from June 8, 2020 to June 14, 2020, and focuses on the perception of health, race, and COVID-19 in the United States. 
+ 
+My dependent variable is constructed using a combination of four everyday activities that people abstained from. In question 18 of the survey, the respondents were asked how often they (18A) shop for food, medicine, or essential items, (18B) visit close friends or family, (18C) go to work, (18D) use public transit, and (18E) dine at a restaurant. The respondents had four response options: 1) “4 times or more”, 2)” 2-3 times”, 3) “1 time”, or 4) “Not at all.” Because shopping for food, medicine, or essential items was necessary for everybody, no matter their ideology, to continue during the pandemic, my dependent variable is a combination between questions 18B, 18C, 18D, and 18E. Also, since I am looking at whether or not people abstained from these activities, I only focus on whether or not the respondent said 4, or not at all, to any of the four options. My dependent variable is coded as a dummy variable that equals 1 if the respondent abstained from any of the four activities (visiting close family or friends, going to work, using public transit, or dining in a restaurant) and 0 if they participated in any of these activities at least once. A measurement assumption for this variable is that I am measuring social distancing as a whole by only four activities, when in reality people could be going out in public for a variety of reasons that do not match up with the variable. 
+
+My key independent variables are two dummy variables coded for whether or not someone is conservative or moderate. The “Conservative” dummy variable is coded as 1 if the respondent answered the ideology question as conservative and 0 if they responded as liberal, moderate, don’t know, or refused. The “Moderate” dummy variable is coded as 1 if the respondent the ideology question as moderate and 0 if they responded as liberal, conservative, don’t know, or refused. Both variables are coded as missing if someone did not answer the question. A measurement assumption for this variable is that people only conform to these specific ideologies, when in reality ideology is measured on more of a spectrum. 
+
+__Control Variables__
+```{r, echo=FALSE, results=FALSE}
+##creating a variable for Trump approval (people who strongly or somewhat disapprove Trump are the excluded group)
+
+# creating a variable for people who strongly or somewhat approve
+Kaiser$trump.approve <- NA
+Kaiser$trump.approve[Kaiser$trumpapp == "Strongly approve"] = 1
+Kaiser$trump.approve[Kaiser$trumpapp == "Somewhat approve"] = 1
+Kaiser$trump.approve[Kaiser$trumpapp == "Somewhat disapprove"] = 0
+Kaiser$trump.approve[Kaiser$trumpapp == "Strongly disapprove"] = 0
+Kaiser$trump.approve[Kaiser$trumpapp == "Don't Know"] = 0
+Kaiser$trump.approve[Kaiser$trumpapp == "Refused"] = 0
+```
+
+```{r, echo=FALSE, results=FALSE}
+##creating a variable for age (18-29 are the excluded group)
+
+#creating a variable for 18-29
+Kaiser$age.1829 <- 0
+Kaiser$age.1829[Kaiser$age >= 18 & Kaiser$age <= 29] <- 1
+Kaiser$age.1829[Kaiser$age == 99] <- NA
+
+#creating a variable for 30-49
+Kaiser$age.3049 <- 0
+Kaiser$age.3049[Kaiser$age >= 30 & Kaiser$age <= 49] <- 1
+Kaiser$age.3049[Kaiser$age == 99] <- NA
+
+#creating a variable for 50-64
+Kaiser$age.5064 <- 0
+Kaiser$age.5064[Kaiser$age >= 50 & Kaiser$age <= 64] <- 1
+Kaiser$age.5064[Kaiser$age == 99] <- NA
+```
+
+```{r, echo=FALSE, results=FALSE}
+##creating a variable for race (white people are the excluded group)
+attributes(Kaiser$race)
+Kaiser$minority <- NA
+Kaiser$minority[Kaiser$race == "White"] = 0
+Kaiser$minority[Kaiser$race == "Black or African-American"] = 1
+Kaiser$minority[Kaiser$race == "Asain"] = 1
+Kaiser$minority[Kaiser$race == "Other or mixed race"] = 1
+Kaiser$minority[Kaiser$race == "Don't Know"] = 0
+Kaiser$minority[Kaiser$race == "Refused"] = 0
+```
+One control variable when analyzing the relationship between ideology and social distancing is whether or not someone approves of Trump. Because Trump is in such a large position of power and has control over the narrative of the virus, people look up to him to determine how they should act. When Trump does not socially distance or wear a mask, normal people see this as a sign that they should not either. I coded this variable (trump.approve) as a dummy variable that equals one if someone strongly or somewhat approves of Trump and 0 if they somewhat disapprove, strongly disapprove, don’t know, ore refused. I would expect someone who is liberal to somewhat or strongly disapprove of Trump, and therefore made it my excluded group.
+
+Another control variable when analyzing the relationship between ideology and social distancing is a person’s age. I expect people over the age of 65 to social distance more, as the elderly are at a higher risk for catching the virus than those that are younger. As a result, I made people 65 years old to 97 years old my excluded group. I created dummy variables for each age group (18-29, 30-49, 50-64), with that specific group being coded as 1 and the other responses being coded as 0.
+
+A third control variable is a person’s race. On average, people who are White are more likely to be liberal than people of another race. The biggest block of the Democratic vote, for example, has shifted to white liberals from African Americans. Because of this, I excluded people who identify as White from my regression. I created a dummy variable to represent minority groups, with 1 being for people who responded that they were Black or African American, Asian, other or mixed race, don’t know, or refused and 0 for people who responded that they were White.
+
+__Descriptive Statistics__
+```{r, echo=FALSE}
+subKaiser <- subset(Kaiser, select = c(Abstained.activities, Conservative, Moderate, trump.approve, age.1829, age.3049, age.5064, minority), na.rm = T)
+
+stargazer(subKaiser, type = "text", title="Table 1: Descriptive Statistics on Ideology and Social Distancing", summary.stat = c("n", "mean", "sd", "min", "max"),
+          covariate.labels= c("Abstained from Activities",
+                              "Conservatie Ideology", "Moderate Ideology",
+                              "Trump Approval", "Age 18-29", "Age 35-49", "Age 50-64", 
+                              "Minority"),
+          out="/Users/briannafisher/Dropbox/PSCI338/Midterm/Kaiser.txt") 
+```
+Table 1 presents descriptive statistics for my dependent variable, independent variables, and control variables. The table depicts the number of observations, mean, standard deviation, minimum, and maximum values for the following variables: Abstained From Activities, Conservative Ideology, Moderate Ideology, Trump Approval, Age 18-29, Age 35-49, Age 64, and Minorities. 
+
+__Results__
+```{r, echo=FALSE, results=FALSE}
+#plot for conservatives
+plotdata <- aggregate(Kaiser$Abstained.activities, by=list(Kaiser$Conservative), FUN=mean)
+plotdata
+colnames(plotdata) <- c("Conservative or Not", "Mean Number of Abstained Activities")
+levels(plotdata$`Conservative or Not`) <- c("yes", "no")
+barplot(plotdata$`Mean Number of Abstained Activities`, names = plotdata$`Conservative or Not`, xlab = "Conservative: Yes = 1, No = 0", ylab = "Average Number of Abstained from Activities", main = "Figure 1: Abstained From Acitvities and Conservative", ylim = c(0, 0.5), col=c("gray10","gray50"))
+postscript("/Users/briannafisher/Dropbox/PSCI338/Midterm/Plot1.eps")
+```
+Figure 1 shows, as I predicted, that conservatives were less likely to socially distance than liberals or moderates. The “0” block represents people who responded to the survey as liberal, moderate, don’t know, or other, and is about 0.8 units higher than the conservative, or “1”, block.
+
+```{r, echo=FALSE, results=FALSE}
+# Baseline analysis of whether ideology is related to social distancing
+baseline <- lm(Abstained.activities ~ Conservative + Moderate, data = subKaiser)
+summary(baseline)
+```
+
+```{r, echo=FALSE, results=FALSE}
+# Full analysis of whether ideology is related to social distancing with control variables
+full <- lm(Abstained.activities ~ Conservative + Moderate + trump.approve + age.1829  + age.3049 + age.5064 + minority, data = subKaiser)
+summary(full)
+```
+
+```{r, echo=FALSE, results=FALSE}
+# Restricts dataset to only liberals 
+libdata <- subset(subKaiser, subset = Conservative + Moderate == 0)
+
+#Full analysis for just liberals
+full.lib <- lm(Abstained.activities ~ trump.approve + age.1829  + age.3049 + age.5064 + minority, data = libdata)
+summary(full.lib)
+
+prop.table(table(libdata$trump.approve))
+```
+
+```{r, echo=FALSE}
+stargazer(baseline, full, full.lib, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Table 2: Correlation of Abstained From Activities During COVID-19", 
+          model.names = FALSE, 
+          column.labels = c("Ideology","All", "Liberals"),
+          covariate.labels = c("Conservative", "Moderate","Trump Approval",
+                               "Age 18-29", "Age 30-49", "Age 50-64", "Minority Groups", "Constant"), type="text", out="/Users/briannafisher/Dropbox/PSCI338/Midterm/Correlation.txt")
+```
+Table 2 presents a regression analysis for three subsets, all regressed on the dependent variable of abstained activities. The first column represents just the independent variable of ideology, for both conservatives and moderates. The average number of activities liberals abstained from was 0.26 units, while conservatives were 0.08 units less likely to abstain from any activities. This provides evidence for my hypothesis, as liberals were more likely to socially distance than those who identify as conservative. Moderates were 0.006 units less likely to abstain from any activities than liberals, which was also expected as moderates fall between liberals and conservatives on the ideology spectrum and subsequently should have fallen in the middle of the regression.
+
+The second column in the regression includes all of the control variables that I used to test my theory. The average number of activities liberals abstained from activities was 0.437 units, while conservatives were 0.073 unites less likely to abstain from activities, holding fixed Trump approval, minority status, and age. This coefficient most likely increased because it now included my excluded groups of liberals, people who are white, people who are 65 years old and older, and people who do not approve of Trump. Theoretically, all of these categories would lead to increased social distancing, which is seen when the coefficient changes. The coefficient on Trump Approval indicates that people who support Trump are an additional 0.049 units less likely to abstain from any activities than people who do not support Trump. This was expected, since people who approve of Trump are likely to follow his behavior of not social distancing. Additionally, the coefficients on all three age groups (18-29, 20-49, 50-64) are negative, indicating that they are less likely to social distance than people who are aged 65 years old and older. This result was expected, as people who are younger are both at less of a risk of the virus and do not take the virus as seriously as those who are older. Finally, the coefficient on the minority groups variable indicates that people who identify as a minority are 0.022 units more likely to social distance than those that identify as White. Originally, I had hypothesized that people who identify as White would socially distance more since they make up the largest demographic of liberals. However, this result indicates that people who make up a minority group are more likely to socially distance than those who are White.
+
+Similarly, to the second column, column three shows the same general patterns for the coefficients of the age and minority group variables. However, among liberals, people who approve of Trump are 0.091 units more likely to socially distance than liberals who do not approve of Trump. This result was not expected, as I would think that people who approve of Trump (who promotes not social distancing) would be less likely than people who do not approve of Trump (liberals especially) to socially distance. When looking at the data though, only 14.45% of liberals approve of Trump, while 85.55% disapprove (out of 357 observations). This makes it clear that the result is just unusual and there was little data to work with. 
+
+__Conclusion__
+I was able to find evidence that people who identify as liberal are more likely to socially distance than those who identify as conservative. Because social distancing is such a broad topic, I would have wanted to have more information on the extent to which people social distanced (for example visiting family or friends while staying six feet apart and wearing a mask versus going inside of someone else’s house). This most likely would have changed the respondent’s attitude towards social distancing, as going inside of another person’s house does not adhere to the “definition” of social distancing set forth by the CDC. As a control variable, I would have wanted to look at the type of job a respondent has. If a respondent has a job where they are deemed an essential worker, then they would have had to respond yes to the “Did you go to work” (18C) question even if it was involuntary. I would have also wanted to look at a respondent’s religion. If a respondent goes to church twice a week, for example, then they might have a more relaxed attitude on social distancing if they were still going throughout the pandemic. 
+
+If I was able to look at these variables as well, I would expect the regression coefficient to increase. The majority of people in the country were not deemed essential workers, so I would expect more people to socially distance than the proportion of those who had to go to work. I would also expect the coefficient to increase in regard to religion because when the survey was taken in June, most places of worship were closed due to the pandemic. This would have caused more people to social distance if they were not able to practice their religion in person.  
+
+In regard to measurement error, it worries me that ideology is measured by only three choices. I would have wanted to have a more continuous variable to measure ideology, rather than just three options. In today’s political climate, there are numerous divisions within each political party and ideology separating one person’s view of being liberal or conservative from another. Right now, my study only analyzes ideology as if it is cut and dry, when in reality there are many different options to the question. This might have made respondents more open to answering the question if they had more options, especially if they responded as they don’t know.
+
+
+### Final
+
+__Introduction__
+
+The process of scientific jury selection was first applied to a major case in the Harrisburg Seven trial in 1972. During the trial, social scientists used demographical information of the jurors to identify whether or not they would be biased towards a conviction and subsequently to serve on the jury. Ever since this case, prosecutors and defense attorneys alike have become accustomed to considering demographics – such as race, age, sex, economic background, marital status, religion, and relationship with the law – when picking a jury. During the voir dire process, lawyers have the opportunity to use peremptory and causal challenges in order to dismiss jurors that would not maintain fairness when listening to the case. A challenge for cause occurs when a lawyer removes someone for a legal reason (these are unlimited during a trial). A peremptory challenge occurs when a lawyer removes someone without a reason or explanation, but cannot be on the basis of race, ethnicity, or sex (the number is limited by the statute being tried). Increasingly, lawyers have been using these challenges in a subtle (in order to remain legal) way to achieve a jury that is more likely to either side in favor or against the defendant, depending on whether it is the prosecution or defense. According to the Equal Justice Initiative’s 2010 report on illegal racial discrimination in jury selection, 8 out of 10 African Americans in Houston County, Alabama that qualified for jury service have been struck by prosecutors from death penalty cases. It was also reported that in Jefferson Parish, Louisiana, there is no effective African American representation on the jury in 80 percent of criminal trials. This idea of deciding a case before presenting evidence just based upon racial biases and stereotypes seems like it should be a significant problem in the evaluation of trials and within the criminal justice system as a whole. This led me to the question “Are jurors more sympathetic to defendants of the same race?” and to my hypothesis that “juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant.”
+
+In order to test my hypothesis, I analyzed data on four courthouses (Bronx County Supreme Court in New York, Los Angeles County Superior Court in California, Maricopa County Superior Court in Arizona, and District of Columbia Superior Court in Washington, DC). I ran a baseline regression between whether or not the defendant had at least one conviction and the proportion of the jury whose members are less than 50% racially similar to the defendant, as well as a controlled regression including victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white. For both regressions, I found that the defendant was more likely to be convicted when the jury was less than 50% racially similar to the defendant than when the jury was at least 50% racially similar to the defendant, providing evidence for my hypothesis. 
+
+__Theory and Previous Literature__
+
+While completing preliminary research, two sources emerged as predominantly important for this paper. In Professor of Law at Washington University School of Law Peter A. Joy’s 2015 paper for the Northwestern University Law Review entitled “Race Matters in Jury Selection,” he analyzed a study conducted by Samuel Sommers and Phoebe Ellsworth on implicit bias during the voir dire process. During the study, one group of mock jurors received a questionnaire about their racial attitudes and racial biases in the legal system while the other group was asked questions that disregarded race as a whole. According to Joy, the purpose of the questions was “not to identify racial bias in particular jurors, but rather to cause prospective jurors to think about their attitudes toward race to help jurors consciously guard against implicit bias.” The study found that both White and African American jurors were less likely to convict African American defendants after being asked the race-related questions during the voir dire, as well as that all-White juries were more likely to convict African American defendants than White defendants (Joy 2015). Ideally, all jurors would be asked these race-based questions in the real world during their voir dire in order to spark introspection and make themselves aware of any biases they may hold. However, race-relevant questions are only allowed during capital punishment cases, and the inclusion of a race-relevant voir dire is up to the discretion of the trial judge in all other cases. Originally, I planned on studying multiple demographics and how they impacted a juror’s decision on the defendant’s sentence as a whole. However, after this explanatory research, this paper became the foundation of my theory: implicit racial bias impacts jury decision making.
+
+Similarly, in Justin D. Levinson (Associate Professor of Law at the University of Hawaii), Huajian Cai (Professor at the Key Laboratory of Mental Health and Institute of Psychology for the Chinese Academy of Sciences), and Danielle Young’s (member of the Department of Psychology at the University of Hawaii) research paper for the Ohio State Journal of Criminal Law entitled “Guilty By Implicit Racial Bias: The Guilty/Not Guilty Implicit Association Test,” they completed a study on how the Implicit Association Test (IAT) can be used in a legal setting. The study had participants (67 jury eligible students from the University of Hawaii) complete multiple tasks in order to measure racial beliefs and preferences. The first test was a Guilty/Not Guilty IAT test developed as a race IAT with “the attribute concepts of Guilty and Not Guilty and target concepts of Black and White” (Levinson 2010). The second test was a Pleasant/Unpleasant IAT test also developed as a race IAT to evaluate the concepts of Pleasant and Unpleasant with the target concepts of Black and White. The participants were also given the Modern Racism Scale, which has a series of questions in regard to racial beliefs, a feeling thermometer, which evaluates explicit racial preferences, and finally a robbery evidence evaluation task, which asked participants to decide whether a defendant was guilty or not guilty in a mock trial. The study found that participants in the Guilty/Not Guilty IAT displayed a “significant association between Black and Guilty compared to White and Guilty” and that participants in the Pleasant/Unpleasant IAT displayed a “significant association between Black and Unpleasant compared to White and Unpleasant” (Levinson 2010). Ultimately, Levinson, Cai, and Young were able to conclude that people are more likely to perceive black people as guilty, and that the implicit associations led to “predicted judgments of the probative value of evidence” (Levinson 2010). This study was crucial to the refinement of my theory and hypothesis, as it is such a significant problem that some trials are already decided before hearing any evidence, completely violating the “fair trial” requirement set forth by the Constitution. 
+
+After reviewing this previous literature, I have decided to focus on the proportion of jurors whose race matches the race of the defendant and whether or not that impacts their trial outcome. I have also decided to look at jury sympathy for the victim and defendant, as the second study proves the prominence of implicit biases when making decisions in regard to trial outcome. My research will add a unique perspective to this literature as I will be analyzing data from four different courthouses, all of which are located in demographically different areas (Bronx County, New York, Los Angeles County, California, Maricopa County, Arizona, and Washington, DC). I will also be analyzing the outcomes of the trials, rather than just the process of jury selection. This will allow me to connect the issue of racial biases in jury decision making to these different cities in order to highlight this significant fault within the justice system and the fact that it is present within all juries and not one particular area.
+
+__Data__
+
+```{r, echo=FALSE, results=FALSE}
+library(foreign)
+attorney <- read.dta("data/Attorney.dta")
+case <- read.dta("data/Case.dta")
+count.sheet.long <- read.dta("data/Countsheet.dta")
+judge <- read.dta("data/Judge.dta")
+jury <- read.dta("data/Juror.dta")
+```
+
+```{r, echo=FALSE, results=FALSE} 
+#Reshaping Count Sheet Data
+
+# The floor function drops any number after the decimal point
+count.sheet.long$caseno1 <- floor(count.sheet.long$CASENO)
+# Gets the number after the decimal point by subtracting caseno1
+# Muliplies by 10 to make into an integer
+count.sheet.long$caseno2 <- (count.sheet.long$CASENO - count.sheet.long$caseno1)*10
+head(count.sheet.long)
+# Rounds to make into integer
+count.sheet.long$caseno2 <- round(count.sheet.long$caseno2)
+head(count.sheet.long)
+table(count.sheet.long$caseno2)
+# Adds 1 if caseno2 == 0 
+count.sheet.long$caseno2[count.sheet.long$caseno2 == 0] <- 1
+table(count.sheet.long$caseno2)
+```
+
+```{r, echo=FALSE, results=FALSE} 
+#Make data wide using reshape function
+
+count.sheet.wide <- reshape(count.sheet.long, idvar = c("caseno1", "SITE"), timevar = "caseno2", direction = "wide")
+head(count.sheet.wide)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Subsetting the case data
+
+case.1 <- subset(case, subset = NUMDEFTS == 1)
+
+case.final <- subset(case.1, select = c(CASENO, SITE, DEFTGEND, DEFTRACE, DEFTREPR, CRIMHIST, VICTGEND, VICTGND2, VICTGND3, VICTGND4, VICTRACE, VICTRCE2, VICTRAC3, VICTRAC4)) 
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Subsetting the count sheet data
+
+library(tidyverse)
+count.sheet.final <- subset(count.sheet.wide, select = c(SITE, CASENO.1, CASETYPE.1, COUNT1.1, COUNT2.1, COUNT3.1, COUNT4.1, COUNT5.1, COUNT6.1, TOTCOUNT.1, TOTCONV.1, TOTACQUT.1, SENTENC.1))
+
+count.sheet.final <- rename(count.sheet.final, c("CASENO" = "CASENO.1"))
+```
+
+```{r, echo=FALSE, results=FALSE}
+#subsetting the judge survey data
+
+judge.final <- subset(judge, select = c(CASENO, SITE, EFTTEST, ICTTEST, THELAW, ODEFEND, NDERSTD)) 
+```
+
+```{r, echo=FALSE, results=FALSE}
+#subsetting the attorney survey data
+
+attorney.1 <- subset(attorney, select = c(CASENO, SITE, ATTYTYPE, NOTAGREE, AGE, GENDER)) 
+```
+
+```{r, echo=FALSE, results=FALSE} 
+#Reshaping the Attorney Data
+
+attorney.final <- reshape(attorney.1, idvar = c("CASENO", "SITE"), timevar = "ATTYTYPE", direction = "wide")
+```
+
+```{r, echo=FALSE, results=FALSE}
+#subsetting the jury survey data
+
+jury.1 <- subset(jury, select = c(CASENO, SITE, JURORNO, DEFTEVID, DSYMPATH, VSYMPATH, DEFSTRNG, NVCNGMD, FAVORWHO, DIFFVERD, ONEPERSN, GENDER, AGE, SCHOOL, RACE, RELIGON, INCOME, JOBSTAT, OCCUPAT)) 
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Reshaping the Jury Data
+
+jury.final <- reshape(jury.1, idvar = c("CASENO", "SITE"), timevar = "JURORNO", direction = "wide")
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Merging the data
+
+law <- Reduce(function(x, y) merge(x, y), list(case.final, count.sheet.final, attorney.final, judge.final, jury.final))
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 1
+
+attributes(law$RACE.1)
+
+law$race.1.white <- 0
+law$race.1.white[law$RACE.1 == "White/Caucasian"] <- 1
+law$race.1.white[law$RACE.1 == "White/Hispanic"] <- 1
+law$race.1.white[law$RACE.1 == "Unknown"] <- 0
+law$race.1.white[law$RACE.1 == "Nonwhite/Hispanic"] <- 0
+law$race.1.white[law$RACE.1 == "Black/African American"] <- 0
+law$race.1.white[law$RACE.1 == "Native American"] <- 0
+law$race.1.white[law$RACE.1 == "Asian/Pacific Islander"] <- 0
+law$race.1.white[law$RACE.1 == "Other - please specifiy:"] <- 0
+
+law$race.1.notwhite <- 0
+law$race.1.notwhite[law$RACE.1 == "White/Caucasian"] <- 0
+law$race.1.notwhite[law$RACE.1 == "White/Hispanic"] <- 0
+law$race.1.notwhite[law$RACE.1 == "Nonwhite/Hispanic"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Black/African American"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Native American"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Asian/Pacific Islander"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Other - please specifiy:"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Unknown"] <- 0
+
+law$race.1.unknown <- 0
+law$race.1.unknown[law$RACE.1 == "White/Caucasian"] <- 0
+law$race.1.unknown[law$RACE.1 == "White/Hispanic"] <- 0
+law$race.1.unknown[law$RACE.1 == "Nonwhite/Hispanic"] <- 0
+law$race.1.unknown[law$RACE.1 == "Black/African American"] <- 0
+law$race.1.unknown[law$RACE.1 == "Native American"] <- 0
+law$race.1.unknown[law$RACE.1 == "Asian/Pacific Islander"] <- 0
+law$race.1.unknown[law$RACE.1 == "Other - please specifiy:"] <- 0
+law$race.1.unknown[law$RACE.1 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 2
+
+law$race.2.white <- 0
+law$race.2.white[law$RACE.2 == "White/Caucasian"] <- 1
+law$race.2.white[law$RACE.2 == "White/Hispanic"] <- 1
+law$race.2.white[law$RACE.2 == "Unknown"] <- 0
+law$race.2.white[law$RACE.2 == "Nonwhite/Hispanic"] <- 0
+law$race.2.white[law$RACE.2 == "Black/African American"] <- 0
+law$race.2.white[law$RACE.2 == "Native American"] <- 0
+law$race.2.white[law$RACE.2 == "Asian/Pacific Islander"] <- 0
+law$race.2.white[law$RACE.2 == "Other - please specifiy:"] <- 0
+
+law$race.2.notwhite <- 0
+law$race.2.notwhite[law$RACE.2 == "White/Caucasian"] <- 0
+law$race.2.notwhite[law$RACE.2 == "White/Hispanic"] <- 0
+law$race.2.notwhite[law$RACE.2 == "Nonwhite/Hispanic"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Black/African American"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Native American"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Asian/Pacific Islander"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Other - please specifiy:"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Unknown"] <- 0
+
+law$race.2.unknown <- 0
+law$race.2.unknown[law$RACE.2 == "White/Caucasian"] <- 0
+law$race.2.unknown[law$RACE.2 == "White/Hispanic"] <- 0
+law$race.2.unknown[law$RACE.2 == "Nonwhite/Hispanic"] <- 0
+law$race.2.unknown[law$RACE.2 == "Black/African American"] <- 0
+law$race.2.unknown[law$RACE.2 == "Native American"] <- 0
+law$race.2.unknown[law$RACE.2 == "Asian/Pacific Islander"] <- 0
+law$race.2.unknown[law$RACE.2 == "Other - please specifiy:"] <- 0
+law$race.2.unknown[law$RACE.2 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 3
+
+law$race.3.white <- 0
+law$race.3.white[law$RACE.3 == "White/Caucasian"] <- 1
+law$race.3.white[law$RACE.3 == "White/Hispanic"] <- 1
+law$race.3.white[law$RACE.3 == "Unknown"] <- 0
+law$race.3.white[law$RACE.3 == "Nonwhite/Hispanic"] <- 0
+law$race.3.white[law$RACE.3 == "Black/African American"] <- 0
+law$race.3.white[law$RACE.3 == "Native American"] <- 0
+law$race.3.white[law$RACE.3 == "Asian/Pacific Islander"] <- 0
+law$race.3.white[law$RACE.3 == "Other - please specifiy:"] <- 0
+
+law$race.3.notwhite <- 0
+law$race.3.notwhite[law$RACE.3 == "White/Caucasian"] <- 0
+law$race.3.notwhite[law$RACE.3 == "White/Hispanic"] <- 0
+law$race.3.notwhite[law$RACE.3 == "Nonwhite/Hispanic"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Black/African American"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Native American"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Asian/Pacific Islander"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Other - please specifiy:"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Unknown"] <- 0
+
+law$race.3.unknown <- 0
+law$race.3.unknown[law$RACE.3 == "White/Caucasian"] <- 0
+law$race.3.unknown[law$RACE.3 == "White/Hispanic"] <- 0
+law$race.3.unknown[law$RACE.3 == "Nonwhite/Hispanic"] <- 0
+law$race.3.unknown[law$RACE.3 == "Black/African American"] <- 0
+law$race.3.unknown[law$RACE.3 == "Native American"] <- 0
+law$race.3.unknown[law$RACE.3 == "Asian/Pacific Islander"] <- 0
+law$race.3.unknown[law$RACE.3 == "Other - please specifiy:"] <- 0
+law$race.3.unknown[law$RACE.3 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 4
+
+law$race.4.white <- 0
+law$race.4.white[law$RACE.4 == "White/Caucasian"] <- 1
+law$race.4.white[law$RACE.4 == "White/Hispanic"] <- 1
+law$race.4.white[law$RACE.4 == "Unknown"] <- 0
+law$race.4.white[law$RACE.4 == "Nonwhite/Hispanic"] <- 0
+law$race.4.white[law$RACE.4 == "Black/African American"] <- 0
+law$race.4.white[law$RACE.4 == "Native American"] <- 0
+law$race.4.white[law$RACE.4 == "Asian/Pacific Islander"] <- 0
+law$race.4.white[law$RACE.4 == "Other - please specifiy:"] <- 0
+
+law$race.4.notwhite <- 0
+law$race.4.notwhite[law$RACE.4 == "White/Caucasian"] <- 0
+law$race.4.notwhite[law$RACE.4 == "White/Hispanic"] <- 0
+law$race.4.notwhite[law$RACE.4 == "Nonwhite/Hispanic"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Black/African American"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Native American"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Asian/Pacific Islander"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Other - please specifiy:"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Unknown"] <- 0
+
+law$race.4.unknown <- 0
+law$race.4.unknown[law$RACE.4 == "White/Caucasian"] <- 0
+law$race.4.unknown[law$RACE.4 == "White/Hispanic"] <- 0
+law$race.4.unknown[law$RACE.4 == "Nonwhite/Hispanic"] <- 0
+law$race.4.unknown[law$RACE.4 == "Black/African American"] <- 0
+law$race.4.unknown[law$RACE.4 == "Native American"] <- 0
+law$race.4.unknown[law$RACE.4 == "Asian/Pacific Islander"] <- 0
+law$race.4.unknown[law$RACE.4 == "Other - please specifiy:"] <- 0
+law$race.4.unknown[law$RACE.4 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 5
+
+law$race.5.white <- 0
+law$race.5.white[law$RACE.5 == "White/Caucasian"] <- 1
+law$race.5.white[law$RACE.5 == "White/Hispanic"] <- 1
+law$race.5.white[law$RACE.5 == "Unknown"] <- 0
+law$race.5.white[law$RACE.5 == "Nonwhite/Hispanic"] <- 0
+law$race.5.white[law$RACE.5 == "Black/African American"] <- 0
+law$race.5.white[law$RACE.5 == "Native American"] <- 0
+law$race.5.white[law$RACE.5 == "Asian/Pacific Islander"] <- 0
+law$race.5.white[law$RACE.5 == "Other - please specifiy:"] <- 0
+
+law$race.5.notwhite <- 0
+law$race.5.notwhite[law$RACE.5 == "White/Caucasian"] <- 0
+law$race.5.notwhite[law$RACE.5 == "White/Hispanic"] <- 0
+law$race.5.notwhite[law$RACE.5 == "Nonwhite/Hispanic"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Black/African American"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Native American"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Asian/Pacific Islander"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Other - please specifiy:"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Unknown"] <- 0
+
+law$race.5.unknown <- 0
+law$race.5.unknown[law$RACE.5 == "White/Caucasian"] <- 0
+law$race.5.unknown[law$RACE.5 == "White/Hispanic"] <- 0
+law$race.5.unknown[law$RACE.5 == "Nonwhite/Hispanic"] <- 0
+law$race.5.unknown[law$RACE.5 == "Black/African American"] <- 0
+law$race.5.unknown[law$RACE.5 == "Native American"] <- 0
+law$race.5.unknown[law$RACE.5 == "Asian/Pacific Islander"] <- 0
+law$race.5.unknown[law$RACE.5 == "Other - please specifiy:"] <- 0
+law$race.5.unknown[law$RACE.5 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 6
+
+law$race.6.white <- 0
+law$race.6.white[law$RACE.6 == "White/Caucasian"] <- 1
+law$race.6.white[law$RACE.6 == "White/Hispanic"] <- 1
+law$race.6.white[law$RACE.6 == "Unknown"] <- 0
+law$race.6.white[law$RACE.6 == "Nonwhite/Hispanic"] <- 0
+law$race.6.white[law$RACE.6 == "Black/African American"] <- 0
+law$race.6.white[law$RACE.6 == "Native American"] <- 0
+law$race.6.white[law$RACE.6 == "Asian/Pacific Islander"] <- 0
+law$race.6.white[law$RACE.6 == "Other - please specifiy:"] <- 0
+
+law$race.6.notwhite <- 0
+law$race.6.notwhite[law$RACE.6 == "White/Caucasian"] <- 0
+law$race.6.notwhite[law$RACE.6 == "White/Hispanic"] <- 0
+law$race.6.notwhite[law$RACE.6 == "Nonwhite/Hispanic"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Black/African American"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Native American"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Asian/Pacific Islander"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Other - please specifiy:"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Unknown"] <- 0
+
+law$race.6.unknown <- 0
+law$race.6.unknown[law$RACE.6 == "White/Caucasian"] <- 0
+law$race.6.unknown[law$RACE.6 == "White/Hispanic"] <- 0
+law$race.6.unknown[law$RACE.6 == "Nonwhite/Hispanic"] <- 0
+law$race.6.unknown[law$RACE.6 == "Black/African American"] <- 0
+law$race.6.unknown[law$RACE.6 == "Native American"] <- 0
+law$race.6.unknown[law$RACE.6 == "Asian/Pacific Islander"] <- 0
+law$race.6.unknown[law$RACE.6 == "Other - please specifiy:"] <- 0
+law$race.6.unknown[law$RACE.6 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 7
+
+law$race.7.white <- 0
+law$race.7.white[law$RACE.7 == "White/Caucasian"] <- 1
+law$race.7.white[law$RACE.7 == "White/Hispanic"] <- 1
+law$race.7.white[law$RACE.7 == "Unknown"] <- 0
+law$race.7.white[law$RACE.7 == "Nonwhite/Hispanic"] <- 0
+law$race.7.white[law$RACE.7 == "Black/African American"] <- 0
+law$race.7.white[law$RACE.7 == "Native American"] <- 0
+law$race.7.white[law$RACE.7 == "Asian/Pacific Islander"] <- 0
+law$race.7.white[law$RACE.7 == "Other - please specifiy:"] <- 0
+
+law$race.7.notwhite <- 0
+law$race.7.notwhite[law$RACE.7 == "White/Caucasian"] <- 0
+law$race.7.notwhite[law$RACE.7 == "White/Hispanic"] <- 0
+law$race.7.notwhite[law$RACE.7 == "Nonwhite/Hispanic"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Black/African American"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Native American"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Asian/Pacific Islander"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Other - please specifiy:"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Unknown"] <- 0
+
+law$race.7.unknown <- 0
+law$race.7.unknown[law$RACE.7 == "White/Caucasian"] <- 0
+law$race.7.unknown[law$RACE.7 == "White/Hispanic"] <- 0
+law$race.7.unknown[law$RACE.7 == "Nonwhite/Hispanic"] <- 0
+law$race.7.unknown[law$RACE.7 == "Black/African American"] <- 0
+law$race.7.unknown[law$RACE.7 == "Native American"] <- 0
+law$race.7.unknown[law$RACE.7 == "Asian/Pacific Islander"] <- 0
+law$race.7.unknown[law$RACE.7 == "Other - please specifiy:"] <- 0
+law$race.7.unknown[law$RACE.7 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 8
+
+law$race.8.white <- 0
+law$race.8.white[law$RACE.8 == "White/Caucasian"] <- 1
+law$race.8.white[law$RACE.8 == "White/Hispanic"] <- 1
+law$race.8.white[law$RACE.8 == "Unknown"] <- 0
+law$race.8.white[law$RACE.8 == "Nonwhite/Hispanic"] <- 0
+law$race.8.white[law$RACE.8 == "Black/African American"] <- 0
+law$race.8.white[law$RACE.8 == "Native American"] <- 0
+law$race.8.white[law$RACE.8 == "Asian/Pacific Islander"] <- 0
+law$race.8.white[law$RACE.8 == "Other - please specifiy:"] <- 0
+
+law$race.8.notwhite <- 0
+law$race.8.notwhite[law$RACE.8 == "White/Caucasian"] <- 0
+law$race.8.notwhite[law$RACE.8 == "White/Hispanic"] <- 0
+law$race.8.notwhite[law$RACE.8 == "Nonwhite/Hispanic"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Black/African American"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Native American"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Asian/Pacific Islander"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Other - please specifiy:"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Unknown"] <- 0
+
+law$race.8.unknown <- 0
+law$race.8.unknown[law$RACE.8 == "White/Caucasian"] <- 0
+law$race.8.unknown[law$RACE.8 == "White/Hispanic"] <- 0
+law$race.8.unknown[law$RACE.8 == "Nonwhite/Hispanic"] <- 0
+law$race.8.unknown[law$RACE.8 == "Black/African American"] <- 0
+law$race.8.unknown[law$RACE.8 == "Native American"] <- 0
+law$race.8.unknown[law$RACE.8 == "Asian/Pacific Islander"] <- 0
+law$race.8.unknown[law$RACE.8 == "Other - please specifiy:"] <- 0
+law$race.8.unknown[law$RACE.8 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 9
+
+law$race.9.white <- 0
+law$race.9.white[law$RACE.9 == "White/Caucasian"] <- 1
+law$race.9.white[law$RACE.9 == "White/Hispanic"] <- 1
+law$race.9.white[law$RACE.9 == "Unknown"] <- 0
+law$race.9.white[law$RACE.9 == "Nonwhite/Hispanic"] <- 0
+law$race.9.white[law$RACE.9 == "Black/African American"] <- 0
+law$race.9.white[law$RACE.9 == "Native American"] <- 0
+law$race.9.white[law$RACE.9 == "Asian/Pacific Islander"] <- 0
+law$race.9.white[law$RACE.9 == "Other - please specifiy:"] <- 0
+
+law$race.9.notwhite <- 0
+law$race.9.notwhite[law$RACE.9 == "White/Caucasian"] <- 0
+law$race.9.notwhite[law$RACE.9 == "White/Hispanic"] <- 0
+law$race.9.notwhite[law$RACE.9 == "Nonwhite/Hispanic"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Black/African American"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Native American"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Asian/Pacific Islander"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Other - please specifiy:"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Unknown"] <- 0
+
+law$race.9.unknown <- 0
+law$race.9.unknown[law$RACE.9 == "White/Caucasian"] <- 0
+law$race.9.unknown[law$RACE.9 == "White/Hispanic"] <- 0
+law$race.9.unknown[law$RACE.9 == "Nonwhite/Hispanic"] <- 0
+law$race.9.unknown[law$RACE.9 == "Black/African American"] <- 0
+law$race.9.unknown[law$RACE.9 == "Native American"] <- 0
+law$race.9.unknown[law$RACE.9 == "Asian/Pacific Islander"] <- 0
+law$race.9.unknown[law$RACE.9 == "Other - please specifiy:"] <- 0
+law$race.9.unknown[law$RACE.9 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 10
+
+law$race.10.white <- 0
+law$race.10.white[law$RACE.10 == "White/Caucasian"] <- 1
+law$race.10.white[law$RACE.10 == "White/Hispanic"] <- 1
+law$race.10.white[law$RACE.10 == "Unknown"] <- 0
+law$race.10.white[law$RACE.10 == "Nonwhite/Hispanic"] <- 0
+law$race.10.white[law$RACE.10 == "Black/African American"] <- 0
+law$race.10.white[law$RACE.10 == "Native American"] <- 0
+law$race.10.white[law$RACE.10 == "Asian/Pacific Islander"] <- 0
+law$race.10.white[law$RACE.10 == "Other - please specifiy:"] <- 0
+
+law$race.10.notwhite <- 0
+law$race.10.notwhite[law$RACE.10 == "White/Caucasian"] <- 0
+law$race.10.notwhite[law$RACE.10 == "White/Hispanic"] <- 0
+law$race.10.notwhite[law$RACE.10 == "Nonwhite/Hispanic"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Black/African American"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Native American"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Asian/Pacific Islander"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Other - please specifiy:"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Unknown"] <- 0
+
+law$race.10.unknown <- 0
+law$race.10.unknown[law$RACE.10 == "White/Caucasian"] <- 0
+law$race.10.unknown[law$RACE.10 == "White/Hispanic"] <- 0
+law$race.10.unknown[law$RACE.10 == "Nonwhite/Hispanic"] <- 0
+law$race.10.unknown[law$RACE.10 == "Black/African American"] <- 0
+law$race.10.unknown[law$RACE.10 == "Native American"] <- 0
+law$race.10.unknown[law$RACE.10 == "Asian/Pacific Islander"] <- 0
+law$race.10.unknown[law$RACE.10 == "Other - please specifiy:"] <- 0
+law$race.10.unknown[law$RACE.10 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 11
+
+law$race.11.white <- 0
+law$race.11.white[law$RACE.11 == "White/Caucasian"] <- 1
+law$race.11.white[law$RACE.11 == "White/Hispanic"] <- 1
+law$race.11.white[law$RACE.11 == "Unknown"] <- 0
+law$race.11.white[law$RACE.11 == "Nonwhite/Hispanic"] <- 0
+law$race.11.white[law$RACE.11 == "Black/African American"] <- 0
+law$race.11.white[law$RACE.11 == "Native American"] <- 0
+law$race.11.white[law$RACE.11 == "Asian/Pacific Islander"] <- 0
+law$race.11.white[law$RACE.11 == "Other - please specifiy:"] <- 0
+
+law$race.11.notwhite <- 0
+law$race.11.notwhite[law$RACE.11 == "White/Caucasian"] <- 0
+law$race.11.notwhite[law$RACE.11 == "White/Hispanic"] <- 0
+law$race.11.notwhite[law$RACE.11 == "Nonwhite/Hispanic"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Black/African American"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Native American"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Asian/Pacific Islander"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Other - please specifiy:"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Unknown"] <- 0
+
+law$race.11.unknown <- 0
+law$race.11.unknown[law$RACE.11 == "White/Caucasian"] <- 0
+law$race.11.unknown[law$RACE.11 == "White/Hispanic"] <- 0
+law$race.11.unknown[law$RACE.11 == "Nonwhite/Hispanic"] <- 0
+law$race.11.unknown[law$RACE.11 == "Black/African American"] <- 0
+law$race.11.unknown[law$RACE.11 == "Native American"] <- 0
+law$race.11.unknown[law$RACE.11 == "Asian/Pacific Islander"] <- 0
+law$race.11.unknown[law$RACE.11 == "Other - please specifiy:"] <- 0
+law$race.11.unknown[law$RACE.11 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 12
+
+law$race.12.white <- 0
+law$race.12.white[law$RACE.12 == "White/Caucasian"] <- 1
+law$race.12.white[law$RACE.12 == "White/Hispanic"] <- 1
+law$race.12.white[law$RACE.12 == "Unknown"] <- 0
+law$race.12.white[law$RACE.12 == "Nonwhite/Hispanic"] <- 0
+law$race.12.white[law$RACE.12 == "Black/African American"] <- 0
+law$race.12.white[law$RACE.12 == "Native American"] <- 0
+law$race.12.white[law$RACE.12 == "Asian/Pacific Islander"] <- 0
+law$race.12.white[law$RACE.12 == "Other - please specifiy:"] <- 0
+
+law$race.12.notwhite <- 0
+law$race.12.notwhite[law$RACE.12 == "White/Caucasian"] <- 0
+law$race.12.notwhite[law$RACE.12 == "White/Hispanic"] <- 0
+law$race.12.notwhite[law$RACE.12 == "Nonwhite/Hispanic"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Black/African American"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Native American"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Asian/Pacific Islander"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Other - please specifiy:"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Unknown"] <- 0
+
+law$race.12.unknown <- 0
+law$race.12.unknown[law$RACE.12 == "White/Caucasian"] <- 0
+law$race.12.unknown[law$RACE.12 == "White/Hispanic"] <- 0
+law$race.12.unknown[law$RACE.12 == "Nonwhite/Hispanic"] <- 0
+law$race.12.unknown[law$RACE.12 == "Black/African American"] <- 0
+law$race.12.unknown[law$RACE.12 == "Native American"] <- 0
+law$race.12.unknown[law$RACE.12 == "Asian/Pacific Islander"] <- 0
+law$race.12.unknown[law$RACE.12 == "Other - please specifiy:"] <- 0
+law$race.12.unknown[law$RACE.12 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#adding up the race variables for the jury
+
+law$jury.white <- NA
+law$jury.white <- law$race.1.white + law$race.2.white + law$race.3.white + law$race.4.white + law$race.5.white + law$race.6.white + law$race.7.white + law$race.8.white + law$race.9.white + law$race.10.white + law$race.11.white + law$race.12.white 
+
+law$jury.notwhite <- NA
+law$jury.notwhite <- law$race.1.notwhite + law$race.2.notwhite + law$race.3.notwhite + law$race.4.notwhite + law$race.5.notwhite + law$race.6.notwhite + law$race.7.notwhite + law$race.8.notwhite + law$race.9.notwhite + law$race.10.notwhite + law$race.11.notwhite + law$race.12.notwhite 
+
+law$jury.unknown <- NA
+law$jury.unknown <- law$race.1.unknown + law$race.2.unknown + law$race.3.unknown + law$race.4.unknown + law$race.5.unknown + law$race.6.unknown + law$race.7.unknown + law$race.8.unknown + law$race.9.unknown + law$race.10.unknown + law$race.11.unknown + law$race.12.unknown 
+
+table(law$jury.white)
+table(law$jury.notwhite)
+table(law$jury.unknown)
+table(law$def.notwhite)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for the defendant
+
+attributes(law$DEFTRACE)
+table(law$DEFTRACE)
+
+law$def.white <- 0
+law$def.white[law$DEFTRACE == "White - not Hispanic"] <- 1
+law$def.white[law$DEFTRACE == "White - Hispanic"] <- 1
+law$def.white[law$DEFTRACE == "Black - not Hispanic"] <- 0
+law$def.white[law$DEFTRACE == "Black - Hispanic"] <- 0
+law$def.white[law$DEFTRACE == "Native American"] <- 0
+law$def.white[law$DEFTRACE == "Asian"] <- 0
+law$def.white[law$DEFTRACE == "Other (please specify):"] <- 0
+law$def.white[law$DEFTRACE == "Unknown"] <- 0
+
+law$def.notwhite <- 0
+law$def.notwhite[law$DEFTRACE == "White - not Hispanic"] <- 0
+law$def.notwhite[law$DEFTRACE == "White - Hispanic"] <- 0
+law$def.notwhite[law$DEFTRACE == "Black - not Hispanic"] <- 1
+law$def.notwhite[law$DEFTRACE == "Black - Hispanic"] <- 1
+law$def.notwhite[law$DEFTRACE == "Native American"] <- 1
+law$def.notwhite[law$DEFTRACE == "Asian"] <- 1
+law$def.notwhite[law$DEFTRACE == "Other (please specify):"] <- 1
+law$def.notwhite[law$DEFTRACE == "Unknown"] <- 0
+
+law$def.unknown <- 0
+law$def.unknown[law$DEFTRACE == "White - not Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "White - Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "Black - not Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "Black - Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "Native American"] <- 0
+law$def.unknown[law$DEFTRACE == "Asian"] <- 0
+law$def.unknown[law$DEFTRACE == "Other (please specify):"] <- 0
+law$def.unknown[law$DEFTRACE == "Unknown"] <- 1
+
+print(subset(law, law$def.unknown == 1))
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for the victims
+
+law$vict.white <- NA
+law$vict.white[law$VICTRACE == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRACE == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRACE == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRACE == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRACE == "Native American"] <- 0
+law$vict.white[law$VICTRACE == "Asian"] <- 0
+law$vict.white[law$VICTRACE == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRACE == "Unknown"] <- 0
+law$vict.white[law$VICTRCE2 == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRCE2 == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRCE2 == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRCE2 == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRCE2 == "Native American"] <- 0
+law$vict.white[law$VICTRCE2 == "Asian"] <- 0
+law$vict.white[law$VICTRCE2 == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRCE2 == "Unknown"] <- 0
+law$vict.white[law$VICTRAC3 == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRAC3 == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRAC3 == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRAC3 == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRAC3 == "Native American"] <- 0
+law$vict.white[law$VICTRAC3 == "Asian"] <- 0
+law$vict.white[law$VICTRAC3 == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRAC3 == "Unknown"] <- 0
+law$vict.white[law$VICTRAC4 == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRAC4 == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRAC4 == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRAC4 == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRAC4 == "Native American"] <- 0
+law$vict.white[law$VICTRAC4 == "Asian"] <- 0
+law$vict.white[law$VICTRAC4 == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRAC4 == "Unknown"] <- 0
+
+law$vict.notwhite <- NA
+law$vict.notwhite[law$VICTRACE == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRACE == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRACE == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRACE == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRACE == "Native American"] <- 1
+law$vict.notwhite[law$VICTRACE == "Asian"] <- 1
+law$vict.notwhite[law$VICTRACE == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRACE == "Unknown"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRCE2 == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRCE2 == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Native American"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Asian"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Unknown"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC3 == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC3 == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Native American"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Asian"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Unknown"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC4 == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC4 == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Native American"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Asian"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for at least one conviction
+
+law$yes.conv <- 0
+law$yes.conv[law$COUNT1.1 == "Conviction" | law$COUNT2.1 == "Conviction" | law$COUNT3.1 == "Conviction" | law$COUNT4.1 == "Conviction" | law$COUNT5.1 == "Conviction" | law$COUNT6.1 == "Conviction"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for at least one jury member to think the victim was very believable 
+
+law$believe.vict <- 0
+law$believe.vict[law$VSYMPATH.1 == "Very believable" | law$VSYMPATH.2 == "Very believable" | law$VSYMPATH.3 == "Very believable" | law$VSYMPATH.4 == "Very believable" | law$VSYMPATH.5 == "Very believable" | law$VSYMPATH.6 == "Very believable" | law$VSYMPATH.7 == "Very believable" | law$VSYMPATH.8 == "Very believable" | law$VSYMPATH.9 == "Very believable" | law$VSYMPATH.10 == "Very believable" | law$VSYMPATH.11 == "Very believable" | law$VSYMPATH.12 == "Very believable"] <- 1
+table(law$believe.vict)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for at least one jury member to have sympathy for the defendant 
+
+law$def.sympt <- 0
+law$def.sympt[law$DSYMPATH.1 == "A great deal of sympathy" | law$DSYMPATH.2 == "A great deal of sympathy" | law$DSYMPATH.3 == "A great deal of sympathy" | law$DSYMPATH.4 == "A great deal of sympathy" | law$DSYMPATH.5 == "A great deal of sympathy" | law$DSYMPATH.6 == "A great deal of sympathy" | law$DSYMPATH.7 == "A great deal of sympathy" | law$DSYMPATH.8 == "A great deal of sympathy" | law$DSYMPATH.9 == "A great deal of sympathy" | law$DSYMPATH.10 == "A great deal of sympathy" | law$DSYMPATH.11 == "A great deal of sympathy" | law$DSYMPATH.12 == "A great deal of sympathy"] <- 1
+table(law$def.sympt)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating variables for the severity of the charge
+
+attributes(law$CASETYPE.1)
+law$felony <- NA
+law$felony[law$CASETYPE.1 == "Murder, first degree"] <- 1
+law$felony[law$CASETYPE.1 == "Murder, second degree"] <- 1
+law$felony[law$CASETYPE.1 == "Manslaughter"] <- 1
+law$felony[law$CASETYPE.1 == "Rape/sexual battery/sex conduct w/minor"] <- 1
+law$felony[law$CASETYPE.1 == "Robbery"] <- 1
+law$felony[law$CASETYPE.1 == "Assault (not sexual)"] <- 0
+law$felony[law$CASETYPE.1 == "Child abuse/neglect"] <- 0
+law$felony[law$CASETYPE.1 == "Burglary"] <- 1
+law$felony[law$CASETYPE.1 == "Larceny/theft"] <- 0
+law$felony[law$CASETYPE.1 == "Arson"] <- 1
+law$felony[law$CASETYPE.1 == "Illegal drug, possession"] <- 1
+law$felony[law$CASETYPE.1 == "Illegal drug, sale"] <- 1
+law$felony[law$CASETYPE.1 == "Illegal drug, manufacture"] <- 1
+law$felony[law$CASETYPE.1 == "DUI/DWI"] <- 0
+law$felony[law$CASETYPE.1 == "Attempted murder"] <- 1
+law$felony[law$CASETYPE.1 == "Weapons"] <- 1
+law$felony[law$CASETYPE.1 == "Forgery"] <- 0
+law$felony[law$CASETYPE.1 == "Unlawful flight/leaving scene/failure to stop/resist arrest"] <- 0
+law$felony[law$CASETYPE.1 == "Other"] <- 0
+law$felony[law$CASETYPE.1 == "Unknown"] <- 0
+
+law$misdemeanor <- NA
+law$misdemeanor[law$CASETYPE.1 == "Murder, first degree"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Murder, second degree"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Manslaughter"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Rape/sexual battery/sex conduct w/minor"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Robbery"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Assault (not sexual)"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Child abuse/neglect"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Burglary"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Larceny/theft"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Arson"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Illegal drug, possession"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Illegal drug, sale"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Illegal drug, manufacture"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "DUI/DWI"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Attempted murder"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Weapons"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Forgery"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Unlawful flight/leaving scene/failure to stop/resist arrest"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Other"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Unknown"] <- 0
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for the proportion of the jury that matches the race of the defendant 
+
+law$prop.race <- NA
+law$prop.race <- if(!is.na(law$def.notwhite == 1)) {
+  print(law$jury.notwhite/(law$jury.white + law$jury.notwhite))
+} else if(!is.na(law$def.white == 1)) {
+  print(law$jury.white/(law$jury.white + law$jury.notwhite))
+} else if(!is.na(law$def.unknown == 1)) {
+  print(law$def.unknown <- NA)
+}
+
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating variables for whether the proportion of jurors whose race matches the defendant is more than / less than 0.50
+
+law$prop.race.big50 <- NA
+law$prop.race.big50[law$prop.race >= 0.50] <- 1
+law$prop.race.big50[law$prop.race < 0.50] <- 0
+
+law$prop.race.less50 <- NA
+law$prop.race.less50[law$prop.race >= 0.50] <- 0
+law$prop.race.less50[law$prop.race < 0.50] <- 1
+```
+
+I will use the data from the “Evaluation of Hung Juries in Bronx County, New York, Los Angeles County, California, Maricopa County, Arizona, and Washington, DC, 2000-2001 (ICPSR 3689)” by Paula Hannaford-Agor, Valerie Hans, Nicole Mott, and G. Thomas Munsterman. The data includes information on four courts (Bronx County Supreme Court in New York, Los Angeles County Superior Court in California, Maricopa County Superior Court in Arizona, and District of Columbia Superior Court in Washington, DC). Each court was sent a case data form and count sheet data form, as well as three questionnaires for the judges, attorneys, and jurors. The case data form includes the demographic information for the defendant and the victim(s) and the type of representation for the defendant. The count sheet data includes the case type, the jury’s decision for each count the defendant was charged with, the total number of convictions, and the sentence length. The judge questionnaire includes the evaluation of the evidence, case complexity, likelihood that the jury understood the case, importance of the victim’s testimony, and importance of the defendant’s testimony. The attorney questionnaire includes information assessing the case complexity, type of defense, whether or not the jury would become hung, and their own demographical information. The juror questionnaire includes responses regarding case complexity, whether or not the evidence was convincing, whether or not they had sympathy towards the defendant or victim(s), whether or not the defense had a strong case, which side they favored before, during, and after deliberations, and demographical information on themselves. 
+
+In order to analyze this data as a whole, I reshaped the attorney and jury datasets so that each row corresponded to a singular court site and case number. Once the data was widened, I was able to merge all five datasets together to create one larger dataset, entitled “law.” To construct my key independent variable (the proportion of the jury whose members are less than 50% racially similar to the defendant), I first created three dummy variables for the race of each jury member (White, not White, and unknown). Once all 36 variables were created (since trials could have up to 12 jurors), I added them together so that I would have a total count of the jury members of each race per case number (becoming the variables jury.white, jury.notwhite, and jury.unknown). Next, I created the same three dummy variables for the defendant’s race (def.white, def.notwhite, and def.unknown). Once these six variables were created, I constructed the continuous proportion variable (becoming the variable prop.race) by matching the race of the defendant with the number of people who matched that race on the jury and dividing that number by the total number of jurors for that case. I constructed my actual independent variable (becoming prop.race.less50) as a dummy variable that equals 1 if the proportion of the jury whose race matches the defendant was less than half of the members and 0 if the proportion of the jury is equal to or more than half of the members. Because my hypothesis is that juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant, I made the group in which the proportion of the jury whose race is equal to or more than half the same as the defendant the excluded group. 
+
+Afterwards, I constructed my dependent variable by combining the results for whether or not a defendant had a least one conviction for the six possible counts they could have been charged with in that particular case (becoming the variable yes.conv). The variable is coded as 1 if they had at least one conviction and 0 if they had no convictions. A measurement assumption of this variable, however, is that I am assuming that these juries had negative racial biases, when it could have been the opposite and positive, resulting in a lesser sentence or charge rather than a conviction for the defendant. 
+Additionally, I chose to control for four different variables that all could influence both the proportion of jury members with a similar race to the defendant and whether or not the defendant was convicted on at least one count. First, I chose to control for whether or not the jury felt “a great deal of sympathy” for the defendant. It seems like having a large amount of sympathy for the defendant would cause the jury to rule in favor of the defendant, regardless of their race. I coded this variable (def.sympt) as a dummy variable that equals 1 if at least one of the jury members felt a great deal of sympathy for the defendant and 0 if none of the jury members felt a great deal of sympathy for the defendant. I would expect that someone who has no sympathy towards the defendant would rule more harshly, so I made that my excluded group. Similarly, I chose to control for whether or not the jury felt that the victim(s) was very believable. It seems like thinking that the victim(s) was very believable would cause the jury to rule against the defendant, regardless of race. I coded this variable (believe.vict) as a dummy variable that equals 1 if at least one of the jury members felt that the victim(s) was very believable and 0 if none of the jury members felt that the victims(s) was very believable. I would expect that someone who does not think that the victim was believable would rule less harshly against the defendant, so I made that my excluded group. My third control variable is the crime the defendant was charged with. I created two variables: the first (felony) equals 1 if the crime is classified as a felony and 0 if the crime is classified as a misdemeanor and the second (misdemeanor) equals 1 if the crime is classified as a misdemeanor and 0 if the crime is classified as a felony. I would expect that if someone was charged with a crime as serious as murder or rape, a juror would weigh that more heavily than whether or not they were the same race. Because of this, I made the felony variable my excluded group. Finally, my fourth control variable is the victim’s race. Because of the preconceived biases made by the jury in the research I previously discussed in my Literature Review, I decided to look at whether or not the victim was White, as most people in the study associated White with “Not Guilty” and “Pleasant.” I created two variables: the first (vict.white) equals 1 if the victim was White and 0 if victim was any other race and the second (vict.notwhite) equals 1 if the victim was any race other than White and 0 if the victim was White. Because I would expect the jury to favor White victims, I made that my excluded group.
+
+```{r, echo=FALSE}
+#cretaing a descriptive statistics table
+
+sublaw <- subset(law, select = c(yes.conv, prop.race.less50, believe.vict, def.sympt, vict.notwhite, misdemeanor), na.rm = T)
+
+stargazer(sublaw, type = "text", title="Table 1: Descriptive Statistics for Convictions and Proportion of Similar Race", summary.stat = c("n", "mean", "sd", "min", "max"),
+          covariate.labels= c("At least one conviction",
+                              "Proportion of the jury whose members are less than 50% racially similar to the defendant", "Victim Believability","Defendant Sympathy", "Not White Victim", "Misdemeanor"),
+          out="/Users/briannafisher/Dropbox/PSCI338/Final/Law.txt") 
+```
+
+Table 1 presents descriptive statistics for my dependent variable, independent variable, and control variables. The table depicts the number of observations, mean, standard deviation, minimum, and maximum values for the following variables: the defendant having at least one conviction, the proportion of the jury whose members are less than 50%	 racially similar to the defendant, at least one jury member thinking the victim was very believable, at least one jury member having sympathy for the defendant, if the case had a victim that was not White, and if the crime was a misdemeanor.
+
+__Hypothesis and Empirical Tests__
+
+Like I previously mentioned, my hypothesis is that “juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant.” I plan on testing this hypothesis through a quantitative analysis by running a regression between whether or not the defendant had at least one conviction and the proportion of the jury whose members are less than 50% racially similar to the defendant. By doing this, I will be able to see how much more likely juries with a greater proportion of members who are the same race as the defendant are to rule in favor of the defendant than juries with a smaller proportion. 
+
+In this case, my null hypothesis is that juries in which at least 50% of the jurors are the same race as the defendant would make the same decision on the outcome of a case as juries that were not mostly the same race as the defendant. In order to reject my null hypothesis, I would need to see the coefficient for the proportion of the jury whose members are less than 50% racially similar to the defendant be zero after running the regression, meaning that there was no difference in the likelihood of having at least one conviction between juries that were more or less racially similar to the defendant. I would also need to see the p-value for the proportion of the jury whose members are less than 50% racially similar to the defendant be 0.05 or less, meaning that there was such a small chance of committing a type I error, or rejecting the null hypothesis that juries in which at least 50% of the jurors are the same race as the defendant would make the same decision on the outcome of a case as juries that were not mostly the same race as the defendant, when it is true. 
+
+__Results__
+```{r, echo=FALSE}
+#plotting Average Proportion of time that someone is convicted when they are not white / white
+
+#percentage of the time that someone is convicted when they are not white 
+mean1 <- mean(law$yes.conv[law$prop.race.big50 ==1 & law$def.notwhite ==1], na.rm = T) # 0.5211268
+mean2 <- mean(law$yes.conv[law$prop.race.less50 ==1 & law$def.notwhite ==1], na.rm = T) # 0.65625
+
+#percentage of the time that someone is convicted when they are white 
+mean3 <- mean(law$yes.conv[law$prop.race.big50 ==1 & law$def.notwhite ==0], na.rm = T)  # 0.6086957
+mean4 <- mean(law$yes.conv[law$prop.race.less50 ==1 & law$def.notwhite ==0], na.rm = T) # 0.6923077
+
+conv <- c("Not White", "Not White", "White", "White")
+
+law.graph <- data.frame(avg.prop=c(0.52, 0.66, 0.61, 0.69),
+                 Legend=c("Jury's at least 50% same race as defendant", "Jury's less than 50% same race as defendant", "Jury's at least 50% same race as defendant", "Jury's less than 50% same race as defendant"), conv)
+
+law.bar <- ggplot(law.graph, aes(x = Legend, y = avg.prop, fill = Legend)) + 
+  geom_bar(stat="identity", position = "dodge") +
+  geom_text(aes(label=avg.prop), vjust=-0.3, size=4) +
+  ylab("Average Proportion of Times that Someone is Convicted") +
+  scale_fill_manual(values = c("hotpink1", "lightskyblue", "hotpink1", "lightskyblue")) +
+  facet_wrap(vars(conv),
+             ncol = 2, 
+             nrow = 1) +
+  xlab("% Jury Same Race as Defendant") +
+  ggtitle("Figure 1: Average Proportion of Times that Someone is Convicted with a 
+          Jury Similar in Race to the Defendant") +  
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0, 0.70)) + 
+  scale_x_discrete(labels=c("At least 50%", "Less than 50%", "At least 50%", "Less than 50%"))
+law.bar
+
+ggsave(filename = "law.bar.png", 
+       plot = law.bar,
+       width = 12, 
+       height = 7)
+```
+
+Figure 1 displays the average proportion of times that someone is convicted with a jury similar in race to the defendant. The first panel displays the average proportions when the jury members were both at least 50% racially similar to the defendant and less than 50% racially similar to the defendant for when the defendant was convicted on at least one count and was not white. The second panel also displays the average proportions when the jury members were both at least 50% racially similar to the defendant and less than 50% racially similar to the defendant, but now for when the defendant was convicted on at least one count and was white.
+
+Both panels highlight, as I hypothesized, the difference in jury decision making when the jury is made up of a different percent of members that match the race of the defendant. When the jury is made up of at least 50% of members of the same race as the defendant, they are more likely to not convict the defendant than juries made up of members that are less than 50% of the same race. If the defendant was not white and the majority of the jury was not white, the defendant was less likely to be convicted by a larger margin than if the defendant was white and the majority of the jury was also white.
+
+To model this further, I ran two regressions between having at least one conviction and the proportion of the jury whose members were less than 50% racially similar to the defendant, controlling for victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white in the second regression.
+
+```{r, echo=FALSE, results=FALSE}
+#running a baseline regression between whether or not the defendant had a least 1 conviction and the proportion of the jury that had the same race as the defendant
+
+reg.baseline <- lm(yes.conv ~ prop.race.less50, data=law)
+summary(reg.baseline)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#running the same regression but with controls
+
+reg.controls <- lm(yes.conv ~ prop.race.less50 + believe.vict + def.sympt + vict.notwhite + misdemeanor, data=law)
+summary(reg.controls)
+```
+
+```{r, echo=FALSE}
+#creating a table of the regression results
+
+stargazer(reg.baseline, reg.controls, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Table 2: Proportion of the Jury whose Race Matches the Defendant and Total Convictions",
+          model.names = FALSE, 
+          column.labels = c("Baseline","Controls"),
+          covariate.labels = c("Prop of the jury less than 50% racially similar to defendant", "Victim Believability","Sympathy for the Defendant","Not White Victim", "Misdemeanor", "Constant"), type="text", out="/Users/briannafisher/Dropbox/PSCI338/Midterm/Table2.txt")
+```
+
+Table 2 presents both regression analyses, regressed on the dependent variable of having at least one conviction. The average chance of the defendant having at least one conviction in their case when the jury was at least 50% racially similar to the defendant was 54.3 percentage points. When the proportion of the jury whose members were less than 50% racially similar to the defendant, the defendant was more likely to be convicted by 12.4 percentage points. This baseline provides evidence for my hypothesis, as juries with more members who matched the race of the defendant were less likely to convict the defendant. Additionally, the p-value for the average chance of the defendant having at least one conviction in their case when the jury was at least 50% racially similar to the defendant is 2 X 10 ^ -16. Since this is an extremely small value, I can reject the null hypothesis that juries in which at least 50% of the jurors are the same race as the defendant would make the same decision on the outcome of a case as juries that were not mostly the same race as the defendant.
+
+Furthermore, when no jury members thought that the victim was believable or had sympathy for the defendant, the crime was a felony, and the victim was white, the average chance of a defendant having at least one conviction in their case when the jury was at least 50% racially similar to the defendant was 80.1 percentage points. When the proportion of the jury whose members were less than 50% racially similar to the defendant, the defendant was more likely to be convicted by 16.5 percentage points than when the jury was at least 50% racially similar to the defendant, holding fixed victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white. I expected there to be an increase in the coefficient, as juries without a majority of the same race should be more likely to convict when there is no overarching demographical connection. When at least one jury member thought that the victim was very believable, the defendant was more likely to be convicted than if none of the jury members thought that the victim was very believable by only 0.4 percentage points. I expected there to be an increase in the likelihood of a conviction since I assumed the jury would feel bad for the victim, but the small increase could be accounted for by the fact that maybe only one out of the 12 jurors believed the victim, or they believed the victim but not to a “very believable” extent. When the victim was not white, the defendant was less likely to be convicted than if the victim was white by 36.6 percentage points. This seemed strange at first, as I expected juries to be harsher on defendants when the victim was white. However, the majority of defendants were not white (136 out of 185) and 58% of the time, juries were made up of a majority of people who identified as not white. This indicates that juries had more sympathy towards defendants that were not white, rather than white defendants. This is also proven in Figure 1, as not white defendants with a jury that was mostly not white were less likely to be convicted than white defendants with a jury was mostly white.
+
+Additionally, there were two results from the second regression that surprised me. When at least one jury member had a great deal of sympathy for the defendant, the defendant was more likely to be convicted than if none of the jury had sympathy for the defendant by 19.7 percentage points. I expected this coefficient to be negative, since feeling bad for the defendant would theoretically lead the jury to not convict them. Similarly to the victim believability variable, I was only measuring if a jury member had “a great deal of sympathy” for the defendant, and they could have felt some sympathy but did not reach the “great deal” threshold. Criminal cases also require a unanimous decision by the jury, so it could be possible that at least one juror felt a “great deal of sympathy” but was overpowered by the rest of the jury, leading to a conviction. Likewise, when the crime was a misdemeanor, the defendant was more likely to be convicted than if it was a felony by 14.5 percentage points. I expected this result to be negative as well, since I thought that people charged with felonies would be more likely to be convicted than someone charged with a less serious crime. A juror could possibly have more sympathy for a defendant if the defendant was going to jail versus if they were sentenced to a fine or probation (usually the outcome of misdemeanor cases), and maybe most of the cases in the data did not result in jail or prison sentences, accounting for both of these discrepancies.
+
+__Discussion and Conclusion__
+
+I was able to find evidence that juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant. For both regressions, the defendant was more likely to be convicted when the jury was less than 50% racially similar to the defendant than when the jury was at least 50% racially similar to the defendant, including when I held fixed victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white. I also found that when at least one jury member thought that the victim was very believable, the defendant was more likely to be convicted than if none of the jury members thought that the victim was very believable and when the victim was not white, the defendant was less likely to be convicted than if the victim was white. Surprisingly, I found that when at least one jury member had a great deal of sympathy for the defendant, the defendant was more likely to be convicted than if none of the jury had sympathy for the defendant and when the crime was a misdemeanor, the defendant was more likely to be convicted than if it was a felony. More research needs to be conducted on these two variables (for example, splitting the cases up by type of crime rather than overall category) in order to account for these discrepancies. 
+
+My results are consistent with previous research completed on the topic. Racially similar juries are more likely to side the same way as each other, as well as in favor of the defendant if they matched the race. In a 2003 study completed by law professor Phoebe C. Ellsworth for the University of Michigan Law School Scholarship Repository researching jury decision making in a race salient and non-race salient mock trial, Ellsworth found that “White mock jurors were more likely to vote to convict the Black defendant (90% of jurors voted to convict) than the White defendant (70% conviction rate).” This is consistent with my results, as juries that were mostly White with a non-White defendant and juries that were mostly not-White with a White defendant were more likely to convict than if the races matched. My results also matched the studies discussed in the Literature Review, as the first paper written by Joy (actually analyzing another study completed by Ellsworth) found that that all-White juries were more likely to convict African American defendants than White defendants. The second paper, written by Levinson, Cai, and Young, also found that people are more likely to perceive black people as guilty and therefore convict them. While I did not look at race in depth and rather as White or not-White, my results are consistent with all three studies and the idea that implicit racial bias impacts jury decision making.
+
+Some potential confounds for interpreting my results and stopping me from finding a causal effect between my variables are other demographical information that I did not have available in the data. Controlling for a juror’s religion could have been useful since different religions value different punishments and sentences. For example, Catholics are less likely to support the death penalty than Protestants and would be more lenient towards a defendant in a death penalty case (Miller 2007). Similarly, controlling for whether or not a juror was married or had kids would be helpful to better explain the relationship between my independent and dependent variables. Picking parents and grandparents for a trial of a teenager, for example, would make the jury more sympathetic towards the defendant when the defendant could have been their own kid. Additionally, a potential confound for interpreting my results is whether or not a juror has any experience or strong opinions on the criminal justice system. If a juror was a lawyer or police officer, or had a family member arrested or in jail, they would have a different opinion and perspective on the case than if they had no or very limited knowledge on the topic. Ideally, I would have been able to control for all of these demographical characteristics, as well as harder to measure variables (empathy, feelings on the legal system, feelings the day of the trial), in order to be more confident that the proportion of the jury being a certain race impacts how the jury decides in the case.
+
+Based on my results, it is clear that jury selection needs to be better regulated so that juries do not have preconceived biases before making life changing decisions. A case should not be decided before evidence is even presented, and attorneys should have a responsibly to create a diverse, fair jury rather than one crafted just to win. Further research needs to be completed on other demographical information in order to create a more comprehensive way to reshape the voir dire process and ensure that the legal system works more efficiently. 
+
+__Works Cited__
+Hannaford-Agor, Paula L., Hans, Valerie P., Mott, Nicole L., and Munsterman, G. Thomas. 	Evaluation of Hung Juries in Bronx County, New York, Los Angeles County, California, 	Maricopa County, Arizona, and Washington, DC, 2000-2001. [distributor], 2006-03-30. 
+Illegal Racial Discrimination in Jury Selection: A Continuing Legacy. (2020, August 21). Retrieved December 17, 2020, from https://eji.org/reports/illegal-racial-discrimination-in-jury-selection/
+Joy, P. (109). RACE MATTERS IN JURY SELECTION. Northwestern University Law Review.
+Levinson, J., Cai, H., & Young, D. (2010). Guilty By Implicit Racial Bias: The Guilty/Not Guilty Implicit Association Test. OHIO STATE JOURNAL OF CRIMINAL LAW, 8, 187-208.
+Miller, M.K., Hayward, R.D. Religious Characteristics and the Death Penalty. Law Hum 	Behav 32, 113–123 (2008). 
+Sommers, S., & Ellsworth, P. (2003). How Much Do We Really Know about Race and Juries? A 	Review of Social Science Theory and Research. University of Michigan Law School 	Scholarship Repository, 3, 997-1031.
+
+
 ## Statistics for the Social Sciences
 
 <h2>Statistics for the Social Sciences</h2>
