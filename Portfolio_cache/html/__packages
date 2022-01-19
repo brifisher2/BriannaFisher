@@ -19,3 +19,8 @@ tidyr
 purrr
 stringr
 forcats
+rio
+plyr
+broom.mixed
+ggstance
+jtools

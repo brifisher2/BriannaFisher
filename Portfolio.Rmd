@@ -20,6 +20,1061 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 
 <h2>Introduction to Data Science</h2>
 
+### Problem Set 1
+
+__Question 1a__
+```{r} 
+state <- c(1, 2, 3, 4, 5)
+pop <- c(12.80, 19.45, 3.56, 0.97, 8.88)
+cases <- c(139623, 439238, 52095, 17857, 196337)
+```
+The first vector, state, is created using the concatenate function to combine the five states within the data set (state 1, 2, 3, 4, and 5). The second vector, pop, is created using the concatenate function to combine the populations for those five states (12.80, 19.45, 3.56, 0.97, 8.88). The third vector, cases, is created using the concatenate function to combine the numbers of cases for the five states within the data set (139623, 439238, 52095, 17857, 196337). Now, these three vectors store all of the data on COVID-19 for five northeastern states as provided within the data table. 
+
+__Question 1b__
+```{r} 
+ne.covid <- cbind(state, pop, cases)
+ne.covid
+```
+The object ne.covid was created by combining the three columns (state, population, cases) from the data set into a matrix. The function cbind was implemented and assigned to ne.covid. Once created, running ne.covid displays the same data table but in R.
+
+__Question 1c__
+```{r} 
+mean(ne.covid[,2])
+median(ne.covid[,2])
+max(ne.covid[,2])
+min(ne.covid[,2])
+```
+The mean of the second column of ne.covid is 9.132, the median is 8.88, the maximum is 19.45, and the minimum is 0.97.
+
+__Question 1d__
+```{r} 
+mean(ne.covid[,3])
+median(ne.covid[,3])
+max(ne.covid[,3])
+min(ne.covid[,3])
+```
+The mean of the third column of ne.covid is 169030, the median is 139623, the maximum is 439238, and the minimum is 17857.
+
+__Question 1e__
+```{r} 
+#creating a vector for state population in thousands
+pop.in.1000s <- pop*1000
+
+#creating a vector for covid-19 cases per 1000 residenrs
+cases.per.1000 <- cases /pop.in.1000s
+```
+The vector cases.per.1000 is created by assigning the result of the cases divided by 1000 to the vector. This vector represents the number of COVID-19 cases in each state per 1000 residents.
+
+__Question 1f__
+```{r} 
+state_chr <- c("PA", "NY", "CT", "DE", "NJ")
+
+plot(y=cases.per.1000, x=pop, xlab = "Population in Millions", ylab = "Cases per 1000 Residents", main = "COVID-19 in the Northeast", type = "n")
+
+plot(y=cases.per.1000, x=pop, xlab = "Population in Millions", ylab = "Cases per 1000 Residents", main = "COVID-19 in the Northeast", text(x = pop, y = cases.per.1000, labels = state_chr))
+```
+The scatterplot “COVID-19 in the Northeast” was created by using the plot function. Within the plot, y is designated as cases.per.1000, x is designated as population in millisons, the x-axis is labeled population with the xlab function, and the y-axis is labeled Cases per 1000 Residents with the ylab function. The title is created with the main function, and is labeled COVID-19 in the Northeast. The states are assigned to their corresponding dot on the scatterplot with the text function.
+
+__Question 1g__
+```{r} 
+#adding cases.per.1000 and state_chr as columns to the ne.covid matrix
+ne.covid <- cbind(ne.covid, cases.per.1000, state_chr)
+
+#subsetting to identify the state most affected by COVID 19
+ne.covid[ne.covid[, "cases.per.1000"] == max(cases.per.1000), c("state_chr", "cases.per.1000")]
+
+#subsetting to identify the state least affected by COVID 19
+ne.covid[ne.covid[, "cases.per.1000"] == min(cases.per.1000), c("state_chr", "cases.per.1000")]
+```
+New York has been the most affected by COVID-19, with around 22.58 cases per 1000 residents. Pennsylvania has been the least affceted by COVID-19, with about 10.91 cases per 1000 residents.
+
+__Question 1h__
+If I could get one more piece of information about COVID-19 to describe how affected each of these states are, it would be the death rates. The death rates would signify the level of impact COVID-19 had on the states, as some people within the cases category may be asymptomatic or have mild symptoms and are okay now. 
+
+__Question 2a__
+```{r} 
+load("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/2019MLBTeamsData.Rdata")
+bb$avgattpergame <- as.numeric(bb$home.attendance/bb$games.played)
+median(bb$avgattpergame)
+max(bb$avgattpergame)
+min(bb$avgattpergame)
+```
+Because there are an even number of teams, no singular team had the median average attendance of 14055.35 but the two in the middle were the Washington Nationals (with a median average attendance of 13949.27) and the Minnesota Twins (with a median average attendance of 14161.43). The team with the maximum average attendance per game was the Los Angeles Dodgers, with a maximum of 24532.77. The team with the minimum average attendance per game was the Miami Marlins, with a minimum of 5008.037.
+
+__Question 2b__
+```{r} 
+bb$teambattavg <- as.numeric(bb$hits/bb$at.bats)
+median(bb$teambattavg)
+max(bb$teambattavg)
+min(bb$teambattavg)
+```
+Because there are an even number of teams, no singular team had the median team batting average of 0.2492307 but the two in the middle were the Oakland Athletics (with a median team batting average of 0.2488761) and the Cleveland Indians (with a median team batting average of 0.2495853). The team with the maximum batting average is the Houston Astros with a maximum of 0.2740068. The team with the minimum batting average is the Toronto Blue Jays with a minimum of 0.2364828.
+
+__Question 2c__
+```{r} 
+plot(y=bb$avgattpergame, x=bb$teambattavg, xlab = "Team Batting Average", 
+     ylab = "Average Attendance Per Game", main = "MLB 2019 Data")
+```
+The graph looks very spread out, with the dots in seemingly randomly places. It is fairly nonlinear with no clear direction or association. The graph tells you that there is no relationship between team skill and attendance.
+
+__Question 2d__
+```{r} 
+bb$runs.pitch <- as.numeric(bb$opponent.runs/bb$outs.pitched)
+plot(y=bb$avgattpergame, x=bb$runs.pitch, xlab = "Opponent Runs per Outs Pitched", 
+     ylab = "Average Attendance Per Game", main = "MLB 2019 Data 2")
+```
+The graph looks like the lower the opponent runs per outs pitched, the higher the average attendance per game. The same is for the opposite, the lower the average attendance per game, the higher the opponent runs per outs pitched. There are some outliers, though, that do not fit the pattern. This tells you that while there is not a linear relationship between team skill and attendance, there is an association between the two. 
+
+__Question 2e__
+```{r} 
+bb$teamwinper <- as.numeric(bb$wins/bb$games.played)
+plot(y=bb$teamwinper, x=bb$teambattavg, xlab = "Team Batting Average", 
+     ylab = "Team Winning Percentage", main = "MLB 2019 Data 3")
+```
+The graph looks more linear than the other two, with team winning percentage increasing as team batting average increases. This tells you that there is a positive relationship between team batting average and team winning percentage.
+
+__Question 2 Bonus__
+```{r} 
+prediction <- lm(formula = teamwinper ~ teambattavg, data = bb)
+plot(bb$teamwinper ~ bb$teambattavg, xlab = "Team Batting Average", 
+     ylab = "Team Winning Percentage", main = "MLB 2019 Data 3")
+abline(prediction)
+```
+To make a better prediction of a team’s winning percentage, the least squares regression line can be calculated and plotted in order to show where the predicted values would lie. This line is used to predict the value of y, or team winning percentage, for any value of x, or team batting average.
+
+__Question 3a__
+```{r} 
+recentgrads <- read.csv("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/recentgrads.csv", header = TRUE, na="NA")
+ncol(recentgrads)
+nrow(recentgrads)
+```
+There are 15 columns and 173 rows in the “recentgrads” data set. The unit of analysis of the data is major, as the data focuses on the jobs college graduates received depending on their major. 
+
+__Question 3b__
+```{r} 
+table(recentgrads$Major_category)
+```
+There are 16 different major categories that the data are divided into. The engineering category has the most majors, with 29 different majors.  
+
+__Question 3c__
+```{r} 
+sum(recentgrads$Women, na.rm = T)
+percentwomen <- sum(recentgrads$Women, na.rm = T)/sum(recentgrads$Total, na.rm = T)
+percentwomen * 100
+```
+There are 3,895,228 women included in the dataset. 57.52% of the people in the dataset are women.
+
+__Question 3d__
+```{r} 
+recentgrads$womengrads <- as.numeric(recentgrads$Women/recentgrads$Total)
+order(recentgrads$womengrads, na.last = T)
+recentgrads[74,]
+order(recentgrads$womengrads, na.last = F)
+recentgrads[165,]
+```
+The major that had the highest percentage of women graduates is education, with a percentage of 96.90%. The major that had the lowest percentage of women graduates is military technologies, with a percentage if 0%. 
+
+__Question 4__
+Random sampling is such a vital component of survey research because it ensures that there is no bias within the sample. If people were chosen to take a survey, the surveyor could have picked specific people who they know will prove their hypothesis and therefore discredit the validity and accuracy of the survey. Random sampling also ensures that the results are representative of the entire population, which is why a sample of 1500 people is enough to learn about the whole US population. If the sample is completely random, then we can be confident that a sample of only 1500 people will include people who represent all different backgrounds and interests within the country.   
+
+
+### Problem Set 2
+
+__Question 1a__
+```{r} 
+load("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/exitpoll2016.RData")
+require(tidyverse)
+exit.untouched <- exit
+
+#The unit of observation is people, and the dataset had more than one row for every observation.
+#Because there are two rows for each observation, using the spread function will condense each repeated row into one. Since the favorable candidate and favorable rating variables are the ones repeated, they are used to create the new columns
+exit <- spread(exit,
+                 key = favorable.cand,
+                 value = favorable.rating)
+head(exit)
+
+#Using the recode function, the values of 1 and 2 can be replaced for favorable and unfavorable
+attributes(exit.untouched$favorable.rating)
+
+exit$clinton <- recode(exit$clinton, "1" = "Favorable", "2" = "Unfavorable")
+exit$trump <- recode(exit$trump, "1" = "Favorable", "2" = "Unfavorable")
+```
+
+__Question 1b__
+```{r} 
+#the gather function brings responses that are spread over multiple columns into one. The recode function
+#changes the data from numeric values (0/1) that don't make sense
+exit <- gather(exit,
+                 key = "educ", 
+                 value = "val",
+               starts_with("educ."))
+
+exit$educ <- recode(exit$educ, "educ.hs" = "hs", "educ.somecoll" = "some college", 
+                    "educ.bach" = "bachelors", "educ.postgrad" = "postgrad")
+
+#Since all unknown values are coded as 99 (using attributes checks this), I can recode those values to NA
+attributes(exit.untouched$educ.hs)
+attributes(exit.untouched$educ.somecoll)
+attributes(exit.untouched$educ.bach)
+attributes(exit.untouched$educ.postgrad)
+
+exit[exit$educ == "99"] <- NA
+
+exit$val <- NULL
+
+#Could have also changed the names by reshaping the education data
+exit$educ[exit$educ == "educ.hs"] <- "hs"
+exit$educ[exit$educ == "educ.somecoll"] <- "some college"
+exit$educ[exit$educ == "educ.bach"] <- "bachelors"
+exit$educ[exit$educ == "educ.postgrad"] <- "postgrad"
+```
+
+__Question 1c__
+```{r} 
+#The separate function splits the sex.age.race column into three separate columns
+exit <- separate(exit,
+         col = "sex.age.race",
+         into = c("sex","age","race"), sep = " ")
+
+#Converting the columns to factors and then replacing the missing/unknown values with NA cleans the data
+exit$age = as.factor(exit$age)
+summary(exit$age)
+exit$age[which(exit$age == "-999")] = NA
+summary(exit$age)
+
+exit$sex = as.factor(exit$sex)
+summary(exit$sex)
+exit$sex[which(exit$sex == "unknown")] = NA
+summary(exit$sex)
+
+#The race values are already coded as NA for missing, but could have done this 
+exit$race = as.factor(exit$race)
+summary(exit$race)
+exit$race[which(exit$race == "NA")] = NA
+summary(exit$race)
+```
+
+__Question 1d__
+```{r} 
+#the new varible third.party is created by recoding everything as NA and then recoding each value to the 
+#new value. Using NULL removes the variable from the data set
+attributes(exit.untouched$PRSPA16)
+
+exit$third.party <- "NA"
+exit$third.party[exit$PRSPA16 == 1] <- "0"
+exit$third.party[exit$PRSPA16 == 2] <- "0"
+exit$third.party[exit$PRSPA16 == 3] <- "1"
+exit$third.party[exit$PRSPA16 == 4] <- "1"
+exit$third.party[exit$PRSPA16 == 9] <- "1"
+
+exit$PRSPA16 <- NULL
+```
+
+__Question 1e__
+```{r} 
+#the as.numeric function converts the married variable into a dummy variable, coding 1 for married and 
+#0 for not married
+attributes(exit.untouched$married) #tells us that 1 is yes and 2 is no
+
+exit$married <- as.numeric(exit$married==1)
+```
+
+__Question 1f__
+```{r} 
+#the factor function recodes the PHIL3 and partyid variables into meaningful labels 
+attributes(exit.untouched$PHIL3)
+
+exit$PHIL3 <- factor(exit$PHIL3, labels = c("Liberal", "Moderate", "Conservative"))
+
+attributes(exit.untouched$partyid)
+
+exit$partyid <- factor(exit$partyid, labels = c("Democrat", "Republican", "Independent",
+                                                "Something Else"))
+```
+
+__Question 1g__
+```{r} 
+#the rename function will change the name of a column to something more meaningful
+exit <- rename(exit, ideology = PHIL3)
+```
+
+__Question 1h__
+```{r} 
+#I split the age variable into the different groups and then also made the partyid ordinal so that they can be compared. From there I made them into a table, and then did the frequencies of the results. Lastly, I added together all of the values in the table to make sure that they are equal to 1. 
+exit$Age.group <- "NA"
+exit$Age.group[exit$age == "18-29"] <- 1
+exit$Age.group[exit$age == "30-44"] <- 2
+exit$Age.group[exit$age == "45-65"] <- 3
+exit$Age.group[exit$age == "65+"] <- 4
+
+exit$ID <- "NA"
+exit$ID[exit$partyid == "Republican"] <- 5
+exit$ID[exit$partyid == "Democrat"] <- 6
+exit$ID[exit$partyid == "Independent"] <- 7
+exit$ID[exit$partyid == "Something Else"] <- 8
+
+mytable <- table(exit$Age.group, exit$ID)
+prop.table(mytable)
+sum(prop.table(mytable))
+```
+Comparing the frequencies of the age group and ID variables, there is a 6.97% chance of people in the age group of 18-29 being democratic and a 5.68% chance of people being 18-29 and republican. The values are lower for independents and ‘something else,’ with a 0.64% chance of someone 18-29 being independent and a 0.88% chance of someone being 18-29 and something else. This is fairly expected, as young people are more likely to be democratic than any other party. Another interesting observation is that there is the same 15.32% chance of someone being 45-65 years old and either a republican or democrat. The 45-65-year-old age group also has the highest chance of being independent (5.21%) and something else (1.25%) than any other group. This may be explained by the fact that middle aged and older people are more likely to watch the news and therefore align with a particular political party, or because this age group has particularly high voter turnout and therefore need to be registered to a party to participate.  
+
+__Question 2a__
+```{r} 
+library(rio)
+UNICEF_untouched <- rio::import("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/unicefdata.xlsx")
+
+UNICEF <- UNICEF_untouched
+
+#Problems with the data:
+#1. Columns are named with numbers
+#2. Column names are in the actual columns
+#3. Have dashes and x's within the data
+```
+
+__Question 2b__
+```{r} 
+#The names function renames the columns with the names in the first row, and then the first two rows can be deleted. Using rownames will renumber the rows so that it does not start at 3.
+names(UNICEF) <- lapply(UNICEF[1, ], as.character)
+UNICEF = UNICEF[-1,] 
+UNICEF = UNICEF[-1,] 
+row.names(UNICEF) <- 1:nrow(UNICEF)
+```
+
+__Question 2c__
+```{r} 
+#rowmeans tells us the mean value of each row in the data set. The rows that have "1" as their mean 
+#are blank and should be removed. The -c function lets you drop rows or 
+#columns from the data set
+rowMeans(is.na(UNICEF))
+which(rowMeans(is.na(UNICEF)) == 1)
+
+UNICEF <- UNICEF[,-c(12,14)]
+UNICEF <- UNICEF[-c(198),]
+row.names(UNICEF) <- 1:nrow(UNICEF)
+UNICEF <- UNICEF[-c(209),]
+row.names(UNICEF) <- 1:nrow(UNICEF)
+
+#Now, the dataset has 12 columns and 216 rows. (When I take out the summary indicators on 2. h.,
+#the dataset has 12 columns and 215 rows).
+```
+
+__Question 2d__
+```{r} 
+#The rename function changes the names of the columns so that they are more manageable
+attributes(UNICEF)
+
+UNICEF <- rename(UNICEF, c("Countries" = "Countries and areas", 
+                 "U5MR.1990" = "Under-5 mortality rate (U5MR) (1990)",
+                 "U5MR.2015" = "Under-5 mortality rate (U5MR) 2015",
+                 "U5MR.Male" = "U5MR (male)", "U5MR.Female" = "U5MR (female)", 
+                 "Total.Pop" = "Total population (thousands)",
+                 "Annual.Births" = "Annual no. of births (thousands)",
+                 "GNI.Per.Capita" = "GNI per capita (US$)", 
+                 "Neonatal.Mortality.Rate" = "Neonatal  mortality  rate",
+                 "Life.Expect.Birth" = "Life expectancy at birth (years)",
+                 "Total.Adult.Lit.Rate" = "Total adult literacy rate          (%)",
+                 "Primary.School.Net.Enrollment.Ratio" = "Primary school net enrolment ratio      (%)"
+                 ))
+```
+
+__Question 2e__
+```{r} 
+which(UNICEF$Countries == "Notes:")
+
+UNICEF <- UNICEF[-c(209:216),]
+```
+
+__Question 2f__
+```{r} 
+#This recodes all values of - in the dataset to NA
+UNICEF[UNICEF == "-"] <- NA
+
+#This converts the columns to be numeric and replaces the letters with NAs
+UNICEF[,2:12] <- as.numeric(as.character(unlist(UNICEF[,2:12])))
+```
+
+__Question 2g__
+```{r} 
+#The round function will round the values to the largest whole number after multiplying the variable by 1000
+UNICEF$Total.Pop <- round(UNICEF$Total.Pop*1000)
+UNICEF$Annual.Births <- round(UNICEF$Annual.Births*1000)
+```
+
+__Question 2h__
+```{r} 
+#Subsetting the data creates a new dataset with only the wanted obeservations.
+summary.indicators <- subset(UNICEF[199:208,])
+UNICEF <- UNICEF[-c(198:208),]
+
+#Now, the UNICEF dataset has 197 rows and the summary indicators dataset has 10 rows.
+```
+
+__Question 2i__
+```{r} 
+#to find the change in mortality rate from 1990 to 2015, the two can be subtracted (any countries with apositive value had an increase in mortality rate)
+change.mortality <- (UNICEF$U5MR.2015)-(UNICEF$U5MR.1990)
+print(change.mortality)
+```
+Three countries had a mortality rate that increased over this 25-year period. The countries are Dominica, Lesotho, and Niue. 
+
+__Question 2j__
+```{r} 
+#the cor functions finds the correlation between the GNI per captia and neonatal mortality rate
+cor(UNICEF$GNI.Per.Capita, 
+    UNICEF$Neonatal.Mortality.Rate, "complete.obs")
+
+#the plot function creates a scatterplot of the GNI per capita and neonatal mortality rate 
+plot(y=UNICEF$Neonatal.Mortality.Rate, x=UNICEF$GNI.Per.Capita,
+     xlab = "Gross National Income Per Capita in U.S. Dollars",
+     ylab = "Neonatal Mortality Rate", 
+     main = "Gross National Income Per Capita in U.S. Dollars and Neonatal Mortality")
+```
+When looking at the relationship between Gross National Income per capita and Neonatal Mortality Rate, the correlation can be calculated as -0.56. This indicates that there is a negative association between Gross National Income per capita and Neonatal Mortality Rate. This can also be seen in the plot of Gross National Income per capita and Neonatal Mortality Rate, with Neonatal Morality Rate decreasing as Gross National Income per capita increases.
+
+### Problem Set 3
+
+__Question 1a__
+```{r} 
+library(rio)
+library(tidyr)
+library(dplyr)
+
+#the rio package reads in the data from excel
+mont_untouched <- rio::import("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/2018-General-Montgomery.xls")
+mont <- mont_untouched
+dekalb <- read.csv("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/dekalb-cleaned.csv")
+
+#first, dim is used to see how many columns are coded as precincts. Then the gather function is used to 
+#put all of the precincts in one column
+dim(mont)
+mont <- gather(mont, key = "precinct", value = "votes", 4:54)
+
+#Using !grepl, I can remove the columns with the over and under votes and the number of registered voters and 
+#ballots cast in each precinct
+mont <- mont[!grepl("Over Votes", mont$Candidate),]
+mont <- mont[!grepl("Under Votes", mont$Candidate),]
+mont <- mont[!grepl("REGISTERED VOTERS", mont$`Contest Title`),]
+mont <- mont[!grepl("BALLOTS CAST", mont$`Contest Title`),]
+row.names(mont) <- 1:nrow(mont)
+
+#na.omit is used to remove the rows with missing vote data
+mont <- na.omit(mont)
+
+#the rename function recodes the column names
+attributes(mont)
+mont <- rename(mont, "office" = "Contest Title", "party" = "Party",
+               "candidate" = "Candidate")
+
+#the recode function is used to clean the values within the party variable
+unique(mont$party)
+mont$party <- recode(mont$party, "DEM" = "Democrat", "REP" = "Republican", "NON" = "No party",
+               "IND" = "Independent")
+
+#you can create new variables for the state and county
+mont$state <- "Alabama"
+mont$county <- "Montgomery"
+
+#the "c" function reorders the columns
+mont <- mont[, c(6, 7, 4, 1, 3, 2, 5)]
+```
+
+__Question 1b__
+```{r} 
+#1. b. You can use a for loop to find the total number of votes in each office 
+
+#first create vectors with what you want to loop over
+office <- unique(mont$office)
+office
+
+precinct <- unique(mont$precinct)
+precinct
+
+#create a matrix to store the results of the loop
+office.precinct <- matrix(NA, nrow=length(precinct), ncol=length(office))
+
+#loop over the votes for the precincts and offices
+for(j in 1: length(office)){
+  
+  for(i in 1:length(precinct)){
+    office.precinct[i,j] <-  sum(mont$votes[mont$precinct==precinct[i] & mont$office==office[j]], 
+                                 na.rm=T)
+  }
+  
+}
+
+#you can use the max function to find the maximum number of votes in one precinct/office
+#combination
+max(office.precinct)
+
+#which will tell you the exact row / column of the office / precinct
+which(office.precinct == max(office.precinct), arr.ind = T)
+
+#I can subset from my vectors to find the names of the combination
+office[3]
+precinct[23]
+```
+The office-precinct combination that had the highest number of votes is the 305 F precinct and Governor office with 4675 votes.
+
+__Question 1c__
+```{r} 
+#You can first find the mean since this is the statistic we want
+mean(mont$votes[mont$party=="Democrat" & mont$office=="GOVERNOR"],na.rm=T)
+mean(mont$votes[mont$party=="Republican" & mont$office=="GOVERNOR"],na.rm=T)
+
+#you can then use a t test to find out if either means are statistically significant
+diff.test <- t.test(mont$votes[mont$party=="Democrat" & mont$office=="GOVERNOR"],
+                    mont$votes[mont$party=="Republican" & mont$office=="GOVERNOR"])
+
+diff.test
+```
+The average number of votes for the Democratic candidate for Governor was 955. The average number of votes for the Republican candidate for Governor was 559. These two numbers are statistically distinguishable from one another. If the average number of votes for the Democratic and Republican candidates for Governor is the same, we would expect to see a difference in the means 0.44% of the time. Since the p-value (0.0044) is so low, we can reject the null hypothesis. There is significant statistical evidence to support that the two means are statistically distinguishable from each other.
+
+__Question 2a__
+```{r} 
+# You can use the sample function to simulate fliping a coin
+dodgers.win.prob <- c(1,1,1,1,1,1,0,0,0,0)
+
+sample(dodgers.win.prob, size = 7, replace = TRUE) #output: 0 0 1 1 1 0 1
+
+dodgers <- sum(sample(dodgers.win.prob, size = 7, replace = TRUE))
+```
+In my simulation, the Dodgers won a majority of the games (actually four exactly), therefore winning the world series.
+
+__Question 2b__
+```{r} 
+#first create an empty vector to put the results
+dodgers.wins <- rep(NA, 10000)
+
+#Then you can use a for loop to simulate the same 7-game world series 10,000 times
+for(i in 1:10000){
+  dodgers.wins[i]<- sum(sample(dodgers.win.prob, size = 7, replace = TRUE))
+  
+}
+
+#you can create a probability table of the results
+prob.dodgers.wins <- prop.table(table(dodgers.wins))
+print(prob.dodgers.wins)
+
+#to find the proportion of times the Dodgers won 4 or more games, you can sum the results
+sum(prob.dodgers.wins[5:8])
+```
+The Dodgers win four or more games 71.33% of the time.
+
+__Question 2c__
+```{r} 
+#You can use sequence to make a vector with every second game
+odd.games <- seq(7, 151, by = 2)
+dodgers.win.95 <- rep(NA, length(odd.games))
+
+#you can use a double for loop to find the wins for the length of the series
+for(j in 1:length(odd.games)){
+  for(i in 1:10000){
+    dodgers.wins[i]<- sum(sample(dodgers.win.prob, size = odd.games[j], replace = TRUE))
+    
+  }
+  dodgers.win.95[j]<- prop.table(table(dodgers.wins >= (odd.games[j]/2)))["TRUE"]
+}
+
+print(dodgers.win.95)
+
+#you can use the plot function to make a graph of the proportion of times the better team
+# wins and the series length
+plot(x = odd.games, y = dodgers.win.95, xlab = "Series Length", ylab = 
+"Proportion of Times the Better Team Wins", main = "Simulated World Series Wins")
+abline(h=0.95)
+```
+The series would have to be around 67 games in order for the better team to win 95% of the 10,000 simulated world series games. 
+
+__Question 2d__
+Given the current series length, we cannot reject the null hypothesis that the better team should win 50% of the time. Because the standard is that better team should win 95% of the time, our value of 71.33% is statistically insignificant when they only play seven games.
+
+
+### Problem Set 5
+
+__Question 1a__
+```{r} 
+fem <- read.csv("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/washington_replication_data.csv")
+
+#You can use the dim full get the number of members in Congress since each row corresponds to a member
+dim(fem)
+
+#you can use the sum function to add the number of females and divide it by the total number of members to
+#get the proportion of females in Congress
+sum(fem$female)/435
+
+#doing this gets the same answer
+mean(fem$female, na.rm = T)
+
+#you can use the sum function to add the number of republicans (when party = 2) and divide it by the 
+#total number of members to get the proportion of females in Congress
+sum(fem$party==2)/435
+
+#doing this gets the same answer
+mean(fem$party == 2, na.rm = T)
+
+#you can create logical variables for democrats and women in order to find the proportions
+fem$women <- fem$female == 1
+fem$democrat <- fem$party == 1
+mean(fem$women[fem$democrat], na.rm = T)
+
+#you can do the same thing for republicans
+fem$rep <- fem$party == 2
+mean(fem$women[fem$rep], na.rm = T)
+```
+There are 435 members of Congress in the dataset. 11.03% of the representations are women. 52.41% of the representatives are republicans. 16.50% of democrats are women. 6.14% of republicans are women.
+
+__Question 1b__
+```{r} 
+#you can use the summary function to find the summary statistics of the AAUW variable
+summary(fem$aauw)
+
+#you can use the table function to see how many legislators have each score
+table(fem$aauw)
+
+#you can create logical variables for democrats and people who have a score of 100 in order to 
+#find the proportions
+fem$dem.100 <- fem$aauw == 100
+sum(fem$women[fem$dem.100], na.rm = T)
+
+#you can create logical variables for democrats and people who have a score of 0 in order to 
+#find the proportions
+fem$dem.0 <- fem$aauw == 0
+sum(fem$women[fem$dem.0], na.rm = T)
+```
+The mean of the AAUW’s legislative score variable is 47.31, the median is 38, the minimum is 0, and the maximum is 100. 135 legislators have a score of 0, while 112 legislators have a score of 100. 30 democrats have a score of 100, while 5 have a score of 0.
+
+__Question 1c__
+```{r} 
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg1 <- lm(aauw ~ female, data=fem)
+summary(reg1)
+```
+The coefficient for the intercept (legislative support for feminist issues) is 43.765 and the coefficient for the legislator’s gender (whether or not they are female) is 32.11. Women are more likely to support feminist issues than men by 32.11 points, on average. When the legislator is male (when the female variable equals zero), the average legislative support for feminist issues is 43.765 points.
+
+__Question 1d__
+```{r} 
+#you can create a republican variable by subsetting for the people who responded 2 to the party question
+fem$republican <- NA
+fem$republican[fem$party == 1] <- 0
+fem$republican[fem$party == 2] <- 1
+fem$republican[fem$party == 3] <- 0
+
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg2 <- lm(aauw ~ female + republican, data=fem)
+summary(reg2)
+```
+The coefficient for the intercept (legislative support for feminist issues) is 84.072, the coefficient for the legislator’s gender (whether or not they are female) is 13.063, and the coefficient for the legislator being republican is -72.891. When the legislator is male and a democrat (or independent), the average legislative support for feminist issues is 84.072. Women are more likely to support feminist issues than men by 13.063 points, on average, when holding republicans fixed. Republicans are less likely to support feminist issues than Democrats or Independents by 72.891 points, on average, when holding women fixed.
+
+__Question 1e__
+```{r} 
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg3 <- lm(aauw ~ female + demvote, data=fem)
+summary(reg3)
+
+#this tells you the change when you increase democratic vote share by 10 percentage points
+216.619/10
+```
+Holding gender fixed, the AAUW score increases by 21.662 points when you increase the Democratic vote share by 10 percentage points.
+
+__Question 1f__
+```{r} 
+#you can create separte variables for the different religions
+#none coded
+fem$rel.none <- NA
+fem$rel.none[fem$rgroup == 0] <- 1
+fem$rel.none[fem$rgroup == 1] <- 0
+fem$rel.none[fem$rgroup == 2] <- 0
+fem$rel.none[fem$rgroup == 3] <- 0
+fem$rel.none[fem$rgroup == 4] <- 0
+
+#protestant
+fem$rel.prot <- NA
+fem$rel.prot[fem$rgroup == 0] <- 0
+fem$rel.prot[fem$rgroup == 1] <- 1
+fem$rel.prot[fem$rgroup == 2] <- 0
+fem$rel.prot[fem$rgroup == 3] <- 0
+fem$rel.prot[fem$rgroup == 4] <- 0
+
+#catholic/orthodox
+fem$rel.cath <- NA
+fem$rel.cath[fem$rgroup == 0] <- 0
+fem$rel.cath[fem$rgroup == 1] <- 0
+fem$rel.cath[fem$rgroup == 2] <- 1
+fem$rel.cath[fem$rgroup == 3] <- 0
+fem$rel.cath[fem$rgroup == 4] <- 0
+
+#christian
+fem$rel.chris <- NA
+fem$rel.chris[fem$rgroup == 0] <- 0
+fem$rel.chris[fem$rgroup == 1] <- 0
+fem$rel.chris[fem$rgroup == 2] <- 0
+fem$rel.chris[fem$rgroup == 3] <- 1
+fem$rel.chris[fem$rgroup == 4] <- 0
+
+#jewish
+fem$rel.jew <- NA
+fem$rel.jew[fem$rgroup == 0] <- 0
+fem$rel.jew[fem$rgroup == 1] <- 0
+fem$rel.jew[fem$rgroup == 2] <- 0
+fem$rel.jew[fem$rgroup == 3] <- 0
+fem$rel.jew[fem$rgroup == 4] <- 1
+
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg4 <- lm(aauw ~ female + demvote + rel.prot + rel.cath + rel.chris + rel.jew, data=fem)
+summary(reg4)
+
+#this tells you the change when you increase democratic vote share by 10 percentage points
+201.269/10
+```
+When the legislator is male, has no religion, and has a 0 for the democratic vote share, the average legislative support for feminist issues is 17.924. When holding religion and democratic vote share fixed, women are more likely to support feminist issues than men by 17.924 points. When holding religion and sex fixed, the democratic vote share increases by 20.1269 points. When holding sex, democratic vote share, Catholics, Christians, and Jews fixed, legislators who are Protestant are less likely than those who have no religion to support feminist issues by 35.144 points. When holding sex, democratic vote share, Protestants, Christians, and Jews fixed, legislators who are Catholic are less likely than those who have no religion to support feminist issues by 31.692 points. When holding sex, democratic vote share, Catholics, Protestants, and Jews fixed, legislators who are Christian are less likely than those who have no religion to support feminist issues by 39.369 points. When holding sex, democratic vote share, Catholics, Christians, and Protestants fixed, legislators who are Jewish are less likely than those who have no religion to support feminist issues by 7.602 points.
+
+### Problem Set 6
+
+```{r, echo=FALSE, results=FALSE} 
+load("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/ANESData.Rdata")
+anes.untouched <- anes
+library(tidyverse)
+
+#I subsetted the original data to only the varibales that I want
+anes <- subset(anes, select = c(V161010e, V162079, V161002, V161019, V161021, V161021a, V161082,
+                                V161083, V161126, V161129, V161151x, V161215, V161217, V161267, V161268, 
+                                V161270, V161310x, V161324, V161361x)) 
+
+#I renamed thew categories so that all of the variables were descriptive
+anes <- rename(anes, c("state.abbr" = "V161010e", "therm.Trump" = 'V162079', "sex" = "V161002", "party" = "V161019", "vote.prim" = "V161021", "cand.prim" = 'V161021a', 'approve.job' =  'V161082', 'approve.econ' = 'V161083', "lib.scale.self" = "V161126", "lib.scale.rep" = "V161129", "vote.reason" = "V161151x", "trust.govt" = "V161215", "waste.tax" = "V161217", "age" = "V161267", "marital.stat" = "V161268", "educ" =  "V161270", "race" = "V161310x", "kids.house" =  "V161324", "income" = "V161361x"))
+
+#creating a variable for sex
+anes$female <- NA
+anes$female[anes$sex == "1"] <- 0
+anes$female[anes$sex == "2"] <- 1
+
+anes$male <- NA
+anes$male[anes$sex == "1"] <- 1
+anes$male[anes$sex == "2"] <- 0
+
+#creating a variable for approval of how the economy was handled 
+anes$econ.approve <- NA
+anes$econ.approve[anes$approve.econ == "1"] <- 1
+anes$econ.approve[anes$approve.econ == "2"] <- 0
+
+anes$econ.disapprove <- NA
+anes$econ.disapprove[anes$approve.econ == "1"] <- 0
+anes$econ.disapprove[anes$approve.econ == "2"] <- 1
+
+#coding a variable for party
+anes$democrat <- NA
+anes$democrat[anes$party == "1"] <- 1
+anes$democrat[anes$party == "2"] <- 0
+anes$democrat[anes$party == "4"] <- 0
+
+anes$republican <- NA
+anes$republican[anes$party == "1"] <- 0
+anes$republican[anes$party == "2"] <- 1
+anes$republican[anes$party == "4"] <- 0
+
+anes$none.ind <- NA
+anes$none.ind[anes$party == "1"] <- 0
+anes$none.ind[anes$party == "2"] <- 0
+anes$none.ind[anes$party == "4"] <- 1
+
+#creating variables for age groups
+table(anes$age)
+
+#creating a variable for 18-29
+anes$age.1829 <- 0
+anes$age.1829[anes$age >= 18 & anes$age <= 29] <- 1
+
+#creating a variable for 30-49
+anes$age.3049 <- 0
+anes$age.3049[anes$age >= 30 & anes$age <= 49] <- 1
+
+#creating a variable for 50-64
+anes$age.5064 <- 0
+anes$age.5064[anes$age >= 50 & anes$age <= 64] <- 1
+
+#creating a variable for 65-90
+anes$age.6581 <- 0
+anes$age.6581[anes$age >= 65 & anes$age <= 90] <- 1
+```
+
+Because of the importance of the economy during an election and the different platforms on taxes and spending by both the Democratic and Republican parties, as well as the large difference between the average feeling thermometer score in regard to approval of the economy, I chose to model how a respondent feels about how the President (Barack Obama) is handling the economy to help explain why people like Donald Trump. 
+```{r, echo=FALSE} 
+#plotting average feeling thermometer score in regards to approval of the economy
+mean.approve <- mean(anes$therm.Trump[anes$econ.approve==1], na.rm = T)
+mean.disapprove <- mean(anes$therm.Trump[anes$econ.disapprove==1], na.rm = T)
+
+df <- data.frame(mean.val=c(24.85, 58.14),
+                 Legend=c("Approve", "Disapprove"))
+
+#plotting average sentence length and representation type
+mean.approve <- ggplot(df, aes(x = Legend, y = mean.val, fill= Legend)) +
+  geom_bar(stat="identity") +
+  geom_text(aes(label=mean.val), vjust=-0.3, size=5) +
+  scale_fill_manual(values = c("dodgerblue1", "red")) +
+  xlab("Whether or not the respondent approves of how the President is handling the economy") +
+  ylab("Average Trump Feeling Thermometer Score in Degrees") +
+  ggtitle("Average Feeling Thermometer Score in regards to Approval of the Economy") +
+  scale_y_continuous(limits = c(0, 60)) +
+  theme_bw() 
+mean.approve
+
+ggsave(filename = "mean.approve.png", 
+       plot = mean.approve,
+       width = 10, 
+       height = 5)
+```
+After running a bivariate regression between these two variables, I found that people who approved of how Obama was handling the economy were less likely to like Trump by 33 points than someone who disapproved of how the economy was handled. I also found that the average support for Trump when someone does not approve of how the economy was handled by Obama was 58 points.
+
+```{r, echo=FALSE, results=FALSE} 
+#running a regression between the Trump feeling thermometer and approval of how the President is 
+#handling the economy 
+reg1 <- lm(therm.Trump ~ econ.approve, data=anes)
+summary(reg1)
+
+#creating a table for the results
+library(stargazer)
+stargazer(reg1, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Trump Feeling Thermometer and Approval of President Handling the Economy", 
+          model.names = FALSE, 
+          covariate.labels = c("Approval of Handling the Economy", "Intercept"),
+          type="text", out="/Users/briannafisher/Dropbox/PSCI107/Figures/Final.txt")
+```
+
+When controlling for party, sex, and age, people who approved of how Obama was handling the economy were still less likely to like Trump, but now by 21 points. Also similar to the bivariate regression, when someone was over 65 years old, male, republican, and disapproved of how Obama was handling the economy, the average support for Trump was 73 points. When holding sex and age fixed, democrats were less likely to like Trump than republicans by 23 points, while independents were less likely to like Trump than republicans by 15 points. When holding party and sex fixed, people who were aged 30 to 49 were less likely to like Trump than people aged 65 and older by 14 points. I did not see any significant difference in support for Trump between males and females, between people aged 18 to 29 and people aged 65 and older, and between people aged 50 to 64 and people aged 65 and older.
+
+```{r, echo=FALSE, results=FALSE} 
+#running a regression between the Trump feeling thermometer and approval of how the President is 
+#handling the economy with controls
+reg2 <- lm(therm.Trump ~ econ.approve + democrat + none.ind + female + age.1829 +age.3049 +age.5064, 
+           data=anes)
+summary(reg2)
+
+#creating a table for the results
+stargazer(reg2, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Trump Feeling Thermometer and Approval of President Handling the Economy with Controls", 
+          model.names = FALSE, 
+          covariate.labels = c("Approval of Handling the Economy", "Democrat", "None/Independent",
+                               "Female", "Age 18-29", "Age 30-49", "Age 50-64","Intercept"),
+          type="text", out="/Users/briannafisher/Dropbox/PSCI107/Figures/Final.txt")
+```
+
+Both of the results for how the economy was being handled by Obama from the regressions are statistically significant, with p-values less than 0.01, meaning that we can reject the null hypothesis that approval of how Obama was handling the economy would not impact whether or not people like Trump. 
+
+
+### Final - Public Defender Representation Leads to Longer Prison Sentences
+```{r, echo=FALSE, results=FALSE} 
+library(foreign)
+drunk <- read.dta("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/drunk.dta")
+library(tidyverse)
+library(plyr)
+library(stargazer)
+
+#I subsetted the original data to only the varibales that I want
+drunk.1 <- subset(drunk, select = c(V1, V2, V5, V6, V7, V8, V9, V11, V12, V13, V14, V15, V16, V17, V18, V20, 
+                                    V21, V37, V62)) 
+
+#I renamed thew categories so that all of the variables were descriptive
+drunk.1 <- rename(drunk.1, c("V1" = "record.num", "V2" = "ID", "V5" = "representation", "V6" = 
+                               "div.sent", "V7" = "month.sent", "V8" = "day.sent", "V9" = "year.sent", "V11" =
+                               "DWI", "V12" = "sec.DWI", "V13" = "BAC.10", "V14" = "careless.driv", 
+                             "V15" = "revoke.lic", "V16" = "no.ID", "V17" = "move.viol", "V18" = 
+                               "vehicle.char", "V20" = "sent.length", "V21" = "fine", "V37" = "birth.year", "V62" =
+                               "sex"))
+
+#creating an age variable
+drunk.1$age <- drunk.1$birth.year + 1900
+drunk.1$age <- 1982 - drunk.1$age
+
+#creating variables for age groups
+table(drunk.1$age)
+
+#creating a variable for 18-29
+drunk.1$age.1829 <- 0
+drunk.1$age.1829[drunk.1$age >= 18 & drunk.1$age <= 29] <- 1
+
+#creating a variable for 30-49
+drunk.1$age.3049 <- 0
+drunk.1$age.3049[drunk.1$age >= 30 & drunk.1$age <= 49] <- 1
+
+#creating a variable for 50-64
+drunk.1$age.5064 <- 0
+drunk.1$age.5064[drunk.1$age >= 50 & drunk.1$age <= 64] <- 1
+
+#creating a variable for 65-81
+drunk.1$age.6581 <- 0
+drunk.1$age.6581[drunk.1$age >= 65 & drunk.1$age <= 81] <- 1
+
+#creating dummy variables for male and female
+attributes(drunk.1$sex)
+
+drunk.1$female <- NA
+drunk.1$female[drunk.1$sex == "MALE"] <- 0
+drunk.1$female[drunk.1$sex == "FEMALE"] <- 1
+
+drunk.1$male <- NA
+drunk.1$male[drunk.1$sex == "MALE"] <- 1
+drunk.1$male[drunk.1$sex == "FEMALE"] <- 0
+
+#creating a dummy variable for whether or not someone was charged and convicted
+attributes(drunk.1$DWI)
+
+drunk.1$charge.conv <- NA
+drunk.1$charge.conv[drunk.1$DWI == "NO CHARGE, NO CONVICTION"] <- 0
+drunk.1$charge.conv[drunk.1$DWI == "CONVICTED ON AMENDED CHARGE"] <- 0
+drunk.1$charge.conv[drunk.1$DWI == "CHARGE, BUT NO CONVICTION"] <- 0
+drunk.1$charge.conv[drunk.1$DWI == "CHARGED AND CONVICTION"] <- 1
+
+#creating a dummy variable for type of representation
+attributes(drunk.1$representation)
+
+table(drunk.1$representation)
+
+drunk.1$pro.se <- NA
+drunk.1$pro.se[drunk.1$representation == "PRO SE"] <- 1
+drunk.1$pro.se[drunk.1$representation == "PUBLIC DEFENDER"] <- 0
+drunk.1$pro.se[drunk.1$representation == "PRIVATE ATTORNEY"] <- 0
+
+drunk.1$pd <- NA
+drunk.1$pd[drunk.1$representation == "PRO SE"] <- 0
+drunk.1$pd[drunk.1$representation == "PUBLIC DEFENDER"] <- 1
+drunk.1$pd[drunk.1$representation == "PRIVATE ATTORNEY"] <- 0
+
+drunk.1$priv.att <- NA
+drunk.1$priv.att[drunk.1$representation == "PRO SE"] <- 0
+drunk.1$priv.att[drunk.1$representation == "PUBLIC DEFENDER"] <- 0
+drunk.1$priv.att[drunk.1$representation == "PRIVATE ATTORNEY"] <- 1
+
+#creating a dummy variable for whether or not they had a second DUI
+attributes(drunk.1$sec.DWI)
+
+drunk.1$sec.charge <- NA
+drunk.1$sec.charge[drunk.1$sec.DWI == "NO CHARGE, NO CONVICTION"] <- 0
+drunk.1$sec.charge[drunk.1$sec.DWI == "CONVICTED ON AMENDED CHARGE"] <- 1
+drunk.1$sec.charge[drunk.1$sec.DWI == "CHARGE, BUT NO CONVICTION"] <- 1
+drunk.1$sec.charge[drunk.1$sec.DWI == "CHARGED AND CONVICTION"] <- 1
+
+#creating a dummy variable for whether or not their BAC was above 0.10
+attributes(drunk.1$BAC.10)
+
+drunk.1$yes.BAC <- NA
+drunk.1$yes.BAC[drunk.1$BAC.10 == "NO CHARGE, NO CONVICTION"] <- 0
+drunk.1$yes.BAC[drunk.1$BAC.10 == "CONVICTED ON AMENDED CHARGE"] <- 0
+drunk.1$yes.BAC[drunk.1$BAC.10 == "CHARGE, BUT NO CONVICTION"] <- 0
+drunk.1$yes.BAC[drunk.1$BAC.10 == "CHARGED AND CONVICTION"] <- 1
+
+#creating a continuous variable for representation type
+drunk.1$rep1 <- NA
+drunk.1$rep1[drunk.1$representation == "PRO SE"] <- 1
+drunk.1$rep1[drunk.1$representation == "PUBLIC DEFENDER"] <- 2
+drunk.1$rep1[drunk.1$representation == "PRIVATE ATTORNEY"] <- 3
+
+drunk.1$rep2 <- NA
+drunk.1$rep2[drunk.1$representation == "PRO SE"] <- 1
+drunk.1$rep2[drunk.1$representation == "PUBLIC DEFENDER"] <- 2
+drunk.1$rep2[drunk.1$representation == "PRIVATE ATTORNEY"] <- 3
+
+#I made the rep variable a factor variable and renamed the columns
+drunk.1$rep1 <- factor(drunk.1$rep1)
+levels(drunk.1$rep1) <- c("1"="PRO SE", "2"="PUBLIC DEFENDER", "3"="PRIVATE ATTORNEY")
+```
+
+Public defenders make up the backbone of our society. They guarantee the right to representation, a fair trial, and above all else, the ability to have someone with real, legal knowledge stand up for you in court. 
+
+The Sixth amendment guarantees everyone the right to counsel in all criminal prosecutions; however, public defenders are underpaid and overworked, as well as have little time to prepare for each case. 
+In effect, the Sixth amendment was created to make sure that everybody has an adequate defense regardless of the severity of the crime, their ability to pay, or any other circumstance that could interfere with a fair trial. When public defenders do not have the time or resources to properly craft a defense, it uncovers a systemic crack within the Justice System: is the Sixth amendment actually more detrimental to a defendant than helpful, rendering this guarantee essentially useless?
+
+This idea can be studied by looking at whether or not court appointed counsel has a larger impact on sentence length than other representation types. After analyzing data  from official court records for defendants convicted and sentenced to serve time in jail and those convicted and sentenced to pay a fine for Driving While Intoxicated in Minnesota in 1982, the answer is yes, a defendant represented by a public defender is more likely to have a longer prison sentence than someone represented by a private attorney or someone that represented themselves.
+
+```{r, echo=FALSE, results=FALSE} 
+#looking at whether type of representation or BAC over 0.10 has a greater impact on sentence length
+reg1 <- lm(sent.length ~ pro.se + priv.att + age.1829 + age.3049 +age.5064 + female, 
+           data=drunk.1)
+summary(reg1)
+
+#making a table with the regression results
+stargazer(reg1, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Factors for Sentence Length", 
+          model.names = FALSE, 
+          covariate.labels = c("Pro Se", "Private Attorney",
+                               "Age 18-29", "Age 30-49", "Age 50-64", "Female", 
+                               "Intercept"),
+          type="text", out="/Users/briannafisher/Dropbox/PSCI107/Figures/Final.txt")
+```
+
+```{r, echo=FALSE} 
+#calculating the mean sentence length for each representation type
+mean.prose <- mean(drunk.1$sent.length[drunk.1$rep1=="PRO SE"])
+mean.pd <- mean(drunk.1$sent.length[drunk.1$rep1=="PUBLIC DEFENDER"])
+mean.privatt <- mean(drunk.1$sent.length[drunk.1$rep1=="PRIVATE ATTORNEY"])
+mean.bac <- mean(drunk.1$sent.length[drunk.1$yes.BAC==1])
+
+df <- data.frame(mean.val=c(3.15, 9.90, 3.15),
+                 Legend=c("PRO SE", "PUBLIC DEFENDER", "PRIVATE ATTORNEY"))
+
+#plotting average sentence length and representation type
+mean.bar <- ggplot(df, aes(x = Legend, y = mean.val, fill= Legend)) +
+    geom_bar(stat="identity") +
+    geom_text(aes(label=mean.val), vjust=-0.3, size=5) +
+    scale_fill_manual(values = c("deeppink2", "khaki1", "deepskyblue")) +
+    xlab("Representation Type") +
+    ylab("Average Sentence Length in Days") +
+    ggtitle("Average Sentence Length per Attorney") +
+    scale_y_continuous(limits = c(0, 10.5)) +
+    theme_bw() 
+mean.bar
+
+ggsave(filename = "mean.bar.png", 
+       plot = mean.bar,
+       width = 10, 
+       height = 5)
+```
+
+On average, people represented by public defenders spend almost 10 days in prison. However, those represented by private attorneys or pro se (those that represented themselves), spend as little as 3.15 days in prison.
+
+To model this further, I examined the relationship between representing yourself in court and being represented by a public defender or private attorney, as well as controlling for age and sex (since females are less likely than males to be convicted of Driving While Intoxicated and people over 65 are less likely to be driving). 
+
+```{r, echo=FALSE} 
+#creating a plot for the regression coefficients
+library(broom.mixed)
+library(ggstance)
+library(jtools)
+regression <- plot_summs(reg1, scale = TRUE, colors = "deeppink2", 
+                         coefs = c("Pro Se" = "pro.se", "Private Attorney" = "priv.att", 
+                                  "Age 18-29" = "age.1829", 
+              "Age 30-49" = "age.3049", "Age 50-64" = "age.5064", "Female" = "female"),
+           title = "Regression Coefficients on Sentence Length")
+regression <- regression + ggtitle("How much longer would your average sentence length be?") +
+  xlab("Additional Days")
+regression
+
+ggsave(filename = "regression.png", 
+       plot = regression,
+       width = 12, 
+       height = 5)
+```
+
+When a defendant was male, older than 65 years old, and represented by a public defender, their average sentence length for Driving While Intoxicated was 9.67 days. However, when holding sex and age fixed, having a private attorney as representation is associated with a 7 day decrease in sentence length. 
+Seven fewer days in prison for the same crime because someone was fortunate enough to be represented by a private attorney rather than a public defender clearly indicates that there are foundational problems that need to be investigated within public defender offices as a whole. 
+
+After looking at the data, I also thought that it was unusual that so many people were not only representing themselves, but also receiving lessor sentences than people represented by public defenders. Originally, I thought that people who represent themselves might have less serious cases, and therefore get shorter sentences regardless of representation. However, people who represent themselves were actually more likely to have a blood alcohol content over 0.10 (with 0.08 being the legal limit) than those represented by public defenders and private attorneys, as well as be convicted of a second charge of Driving While Intoxicated. This could possibly be caused by whether or not Minnesota public defender offices have less resources than other areas and public defenders are more accustomed to receiving longer sentences for their defendants, but I would need more research and data in order to determine the actual cause.  
+
+This leads to the question, why is the Sixth amendment failing so many defendants?
+
+Public defender offices act more like factories, where cases come in the front door and go out the back within the same breath. Each case gets a formulaic defense that is applied within the couple of minutes that public defenders have to review it before acting as representation in court. There is a focus on brevity and completeness, rather than a fair and personalized defense for each individual.
+
+This has, in turn, led to the increased implementation of plea deals, which help to alleviate the number of trials carried out by prosecutors but are used in place of putting in the time and resources to thoroughly review a case. As a result, prisoners are carrying out sentences that are almost always too long for the crime committed but act as a result of an insufficient plea deal. 
+
+The crutch of using a plea deal could be a factor in the additional seven days spent in prison by someone represented by a public defender. This highlights the disparity between being able to afford better representation and invoking one’s right to counsel, which should hold up to the “adequate” standard set by the Constitution. 
+
+This is clearly a flaw within the American Justice System, but what can be done to fix this?
+
+First, and perhaps most importantly, public defender offices need to have an increase in funding so that they can complete their jobs more effectively. Second, public defender offices should create subdivisions within each office based upon certain infractions and categories within the Justice System. When an office assigns their attorneys to a case based upon their preferential and desired division, the lawyer is more inclined to become passionate and have greater knowledge in the case. 
+
+Additional research needs to be completed within other areas of the law to determine if this pattern carries over to crimes other than Driving While Intoxicated. If so, the entire premise of public defender offices needs to be evaluated in order to ensure that the Sixth amendment is effective and can be used as a support to defendants, rather than a detriment to them. 
+
+Anyone put on trial deserves, and is required by law, to have an attentive and interested lawyer to defend them. When lawyers take on too many cases, they ultimately contribute to the decline in effectiveness of the Sixth amendment and legal system as a whole. If a legal system cannot act effectively, there is no way to guarantee that justice will guide the decisions of prosecutors and defenders alike.
+
 ## Statistical Methods for Political Science
 
 <h2>Statistical Methods for Political Science</h2>
