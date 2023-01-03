@@ -17,7 +17,7 @@ output: html_document
 <div class="row" style="padding-top: 30px;">
 <div class="col-sm-6">
 
-# **Hi! My name is Brianna Fisher.**
+# **Hi! My name is Brianna Morgan Fisher.**
 
 I’m a positive, passionate, perfectionist college student trying to make the world a better place. Coffee & Criminal Justice reform enthusiast.
 
