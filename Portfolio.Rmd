@@ -3038,6 +3038,2466 @@ Rahamatulla, A. (2017, March 23). The War on Drugs has failed. what's next? Ford
 We Are The Drug Policy Alliance. (n.d.). A history of the Drug War. Drug Policy Alliance. Retrieved December 12, 2021, from https://drugpolicy.org/issues/brief-history-drug-war. 
 
 
+## Applied Data Science
+
+<h2>Applied Data Science</h2>
+
+### Problem Set 1
+
+__Question 1a__
+```{r}
+#read in data
+covid <- read.csv(file = "//Users/briannafisher/Dropbox/Github/BriannaFisher/data/covid-20220118.csv")
+```
+
+```{r}
+#keeping only data from the US
+us.covid <- covid[which(covid$Country_Region == "US"),]
+```
+
+```{r}
+#removing places that are not states
+us.covid <- us.covid[which(us.covid$Province_State %in% state.name),]
+```
+
+```{r}
+#removing any rows where the county is unassigned or out of state
+us.covid <- us.covid[which(us.covid$Admin2 != "Unassigned"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of AL"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of AZ"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of CA"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of CO"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of GA"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of HI"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of IL"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of KS"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of LA"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of ME"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of MI"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of NY"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of OK"),]
+us.covid <- us.covid[which(us.covid$Admin2 != "Out of TN"),]
+```
+
+```{r}
+#counting the # of rows left 
+nrow(us.covid)
+```
+There are now 3127 rows left in the dataset after I am done with this filtering.
+
+__Question 1b__
+```{r}
+#subsetting to keep only columns that we are interested in
+us.covid <- subset(us.covid, select = c(FIPS, Admin2, Province_State, Confirmed, Deaths))
+```
+
+```{r}
+#renaming variables
+library(dplyr)
+us.covid <- rename(us.covid, c("fipscode" = "FIPS", "County" = "Admin2", "State" = "Province_State", "Cases" = "Confirmed"))
+```
+
+__Question 1c__
+```{r}
+#finding how many confirmed cases there have been in Philadelphia County, PA
+sum(us.covid$Cases[us.covid$County == "Philadelphia"]) #280648
+```
+```{r}
+#finding how many deaths there have been in Philadelphia County, PA
+sum(us.covid$Deaths[us.covid$County == "Philadelphia"]) #4426
+```
+```{r}
+#finding how many counties had at least 280648 cases
+us.covid.more <- subset(us.covid, subset = us.covid$Cases >= 280648)
+
+nrow(us.covid.more) #25
+
+#removing philadelphia from the count
+25-1 #24
+```
+
+```{r}
+#finding how many counties had at least 4426 deaths
+us.covid.less <- subset(us.covid, subset = us.covid$Deaths >= 4426)
+
+nrow(us.covid.less) #20
+
+#removing philadelphia from the count
+20-1 #19
+```
+There were 280648 confirmed COVID cases and 4426 deaths in Philadelphia County, PA. 24 counties had at least as many cases as Philadelphia, and 19 counties had at least as many deaths as Philadelphia.
+
+__Question 1d__
+```{r}
+#finding how many counties had at least 10,000 cases
+us.covid.10000 <- subset(us.covid, subset = us.covid$Cases >= 10000)
+
+nrow(us.covid.10000) #992
+```
+
+```{r}
+#finding which county had the highest rate of deaths to confirmed cases
+us.covid.10000$death.rate <- us.covid.10000$Deaths / us.covid.10000$Cases
+
+max(us.covid.10000$death.rate) #0.03524969
+us.covid.10000[us.covid.10000$death.rate == max(us.covid.10000$death.rate), c("County", "State")] %>% na.omit()
+```
+992 counties have had at least 10,000 confirmed COVID cases. Among these counties, Citrus, Florida has had the highest rate of deaths to confirmed cases at a rate of 0.03524969 deaths per cases.
+
+__Question 1e__
+```{r}
+#load in demographic data
+dem <- readRDS("acs-2019-demographics.RDS")
+```
+
+```{r}
+#merge the two datasets by fipscode
+
+merged <- merge(us.covid, 
+               dem, 
+               by = c("fipscode"),
+               all = T)
+
+merged[is.na(merged$fipscode),]
+```
+Utah seems to have the biggest issue with this merge. Six different counties within Utah have NA values for the fipscode, making it difficult to match the two datasets.
+
+__Question 1f__
+```{r}
+#creating a variable for confirmed cases rate
+merged$case.rate <- merged$Cases / merged$pop
+```
+
+```{r}
+#creating a variable for death rate
+merged$death.rate <- merged$Deaths / merged$pop
+```
+
+```{r}
+#creating a variable for % of people over 65
+merged$prop.over.65 <- merged$over.65 / merged$pop
+```
+
+```{r}
+#creating a variable for % of people that are white, non hispanic
+merged$prop.white.non.hispanic <- merged$white.non.hispanic / merged$pop
+```
+
+```{r}
+#library(ggplot2)
+
+regression <- lm(formula = death.rate ~ prop.over.65, data = merged)
+regression
+
+plot(merged$prop.over.65, merged$death.rate, main = "Elderly Percentage and Death Rate", xlab = "Percent of People over 65 Years Old", ylab = "Death Rate")
+abline(regression, col = "blue")
+```
+```{r}
+max(merged$prop.over.65, na.rm = T)
+merged[merged$prop.over.65 == max(merged$prop.over.65, na.rm = T), c("County", "State")] %>% na.omit()
+```
+I wanted to look at the death rates for the percent of people over 65 in the dataset. I decided to plot the two, and plot the corresponding regression line. First, I was shocked to see how low the death rate was. It makes sense when you think about how many people live in the country (and how many people may have covid but not have died), but I was definitely expecting numbers above 0.10. I also saw one county that looked like an outlier in the percentage of people over 65 that live there. This point looked like it was pulling down the regression line. I decided to look into which county has over 50% of their citizens as people that are over 65 years old, and it was Sumter County, Florida. I feel like this also makes sense, as Florida is known to have more elderly people than the rest of the country.
+
+
+__Question 2a__
+```{r}
+#read in data
+library(rio)
+marist <- rio::import("marist-jan21.DTA")
+```
+
+```{r}
+#calculating the number of rows and columns in the dataset
+nrow(marist) #1173
+ncol(marist) #179
+```
+There are 1173 rows and 179 columns in the dataset.
+
+__Question 2b__
+```{r}
+#finding the proportion of people that were male and female
+table(marist$gender)
+
+611+562 #1173
+
+#male
+611/1173 #0.5208866
+
+#female
+562/1173 #0.4791134
+```
+52% of people in the survey said that they were male, and 48% of people in the survey said they were female.
+
+__Question 2c__
+```{r}
+#using attributes to check which #'s to code as missing, I see that it is 8 and 9
+attributes(marist$TRUD016)
+
+#coding the unsure / refused answers as missing
+marist$TRUD016[marist$TRUD016 == "8"] <- NA
+marist$TRUD016[marist$TRUD016 == "9"] <- NA
+```
+
+```{r}
+#calculating the % of survey respondents who said that Trump would go down as one of the best presidents
+
+#attributes tells me that this answer is coded as 1
+attributes(marist$TRUD016)
+
+table(marist$TRUD016) #there are 198 ones
+sum(table(marist$TRUD016)) #1147 people
+
+198/1147 #0.1726242
+
+#can also do this with the mean function
+mean(marist$TRUD016 == 1, na.rm = T)
+```
+
+```{r}
+#calculating the % of survey respondents who said that Trump would go down as one of the worst presidents
+
+#attributes tells me that this answer is coded as 5
+attributes(marist$TRUD016)
+
+table(marist$TRUD016) #there are 553 fives
+sum(table(marist$TRUD016)) #1147 people
+
+553/1147 #0.4821273
+
+#can also do this with the mean function
+mean(marist$TRUD016 == 5, na.rm = T)
+```
+17.26% of survey respondents said that Trump would fo down as one of the best presidents in US history. 48.21% of survey respondents said that he will go down as one of the worst presidents in history.
+
+__Question 2d__
+```{r}
+#using attributes to check which #'s to code as missing, I see that it is 8 and 9
+attributes(marist$PZ20VT)
+
+#coding the unsure / refused answers as missing
+marist$PZ20VT[marist$PZ20VT == "8"] <- NA
+marist$PZ20VT[marist$PZ20VT == "9"] <- NA
+```
+
+```{r}
+#creating a table of the two variables 
+table(marist$TRUD016, marist$PZ20VT)
+
+#columns: 1 (Biden), 2 (Trump)
+#rows: 1 (best), 5 (worst)
+
+#finding the proportion of people who voted for Biden out of the people who said Trump was one of the best
+sum(marist$PZ20VT == 1 & marist$TRUD016 == 1, na.rm = T) / sum(marist$TRUD016 == 1, na.rm = T) #0.005050505
+
+#finding the proportion of people who voted for Trump out of the people who said Trump was one of the worst
+sum(marist$PZ20VT == 2 & marist$TRUD016 == 5, na.rm = T) / sum(marist$TRUD016 == 5, na.rm = T) #0.06148282
+```
+One person in the survey said that they thought Trump would be one of the best presidents in US history, but also voted for Biden. Of the people who said Trump was one of the best presidents in US history, the proportion of people who still voted for Biden was 0.005050505. 34 people in the survey said that Trump would go down as one of the worst presidents in US history, but still voted for Trump. Of the people who said Trump was one of the worst presidents in US history, the proportion of people who still voted for Trump was 0.06148282.
+
+__Question 2e__
+```{r}
+#creating a new dataframe that only includes people who said that they voted for Trump in 2020
+trump <- subset(marist, subset = PZ20VT == 2)
+```
+
+```{r}
+#creating a dummy variable that indicates whether or not they said they thought Trump would go down as one of the worst presidents
+trump$yes.worst <- FALSE
+trump$yes.worst[trump$TRUD016 == "5"] <- TRUE
+
+#looking at what proportion of Trump voters said they thought he would go down as one of the worst presidents
+mean(trump$yes.worst == TRUE)
+```
+The proportion of Trump voters that said they thought Trump would go down as one of the worst presidents is 0.07834101.
+
+__Question 2f__
+```{r}
+#looking at who said they were democrats
+table(trump$TRUD016, trump$PRTD3)
+
+# 1 (democrats), 3 (independents), 5 (republicans), 97 (other), 99 (refused)
+
+#coding the unsure / refused answers as missing
+trump$PRTD3[trump$PRTD3 == "97"] <- NA
+trump$PRTD3[trump$PRTD3 == "99"] <- NA
+
+#proportion who were democrats who said he was worst out of Trump voters
+sum(trump$PRTD3 == 1 & trump$yes.worst == TRUE, na.rm = T) / sum(trump$yes.worst == TRUE, na.rm = T) #0.1764706
+
+#proportion who were democrats who did not say he was worst out of Trump voters
+sum(trump$PRTD3 == 1 & trump$yes.worst == FALSE, na.rm = T) / sum(trump$yes.worst == FALSE, na.rm = T)
+```
+The proportion of Trump voters who said that Trump was one of the worst presidents and were also Democrats is 0.1764706. The proportion of Trump voters who did not say that Trump was one of the worst presidents and were Democrats is 0.0675. 
+
+```{r}
+#looking at who said they were democrats
+table(trump$TRUD016, trump$BIDJ020)
+
+# 1 (favorable), 2 (unfavorable), 3 (heard but unsure), 4 (never heard of him), 8 (unsure), 9 (refused)
+
+#coding the unsure / refused answers as missing
+trump$BIDJ020[trump$BIDJ020 == "8"] <- NA
+trump$BIDJ020[trump$BIDJ020 == "9"] <- NA
+
+#proportion who had a favorable opinion of Biden and also said Trump was the worst out of Trump voters
+sum(trump$BIDJ020 == 1 & trump$yes.worst == TRUE, na.rm = T) / sum(trump$yes.worst == TRUE, na.rm = T) #0.2058824
+
+#proportion who had a favorable opinion of Biden and also did not say Trump was worst out of Trump voters
+sum(trump$BIDJ020 == 1 & trump$yes.worst == FALSE, na.rm = T) / sum(trump$yes.worst == FALSE, na.rm = T) #0.04
+```
+The proportion of Trump voters who had a favorable opinion of Biden and also said Trump was the worst President is 0.2058824. The proportion of Trump voters who had a favorable opinion of Biden and also did not say that Trump was one of the worst presidents is 0.04. These numbers might tell us that there is a very small number of Trump voters that did not say he would go down as one of the worst presidents and also were democrats (6.75%) or found Biden favorable (4%). This means that while these responses are unlikely, they are pretty rare. They also tell us that slightly more people who voted for Trump but think that he is the worst president were democrats (17.65%) or found Biden favorable (20.59%). While these are also unusual, it makes sense that people who think that Trump would go down as one of the worst presidents would also be democrats or find Biden favorable.
+
+__Question 2g__
+```{r}
+#looking at who said they were democrats
+table(trump$TRUD016, trump$educrec)
+
+# 1 (less than HS), 2 (high school), 3 (some college), 4 (college), 5 (grad/professional), 9 (refused)
+
+#coding the refused answers as missing
+trump$educrec[trump$educrec == "9"] <- NA
+
+#relooking at the table
+table(trump$TRUD016, trump$educrec)
+
+#proportion who had a grad/professional degree and also did not say Trump was worst out of Trump voters
+sum(trump$educrec == 5 & trump$yes.worst == FALSE, na.rm = T) / sum(trump$yes.worst == FALSE, na.rm = T) #0.145
+
+#proportion who had a grad/professional degree and also said Trump was the worst out of Trump voters
+sum(trump$educrec == 5 & trump$yes.worst == TRUE, na.rm = T) / sum(trump$yes.worst == TRUE, na.rm = T) #0.08823529
+```
+I wanted to look at education levels between the two groups to see if there were any differences. I looked at the proportion of each group who had a graduate/professional degree, and found that 8.82% of Trump voters who said Trump was the worst president had a graduate/professional degree and 14.5% of Trump voters who did not say Trump was one of the worst presidents had a graduate/professional degree. I was surprised by these results, as I assumed that more people who thought Trump was one of the worst presidents would have a graduate/professional degree (since we already saw that these people where more likely to be democrats, and democrats are known to pursue higher education). These findings do make sense, though, when you consider the fact that the group who voted for Trump and did not say Trump was one of the worst presidents was much larger than the other group, so it was more likely for more people to have a graduate/professional degree just because of the disproportionality of the sizes of the groups.
+
+__Question 3a__
+```{r}
+#read in data
+gov <- import("Government Shutdown Poll Dataset.sav")
+
+#looking at the attributes of the q15 
+attributes(gov$q15)
+
+#looking at the attributes of the q43
+attributes(gov$q43)
+```
+The main difference between these two questions is that q43 asks about "derogatory" remarks made by Trump, while q15 does not include any loaded language. I would expect this difference to impact the way in which people answer the questions because question q43 implies that Trump's remarks were negative and may influence respondents to answer in the "right" way as according to society. This may not be their true feelings, which would create errors in the data. The respondents may also answer differently to the two questions (especially since the non-loaded question is asked first), causing more errors.
+
+__Question 3b__
+```{r}
+#calculating the # of people that said yes to q15
+mean(gov$q15 == 1, na.rm = T) #0.5163551
+
+#calculating the # of people that said yes to q43
+mean(gov$q43 == 1, na.rm = T) #0.523015
+```
+51.64% of people answered yes to question q15, and 52.30% answered yes to question q43. Based on these results, I would say that more people answered yes (saying that Trump's derogatory remarks have impacted negotiations over a federal government shutdown) to the loaded question than did to the non-loaded question (which did not describe Trump's remarks as derogatory). However, this was only a slight difference, and the wording had very little impact on responses, in actuality.  
+
+
+__Question 4a__
+When first looking at these variables, one of the most interesting questions to me is the relationship between 2020 presidential vote and Biden job approval. I think this is interesting because the 2020 election was different from any election in the past, since many moderates / even Republicans voted for Biden because they did not support Trump (rather than because of their party). I would first transform these variables into dummy variables (Biden/Trump and approve/disapprove) so that I can calculate the correlation between the two. I would then calculate the proportions of Biden voters who approve and then disapprove of Biden and Trump voters who approve and then disapprove of Biden (so 4 in total). Finally, I would create a bar plot of these proportions with one panel having the proportions of Biden voters who approve and then next to it disapprove of Biden, and then the second panel having the proportions of Trump voters who approve and then next to it disapprove of Biden. Another question that I find interesting is the relationship between Biden job approval and age. I think this is interesting because Democrats (who I would assume think Biden is doing a better job than Republicans do) are mostly made up of younger, more diverse, more education, and female voters. However, Baby Boomers and older generations are (as sad as this sounds) dying off, and are leaving behind more open, accepting generations. Because of this, I think it would be interesting to look at age groups and their support for Biden. I would run a linear regression on the two, with Biden job approval as my y variable and age as my x. I would split age into generational groups, leaving out the youngest group (probably 18-29) to compare the others to, since I think this group would support Biden the most. I would then run a second regression for Biden job approval and age, controlling for the factors listed before that characterize democrats (female, diverse, more educated). I think these results may not be exactly what I am expected (high support) because many people felt as though Biden was the last resort during the election but do not necessarily support his policies. I would replicate this process but with 2020 presidential vote and age, and compare it to the regressions for Biden job approval and age to see if my hypothesis of a difference in support is true. 
+
+__Question 4b__
+
+1. What would you describe your ideology as?
+a. Left
+b. Leaning left
+c. Center
+d. Leaning right
+e. Right
+
+Because of the support from moderates / some Republicans for Biden during the 2020 election, I think it would be interesting to break up ideology even further to see where people lie specifically on the scale and analyze the relationship between ideology and 2020 presidential vote. I would even go further and look at the relationship between ideology and how they approve of Biden, since winning the election is no longer a motivation for support. 
+
+
+2. How often would you say you watch the evening news (from ABC, CBS, or NBC)?
+a. Every night
+b. 4-6 nights a week
+c. 1-3 nights a week
+d. Never
+
+I think it would be interesting to look at the relationship between how often people watch unbiased news and Biden job approval / approval of Biden's handling of the pandemic, since people may answer the approval questions based on one-sided news outlets or party opinions rather than their own opinions of what is happening.
+
+
+### Problem Set 2
+
+__1. For this question, we will be looking at data about live expectancy and GDP in countries across the world. The data are available in the 'gapminder' package in R.__
+
+__a) To begin, install and load the 'gapminder' package in R. Once you have the package loaded, use the data() function to load the 'gapminder' dataset into your workspace. How many rows and columns does the dataset have? What is the unit of analysis?__
+```{r}
+# install and load in the gapminder package and other necessary packages
+#install.packages("gapminder")
+library(gapminder)
+require(tidyverse)
+
+# use data() to load the dataset
+data("gapminder")
+```
+
+```{r}
+# check the number of rows and columns in the dataset
+nrow(gapminder) #1704
+ncol(gapminder) #6
+
+# double check this with the dim function
+dim(gapminder)
+
+# use the head function to determine a unit of analysis
+head(gapminder)
+```
+The gapminder dataset has 1704 rows and 6 columns. The unit of analysis is a particular country in a particular year (for example, Afghanistan in 1952 is one observation while Afghanistan in 1957 is another).
+  
+__b) Use bracket notation and conditional logic to determine the population of Norway in 1967.__
+```{r}
+# using bracketing to indicate that I want only the population when the country is equal to Norway and the year is equal to 1967 
+
+norway <- gapminder[gapminder$country == "Norway" & gapminder$year == "1967", c("pop")]
+norway
+```
+The population of Norway in 1967 was 3786019 people.
+	
+__c) What is the correlation between life expectancy and GDP per capita. The cor() function should be helpful. Give a basic interpretation of what this tells us.__
+```{r}
+# using the correlation function 
+cor(gapminder$lifeExp, gapminder$gdpPercap)
+```
+The correlation between life expectancy and GDP per capita is 0.5837062. This is a relatively strong positive correlation, meaning that as life expectancy increases, so does GDP per capita.
+	
+__d) Which countries, if any, had a life expectancy under 40 at any point after the year 2000?__
+```{r}
+# create a subset for observations after the year 2000
+over.2000 <- subset(gapminder, subset = gapminder$year >= 2000)
+
+# checking if any countries had a life expectancy under 40 after the year 2000
+over.2000$country[over.2000$lifeExp < 40]
+```
+Swaziland, Zambia, and Zimbabwe all had a life expectancy under 40 at any point after the year 2000.
+
+__e) What percentage of countries experienced a decrease in life expectancy between 1977 and 2007? Which countries were these?__
+```{r}
+# subset the dataset so that it only has the years 1977 and 2007
+
+gapminder.sub <- filter(gapminder, year == 1977 | year == 2007)
+gapminder.sub <- subset(gapminder.sub, select=c(country, year, lifeExp))
+
+# use the gather function to split the year column into two separate columns for 1977 and 2007
+gapminder.sub <- spread(gapminder.sub, 
+                    key = year,
+                    value = lifeExp)
+
+# use the rename function to rename the variables
+gapminder.sub <- rename(gapminder.sub, c("year.1977" = "1977", "year.2007" = "2007"))
+
+# calculate the percent of countries that experienced a decrease in life expectancy 
+change.life <- (gapminder.sub$year.2007)-(gapminder.sub$year.1977)
+
+gapminder.sub <- data.frame(gapminder.sub, change.life)
+
+# using this function to print which numbers are negative (and therefore had a decrease in life expectancy)
+Negative_number <- function(i) i[i <0]
+Negative_number(change.life) #14 numbers 
+
+# divide 14 by total number of countries
+14/142 #0.09859155
+
+# creating a subset to determine the countries with the decrease in life expectancey 
+low.life <- subset(gapminder.sub, subset = gapminder.sub$change.life < 0)
+print(low.life$country)
+```
+9.86% of countries experienced a decrease in life expectancy between 1977 and 2007. These countries were Botswana, Central African Republic, Dem. Rep. of Congo, Rep. of Congo, Cote D'Ivoire, Iraq, Kenya, Lesotho, Mozambique, Namibia, South Africa, Lesotho, Zambia, and Zimbabwe.
+
+
+__2. Use the GenForward survey data (`genforward sept 2017.sav`) to answer the following questions. The data are from a 2017 survey that focused on the political attitudes of Millennials and GenZ'ers. If you need to do any data cleaning before performing these calculations, please include that code in your R script.^[You do not need to consider survey weights for any of the answers in this question. Also, be sure that you are careful about how you handle people who did not answer particular questions.]__
+
+```{r}
+# load in the genforward data
+
+setwd("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/")
+library(rio)
+require(tidyr)
+require(lubridate)
+require(stringr)
+require(dplyr)
+genfor <- import("genforward sept 2017.sav")
+genfor.untouched <- genfor
+```
+
+```{r}
+# look to see if anything needs to be cleaned 
+
+# I realized that the Q13 question was spread out, so I used the gather function to make it easier to analyze
+
+genfor <- gather(genfor,
+                 key = "top.issue",
+                 value = "val",
+                 starts_with("Q13_"))
+
+# Now lets drop the rows where the value equals 0
+genfor <- genfor[genfor$val != 0,]
+
+# Lets check if the gathering and removing values worked in terms of observations
+table(genfor$top.issue)
+
+# We don't need the value column anymore so it can be dropped
+genfor$val <- NULL
+```
+
+```{r}
+# Lets rename the values within the top issue column so that they make sense by using a for loop
+label <- data.frame(issue.id = str_subset(names(genfor.untouched), "Q13_"),
+                           issue.description = NA)
+
+for(ii in 1:nrow(label)){
+  
+  current.id <- label$issue.id[ii]
+  
+  label$issue.description[ii] <- attr(genfor.untouched[,current.id], "label")
+  
+}
+
+# cleaning up the top issue column
+
+label$issue.description <- gsub("\\[", "", label$issue.description)
+label$issue.description <- gsub("]", "", label$issue.description)
+label$issue.description <- gsub("What", "", label$issue.description)
+label$issue.description <- gsub("do you think", "", label$issue.description)
+label$issue.description <- gsub("is the most important", "", label$issue.description)
+label$issue.description <- gsub("problem facing this country today", "", label$issue.description)
+label$issue.description <- gsub("\\?", "", label$issue.description)
+
+# Now lets merge these descriptions back into the dataset
+
+#check class, names, overlap between variables 
+
+# check class of variables
+class(genfor$top.issue) #character
+class(label$issue.id) #character
+
+unique(genfor$top.issue)
+unique(label$issue.id)
+
+genfor2 <- merge(genfor, 
+                label,
+                by.x = "top.issue",
+                by.y = "issue.id",
+                all = T)
+
+head(genfor)
+
+## Let's get rid of the old version of top.issue, and rename issue.description
+
+genfor2$top.issue <- NULL
+genfor2 <- rename(genfor2, top.issue = issue.description)
+
+```
+
+```{r}
+# I now changed all the variable names to lowercase so that they are easier to work with
+attr(genfor2, "names") <- tolower(attr(genfor2,"names"))
+
+# I then changed the names of the variables that I will be analyzing (Q1 and PartyID7 since Q13 has already been renamed)
+
+attributes(genfor.untouched$Q1) #Trump approval
+attributes(genfor.untouched$PartyID7) #Party ID
+
+# using the rename function to make the labels meaningful
+genfor2 <- rename(genfor2, c("trump.approval" = "q1", "party.id" = "partyid7", "vote.2016" = "q0"))
+```
+
+
+__a) What percent of the sample strongly approved or somewhat approved of the way that President Trump was handling his job as president (using question Q1)?__
+```{r}
+# looking at the attributes for question Q1 
+attributes(genfor.untouched$Q1) # 1 = strongly approved, 2 = somewhat approve
+
+#looking at a table to look at the weird values (77, 98, 99)
+table(genfor2$trump.approval)
+
+#coding the don't know / skipped on web / refused answers as missing so they don't mess with the values
+genfor2$trump.approval[genfor2$trump.approval == "77"] <- NA
+genfor2$trump.approval[genfor2$trump.approval == "98"] <- NA
+genfor2$trump.approval[genfor2$trump.approval == "99"] <- NA
+
+# using the sum function to find the percent of the sample strongly approved or somewhat approved of the way that President Trump was handling his job as president 
+sum(genfor2$trump.approval == 1 | genfor2$trump.approval == 2, na.rm = T) / sum(table(genfor2$trump.approval)) 
+
+# could also do this
+mean(genfor2$trump.approval %in% c(1,2))
+```
+14.72% of the sample strongly approved or somewhat approved of the way that President Trump was handling his job as president.
+	
+__b) What percentage of Republican men "strongly approve" or "somewhat approve" of the way Trump is handling his job as president? What is this percentage for Republican women? What percentage of Republican men and Republican women (separately) "somewhat disapprove" or "strongly disapprove" of Trump?^[For this question, you should use the `PartyID7` variable and consider anybody who is in the "Lean Republican", "Moderate Republican", or "Strong Republican" categories to be a Republican.]__
+```{r}
+# looking up the attributes for the party ID variable
+attributes(genfor.untouched$PartyID7) # 5 = lean republican, 6 = moderate republican, 7 = strong republican
+
+# looking at a table of these two variables
+table(genfor2$trump.approval, genfor2$party.id) # found a weird -1, looking again at attributes and see that -1 means unknown
+
+# recoding the -1s as NAs
+genfor2$party.id[genfor2$party.id == "-1"] <- NA
+```
+
+```{r}
+# first make a subset of  men
+attributes(genfor.untouched$gender) # looking at the gender varibale, 1 = male, 2 = female
+men <- subset(genfor2, subset = genfor2$gender == 1)
+
+# look at the percentage of republican men who strongly or somewhat approve of how Trump is handling the presidency
+sum((men$trump.approval == 1 | men$trump.approval == 2) & (men$party.id == 5 | men$party.id == 6 | men$party.id == 7), na.rm = T) / sum(men$party.id == 5 | men$party.id == 6 | men$party.id == 7, na.rm = T)
+
+# this gets 0.5244444
+
+# now look at the percentage of republican men who strongly or somewhat disapprove of how Trump is handling the presidency
+sum((men$trump.approval == 4 | men$trump.approval ==5) & (men$party.id == 5 | men$party.id == 6 | men$party.id == 7), na.rm = T) / sum(men$party.id == 5 | men$party.id == 6 | men$party.id == 7, na.rm = T)
+
+# this gets 0.3111111
+```
+
+```{r}
+# next make a subset of women
+attributes(genfor.untouched$gender) # looking at the gender variable, 1 = male, 2 = female
+women <- subset(genfor2, subset = genfor2$gender == 2)
+
+# looking at the percentage of republican men strongly or somewhat approve of how Trump is handling the presidency
+sum((women$trump.approval == 1 | women$trump.approval == 2) & (women$party.id == 5 | women$party.id == 6 | women$party.id == 7), na.rm = T) / sum(women$party.id == 5 | women$party.id == 6 | women$party.id == 7, na.rm = T)
+
+# this gets 0.4545455
+
+# now look at the percentage of republican women who strongly or somewhat disapprove of how Trump is handling the presidency
+sum((women$trump.approval == 4 | women$trump.approval ==5) & (women$party.id == 5 | women$party.id == 6 | women$party.id == 7), na.rm = T) / sum(women$party.id == 5 | women$party.id == 6 | women$party.id == 7, na.rm = T)
+
+# this gets 0.3801653
+```
+52.44% of Republican men "strongly approve" or "somewhat approve" of the way Trump is handling his job as president, while 45.45% of Republican women"strongly approve" or "somewhat approve" of the way Trump is handling his job as president. However, 31.11% of Republican men "somewhat disapprove" or "strongly disapprove" of Trump, while 38.02% of Republican women feel the same way.
+
+__c) Which two issues did 2016 Trump voters indicate were the most important problems facing the country? What percentage of Trump voters listed each of these two issues as the top issue?__
+```{r}
+# first I need to make a subset of Trump voters
+
+# I started by looking at the attributes of the 2016 vote variable
+attributes(genfor.untouched$Q0) # 1 = Clinton, 2 = Trump 
+
+# I decided to recode the don't know (77), skipped on web (98), and refused responses (99) so that they did not mess with the percentages (I thought did not vote was important to keep while the others could mess up the responses)
+genfor2$vote.2016[genfor2$vote.2016 == "77"] <- NA
+genfor2$vote.2016[genfor2$vote.2016 == "98"] <- NA
+genfor2$vote.2016[genfor2$vote.2016 == "99"] <- NA
+
+# finally I am ready to subset Trump voters
+trump <- subset(genfor2, subset = genfor2$vote.2016 == 2)
+```
+
+```{r}
+# lets make a table of Trump voters and top issues to answer this question
+table(trump$top.issue)
+
+# finding the top two issues
+sort(prop.table(table(genfor2$top.issue[genfor2$vote.2016 == 2])), decreasing = T)[1:2]
+
+# adding the percentages together to find the percent of voters who listed these as their top two issues
+sum(sort(prop.table(table(genfor2$top.issue[genfor2$vote.2016 == 2])), decreasing = T)[1:2])
+```
+2016 Trump voters indicated that terrorism / homeland security and health care were the most important problems facing the country. 28.81% of Trump voters listed each of these two issues as the top issue, with 18% listing terrorism / homeland security and 10% listing heath care.
+	
+__What percentage of 2016 Clinton voters listed these two issues are the most important problem facing the country?__
+```{r}
+# first I need to make a subset of Clinton voters
+clinton <- subset(genfor2, subset = genfor2$vote.2016 == 1)
+```
+
+```{r}
+# lets make a proportion table of Clinton voters and top issues to answer this question
+prop.table(table(clinton$top.issue))
+
+# adding up the terrorism / homeland security and health care issues to get the proportion of Clinton voters who said these were their top two issues
+0.044548652+0.135990621 #0.1805393
+```
+18.05% of Clinton voters listed terrorism / homeland security or health care as the most important problem facing the country, with 4.5% listing terrorism / homeland security and 13.6% listing health care. This makes sense since Trump promoted fears of terrorism and homeland security while campaigning, so Trump supporters would be more likely to have this as one of their most important issues.
+
+__e) What are the top three issues that women over 30 years old care about?  Are these top issues the same for women aged 30 and under?__
+```{r}
+#  lets look at the top three issues that women over 30 care about
+sort(prop.table(table(genfor2$top.issue[genfor2$age > 30])), decreasing = T)
+
+# the top three issues are health care, racism, and the environment / climate change
+
+# now lets look for women aged 30 and under
+sort(prop.table(table(genfor2$top.issue[genfor2$age <= 30])), decreasing = T)
+
+# the top three issues are health care, racism, and the environment / climate change
+```
+The top three issues for both women over 30 years old and women aged 30 and under are racism, health care, and the environment / climate change. Women over 30 were more likely to care about heath care, then racism, then the environment / climate change, while women aged 30 and under were more likely to rank the issues as racism, the environment / climate change, and then health care.
+
+
+__3. Consider the following survey question:__
+
+__Who is to blame for the dysfunction and gridlock in Washington? (select one)__
+
+__- Joe Biden__
+__- Donald Trump__
+__- Congress__
+__- Nancy Pelosi__
+__- Joe Manchin and Kyrsten Sinema__
+__- Mitch McConnell__
+__- The media__
+	
+
+__Discuss the problems with the way this survey question has been written.__
+One problem with the way this survey question has been written is that the response choices are just a list of names with no context. People who are uninterested in the survey may just pick the one at the top without reading the rest of them. This would mess with the survey results if the responses do not accurately portray the views of the respondents. Another problem with the way this survey question has been written is that the question is loaded. The use of term "dysfunction" makes it seem incredibly negative, and may prompt someone who is super pro-Trump, for example, to respond with Biden just because he beat Trump and not because they really answered the question. A third problem with the question is that the answer choices do not fall into one category. For example one person might think that the media and Biden were to blame, or that Manchin and not Sinema was to blame and be forced to pick an answer that they do not totally agree with. There needs to be a better unit for the survey responses (like either certain people, or certain branches, or certain policies, or certain news outlets).__
+
+__Rewrite the survey question and response options. Explain how your survey wording addresses the issues you identified.__
+How responsible do you think Republicans in Congress are for gridlock in Washington?
+a. All of it
+b. Most of it
+c. Some of it
+d. None of it
+
+How responsible do you think Biden and Democrats in Congress are for gridlock in Washington?
+a. All of it
+b. Most of it
+c. Some of it
+d. None of it
+
+In order to make this survey question better, I would split it into two questions. While I still think people that are so pro-Trump may say "all of it" to the democrats and "none of it" to republicans (and vice versa), I think that this helps group the responses better (taking care of the categories issue). I also think that providing a range of options will provide a more accurate response since people do not only have a single person to blame, but are instead evaluating two groups. Finally, taking the word dysfunction out of the question and asking about gridlock for both of the republican and democratic groups would neutralize the wording and remove any priming or framing effects associated with the term "gridlock" since both questions would be answered. 
+
+
+__4. As part of your final project for this course, you will write a report that analyzes survey on political attitudes.  Before you could write this report, however, the survey must first be drafted and fielded. For this question, you will write two survey questions (with question and response options) that could potentially be included in such a survey. One of your questions should be focused on either:__
+
+__a. Election integrity. You could include something about:__
+  
+__- changes to federal election law by Congress__
+__- proposed or adopted legislation at the state level that changes election law__
+__- the January 6th insurrection/the Big Lie__
+    
+__b. The state of the economy or economic development. You could include something about:__
+  
+__- Biden's Build Back Better plan__
+__- inflation__
+    
+__Your second question can either focus on another issue mentioned above, or on any other topic that is relevant to politics today.__
+    
+__Along with each question, please provide a brief paragraph that highlights why your proposed survey question would help you to write a thoughtful article about American politics.  In the paragraph, you should also highlight the strengths, or potential weaknesses, of your proposed question wording.__ 
+
+__You may choose a question that has been used in a previous survey. If you do you should write a little bit more about why you think this is a good question. If you do not write your own original question, please provide a citation for where you found the question you’re proposing.__
+
+a. ERIC (Electronic Registration Information Center) is a non-profit organization that improves the accuracy of America’s voter rolls and increase access to voter registration for all eligible citizens. The program cross-references voter registration lists with other government lists (like from the DMV) to determine if people have moved, died, need to be registered, and more. Would you support your state enrolling in ERIC?
+    a. Yes
+    b. No
+    c. Maybe - I need more information
+
+I think this would be a really interesting question to ask because of the misinformation surrounding ERIC and how the program works, especially with Louisiana recently withdrawing from the organization. Along with this question I would ask about where people get most of their news (social media, the nightly news, etc) and see if there is a relationship between getting the majority of their news on social media (where most fake news is posted) and saying no to supporting a state enrolling in ERIC. I think that this would help me write a thoughtful article about American politics because I would be able to gain insight into how people feel about voting policy and particularly measure support before the midterm elections. I would also be able to make really interesting connections between supporting policy and political party, news (and fake news) consumption, and education. I would also probably follow this question up with other questions on particular election policy to see if these follow the same relationship trends. One con of asking this question is that it is really specific and the normal person probably doesn't know what ERIC is. This could be solved by asking something like "Would you support your state enrolling in a program that improves the accuracy of voter rolls?" to achieve the same sort of answer. This would also make the question easier for respondents to understand. Another weakness of asking this question is that respondents may answer yes because it seems desirable to improve the accuracy of voter rolls. However, I think that with all of the election / voter fraud stuff in the news people may have strong opinions against enrolling in this program (probably those that are far-right), and the responses would be accurate in regard to those beliefs.
+
+b. How would you compare the state of the economy to how it was a year ago today?__
+  a. Better
+  b. About the same
+  c. Worse
+  
+I think that this would help me write a thoughtful article about American politics because it is important to know how people's beliefs have changed over time. With COVID still going on, I think that there is a high chance that people's opinions on the state of the economy have changed which would be interesting to note. I would also want to look at the relationship between this change and people's attitudes on COVID (if they are less worried and are shopping / traveling more it may change their opinion of how the economy is doing), and the relationship between this change and their approval of Biden (since the President is normally evaluated in terms of how the economy is doing). I think that there are plenty of other questions that could be associated with the opinion of the state of the economy a year ago, which would provide a lot of content and opportunity for interesting analysis. One weakness of this question is that some people may not really have the best idea of the economy or not know how the economy as a whole was doing a year ago today, but I think that most people would have a general sense.
+
+
+### Problem Set 3
+
+__1. The US Census Bureau has released a dataset of demographic information about peoples' last names/surnames. The data contain information about every last name shared by at least 100 people in the 2010 Census.^[Unfortunately, the 2020 data hasn't been released yet.] For each last name, the data reports the total number of people sharing the name, as well as the racial and ethnic distribution of those people. If you're interested, you can read more about the data [here](https://www.census.gov/topics/population/genealogy/data/2010_surnames.html).^[Blank/missing values in the dataset indicate that there were a very small number of people in that cell. Those data were suppressed by the Census Bureau to protect those individuals' privacy.]__
+
+__These data are an _aggregation_ of the 2010 individual-level Census results. When they did this aggregation, which variable was used to group the individual-level responses? What is the unit of analysis of the surname dataset? What does this tell you about the relationship between grouping variables and the unit of analysis after aggregating?__
+```{r}
+# lets first load in the data and take a look at the unit of analysis and how it is coded
+census <- read.csv("Names_2010Census.csv")
+
+# using the head function to look at the first couple of rows of the dataset
+head(census)
+```
+The variable used to group the individual-level responses when the Census Bureau did this aggregation was last name, which is also the unit of analysis of the surname dataset. This tells us that the grouping variable and the unit of analysis after aggregating are the same, and that "last names" is the variable being measured in the dataset.
+
+__Let's begin by writing a function that will help us to explore the data. Write a function that takes a last name, and returns the name, the number of people with that last name (the 'count' variable), and the racial demographics of the last name (the variables beginning with 'pct'). If the name does not appear in the dataset, have the function output a row of data that contains NAs for the count and racial demographics variables.__ 
+
+__Test your function on your own last name. Write a sentence or two about what these results tell you. If your function returns NAs, explain why that is the case.__
+
+__i. Bonus: Allow your function to take, as input, multiple last names and return those variables for each last name. Even better if you're able to do this without using a for-loop.__
+```{r}
+#I am going to first create a subset for the first name to see if this gives me what I want
+smith <- subset(census, name == "SMITH", select = c(name, count, pctwhite, pctblack, pctapi, pctaian, pct2prace, pcthispanic))
+
+#I am now going to try a word that I know is not a name to see what happens
+code <- subset(census, name == "code", select = c(name, count, pctwhite, pctblack, pctapi, pctaian, pct2prace, pcthispanic))
+
+#I can put these two subsets into the function using an if else statement
+last.name <- function(surname, data){
+  if(surname %in% data$name){
+    df <- subset(data, name == surname, select = c(name, count, pctwhite, pctblack, pctapi, pctaian, pct2prace, pcthispanic))
+  } else{
+    df <- data.frame(name = surname, count = NA, pctwhite = NA, pctblack = NA, pctapi = NA, pctaian = NA, pct2prace = NA, pcthispanic = NA)
+  } 
+   return(df)
+}
+
+#I can test my function on my last name to see what I get
+last.name("FISHER", census)
+```
+Using my function on Fisher, I see that 214,703 people in the country have the same last name as me. The majority of people are white (82.58% of people with the last name Fisher are white), and 11.79% are Black. The other racial demographic categories are small, telling me that the majority of people in the country with the name Fisher are either white or Black.
+
+__c. Use the function you write in 1B to create a cleanly-formatted table (i.e. something you might put in a paper or a report) that displays these statistics for your last name, as well as the last names of the 207 teaching staff (Lapinski, Flemke, Sangenito, Pettigrew). Write a couple sentences describing what this table tells you.__
+```{r}
+#install.packages("kableExtra")
+library(kableExtra)
+library(dplyr)
+
+#using my function on all of the names I want to look at
+fisher <- last.name("FISHER", census)
+lapinski <- last.name("LAPINSKI", census)
+flemke <- last.name("FLEMKE", census)
+sangenito <- last.name("SANGENITO", census)
+pettigrew <- last.name("PETTIGREW", census)
+
+#creating a data frame with all of the information I want
+teach <- bind_rows(fisher, lapinski, flemke, sangenito, pettigrew)
+
+#creating a nice looking table for these statistics
+kbl(teach, caption = "Statistics on my last name and the teaching staff's last names",col.names = c("Last Name", "Count", "% White", "% Black", "% Asian / Pacific Islander", "% American Indian / Alaska Native", "% Two or more Races", "% Hispanic")) %>%
+kable_classic_2()
+```
+This table tells us that Fisher is the most common last name out of this grouping, with Pettigrew being the second most common and Lapinski being the third. The table also returns "NA" values for Flemke and Sangenito, meaning that less than 100 people in the country share those last names. The majority of people with the last names Fisher, Pettigrew, and Lapinski are white, with Pettigrew being the most diverse of the three.
+    
+__d. Which last name is the most common among white Americans? Black Americans? Create a table that reports (for each of the 6 race/ethnicity categories) the most popular last name and total number of people in that racial category with that name. Create a similar table that shows the 5th most common name for each category. For this question, you should omit the "ALL OTHER NAMES" row in the data.__
+```{r}
+#omitting the all other names row by using tail to check which row number it is
+tail(census)
+census <- census[-c(162254),]
+
+#lets check if that worked
+tail(census)
+
+#creating variables for the number of Americans with each surname for each race variable
+census$white.count <- census$count*census$pctwhite/100
+census$black.count <- census$count*census$pctblack/100
+census$api.count <- census$count*census$pctapi/100
+census$aian.count <- census$count*census$pctaian/100
+census$tworace.count <- census$count*census$pct2prace/100
+census$hispanic.count <- census$count*census$pcthispanic/100
+
+#finding the most common surname among white Americans
+census[census$white.count == max(census$white.count, na.rm = T), c("name")] %>% na.omit() #Smith
+
+#finding the most common surname among Black Americans
+census[census$black.count == max(census$black.count, na.rm = T), c("name")] %>% na.omit() #Williams
+
+#finding the most common surname among Asian / Pacific Islander Americans
+census[census$api.count == max(census$api.count, na.rm = T), c("name")] %>% na.omit() #Nguyen
+
+#finding the most common surname among American Indian / Alaska Native Americans
+census[census$aian.count == max(census$aian.count, na.rm = T), c("name")] %>% na.omit() #Smith
+
+#finding the most common surname among Americans with two or more races
+census[census$tworace.count == max(census$tworace.count, na.rm = T), c("name")] %>% na.omit() #Smith
+
+#finding the most common surname among Hispanic Americans
+census[census$hispanic.count == max(census$hispanic.count, na.rm = T), c("name")] %>% na.omit() #Garcia
+
+#creating a dataframe of the results
+pop.race <- c("White", "Black", "Asian / Pacific Islander", "American Indian / Alaska Native", "Two or more Races", "Hispanic")
+pop.names <- c("Smith", "Williams", "Nguyen", "Smith", "Smith", "Garcia")
+pop.count <- c("1732071", "774920", "422109", "21742", "53501", "1073180")
+pop <- cbind(pop.race, pop.names, pop.count)
+
+#creating a nice looking table for these statistics
+kbl(pop, caption = "Most popular last name and total number of people with that name per race group", col.names = c("Race", "Last Name", "Count")) %>%
+kable_classic_2()
+```
+The last name Smith is the most common among white Americans. The last name Williams is the most common among Black Americans. The last name Nguyen is the most common among Asian / Pacific Islander Americans. The last name Smith is the most common among American Indian / Alaska Native Americans. The last name Smith is the most common among Americans with two or more races. The last name Garcia is the most common among Hispanic Americans.
+
+```{r}
+#finding the fifth most common surname among white Americans
+census[census$white.count == sort(census$white.count, decreasing=T)[5], c("name")] %>% na.omit() #Jones
+
+#finding the fifth most common surname among Black Americans
+census[census$black.count == sort(census$black.count, decreasing=T)[5], c("name")] %>% na.omit() #Brown
+
+#finding the fifth most common surname among Asian / Pacific Islander Americans
+census[census$api.count == sort(census$api.count, decreasing=T)[5], c("name")] %>% na.omit() #Tran
+
+#finding the fifth most common surname among American Indian / Alaska Native Americans
+census[census$aian.count == sort(census$aian.count, decreasing=T)[5], c("name")] %>% na.omit() #Jones
+
+#finding the fifth most common surname among Americans with two or more races
+census[census$tworace.count == sort(census$tworace.count, decreasing=T)[5], c("name")] %>% na.omit() #Brown
+
+#finding the fifth most common surname among Hispanic Americans
+census[census$hispanic.count == sort(census$hispanic.count, decreasing=T)[5], c("name")] %>% na.omit() #Lopez
+
+#creating a dataframe of the results
+fifth.race <- c("White", "Black", "Asian / Pacific Islander", "American Indian / Alaska Native", "Two or more Races", "Hispanic")
+fifth.names <- c("Jones", "Brown", "Tran", "Jones", "Brown", "Lopez")
+fifth.count <- c("786717", "511581", "180958", "14255", "36644", "812607")
+fifth <- cbind(fifth.race, fifth.names, fifth.count)
+
+#creating a nice looking table for these statistics
+kbl(fifth, caption = "Fifth most popular last name and total number of people with that name per race group", col.names = c("Race", "Last Name", "Count")) %>%
+kable_classic_2()
+```
+The fifth most common last name for White Americans is Jones. The fifth most common last name for Black Americans is Brown. The fifth most common last name for Asian / Pacific Islander Americans is Tran. The fifth most common last name for American Indian / Alaska Native Americans is Jones. The fifth most common last name for Americans with two or more races is Brown. The fifth most common last name for Hispanic Americans is Lopez.
+    
+__e. A [Herfindahl Index](https://en.wikipedia.org/wiki/Herfindahl%E2%80%93Hirschman_Index) is a metric used in the business/economics to measure how competitive/monopolistic a market is. An industry/market that is a complete monopoly (i.e. 100% of the market is controlled by one company/firm) would have a Herfindahl Index of 1. A industry/market that is made up of a huge number of small firms would have a Herfindahl Index near 0. Herfindahl Indexes can be used in non-business contexts to measure diversity or competition.__ 
+    __For this question, calculate the Herfindahl Index value that measures the racial diversity of each surname in the dataset. Then produce a table that shows the five most diverse last names (i.e. least monopolized by a single racial/ethnic group). Limit this analysis to only last names shared by at least 1,000 people.__  
+    __To calculate a Herfindahl Index value for the racial/ethnic diversity of specific last name, first set any blank or missing values in the data to be zero. Then, convert the race variables to range from 0 to 1. Then square each variable. Finally take the sum of those squared values. This sum is the Herfindahl value for the surname:__ 
+    __$$Herf_{surname} = \sum_{races}{pct_{surname, race}^2}$$__
+```{r}
+#calculating the Herfindahl value for each surname
+
+#load the scales package
+library(scales)
+
+census.index <- census %>% filter(count >= 1000) %>%
+  mutate(indexwhite = (pctwhite/100)^2,
+         indexblack = (pctblack/100)^2,
+         indexaian = (pctaian/100)^2,
+         indexapi = (pctapi/100)^2,
+         index2prace = (pct2prace/100)^2,
+         indexhispanic = (pcthispanic/100)^2)
+
+#replacing all NAs with 0s in the dataset
+census.index[is.na(census.index)] <- 0
+
+#adding up all races into one variable
+census.index$index <- census.index$indexwhite+census.index$indexblack+census.index$indexaian+
+  census.index$indexapi+census.index$index2prace+census.index$indexhispanic
+
+#creating a table of these
+herf.num <- c("0.2259582", "0.2290171", "0.2382656", "0.2417969", "0.2462893")
+herf.name <- c("Ben", "Ismael", "Sam", "Fortes", "Joe")
+herf.table <- cbind(herf.name, herf.num)
+
+kbl(herf.table, caption = "Five most diverse last names (shared by at least 1,000 people)", col.names = c("Last Name", "Herfindahl value")) %>%
+kable_classic_2()
+```
+The five most diverse last names are Ben, Ismael, Sam, Fortes, and Joe.
+
+__2. For this question we will use a wealth of data about Olympic athletes between 1896 and 2016.__  
+
+__a. To begin, we'll need to read in all the data. First, unzip the "olympic-athletes.zip" file. You don't need to use R code to do this; you can just do the unzipping in your file browser. Make sure that there are several dozen "athletes-....csv" files are inside your working directory.__
+	__You'll see that the data are split across several different CSVs, one for each Summer or Winter Olympic Games. To analyze the data, we'll need to combine everything together into a single dataframe.__ 
+	__To do this, we'll need to create a vector of the files that we need to read in using the `dir()` function. If the unzipped CSVs are inside your working directory, then you should be able to create a vector of the filenames using `filenames <- dir(pattern = "athletes-")`.__
+	__Now we'll use the `map()` function in the `purrr` package to create a list of dataframes with the data we want to read in. The two arguments you'll need to give `map()` are the vector of filenames, and the name of the function we want to apply to each of those filenames. In this case, we want to read in the filenames, so `read.csv()` is the function we'll want to use: `map(filenames, read.csv)`.__
+	__Now use the `bind_rows()` function (in the `dplyr` package) to append the dataframes together into a single dataframe. How many rows and columns does this dataframe have? How many different athletes appear in the data?__
+```{r}
+#download the purrr package
+#install.packages("purrr")
+library(purrr)
+
+#I can use dir to create the filenames vector
+filenames <- dir(pattern = "athletes-", path = "olympic-athletes", full.names = TRUE)
+
+#I can use map to read in all of the files
+olympics <- map(filenames, read.csv)
+
+#I can use bind rows to put in into a dataset
+olympics <- bind_rows(olympics)
+
+#Use nrow and ncol to find the number of rows and columns in the dataframe
+nrow(olympics)
+ncol(olympics)
+dim(olympics)
+```
+The dataframe has 187,303 rows and 12 columns. Because each row is a unique athlete, there are 187,303 athletes in the data.
+	
+__b. Aggregate the data to figure out how many gold, silver, bronze, and total medals each country has won.^[Note: the medal counts you calculate here won't match up with what you might find online. This is because when you aggregate the data, team events will be counted as many times as there are athletes on the team. In typical Olympic medal counts, this usually only counts as one medal. You can ignore this nuance for these questions.]__
+	
+__i. Which country has the biggest difference in the number of gold medals they've won, compared to silver ones? What is this difference?__
+```{r}
+#using aggregate to find out how many gold medals each country has won
+gold <- aggregate(gold ~ country,
+            olympics,
+             sum)
+
+#using aggregate to find out how many silver medals each country has won
+silver <- aggregate(silver ~ country,
+            olympics,
+             sum)
+
+#using aggregate to find out how many silver medals each country has won
+bronze <- aggregate(bronze ~ country,
+            olympics,
+             sum)
+
+#merge the gold and silver numbers together 
+medal <- merge(gold, silver, by = c("country"), all = T)
+
+#merge those with the bronze medals
+medal <- merge(medal, bronze, by = c("country"), all = T)
+
+#finding the total number of medals won by each country
+medal$total <- rowSums(medal[, c(2,3,4)])
+
+#finding the country with the biggest difference in gold medals compared to silver medals
+medal$diff <- abs(medal$silver - medal$gold)
+
+max(medal$diff) #997
+medal[medal$diff == max(medal$diff, na.rm = T), c("country")] %>% na.omit() #"United States"
+```
+The country with the biggest difference in the number of gold medals they've won, compared to silver ones, is the United States. The United States has 997 more gold medals than silver medals.
+
+__ii. Among countries with at least 30 total medals, which country had the highest percentage of its medals being gold? What is this percentage?__
+```{r}
+#subsetting to create a dataframe with only countries with at least 30 total medals
+more <- subset(medal, total >= 30)
+
+#finding the percentage for each medal type
+more$per.gold <- more$gold / more$total
+more$per.silver <- more$silver / more$total
+more$per.bronze <- more$bronze / more$total
+
+#finding the country with the highest percentage of its medals being gold
+more[more$per.gold == max(more$per.gold, na.rm = T), c("country")] %>% na.omit() #"India"
+max(more$per.gold, na.rm = T) #0.7005076
+```
+Among countries with at least 30 total medals, India had the highest percentage of its medals being gold at 70.05%.
+	
+__c. Let's use aggregation to learn about which countries participated in which years. We'll count a Winter Games and a Summer Games in the same year as different events.__
+	
+__i. How many years has the Summer Olympic Games been held? How many years were the Winter Games held? How many total (summer plus winter) Games have been held? You can ignore the Olympics that have happened since 2016 (and thus aren't in the data).__
+```{r}
+#using a table to see how many years the Summer Olympic Games have been held
+aggregate(year ~ season == "summer", olympics, unique) #29
+
+#using a table to see how many years the Winter Olympic Games have been held
+aggregate(year ~ season == "winter", olympics, unique)  #22
+
+#calculating the total number of years the games have been held
+29+22 #51
+```
+The Summer Olympic Games have been held for 29 years, while the Winter Olympic Games have been held for 22 years. There have been 51 total games held.
+
+__ii. Which countries participated in every Olympic Games between 1896 and 2016?__
+```{r}
+#create a variable for every season / year combination
+olympics$game.id <- paste(olympics$season, olympics$year,
+                          sep = "-")
+
+#use aggregate to find the length of each unique year 
+every <- aggregate(game.id ~ country, olympics, function(x)length(unique(x))) 
+
+#use sort to find the names of the countries that participated in every Olympic Games
+every[every$game.id == sort(every$game.id[every$game.id == 51], decreasing=F), c("country")] %>% na.omit()
+```
+France, Great Britain, and Italy have participated in every Olympic Games between 1896 and 2016.
+		
+__iii. Which Olympic Games did Greece not participate in? The %in% or setdiff() functions might be helpful here.__
+```{r}
+#creating a vector with all of the unique games
+all.games <- unique(olympics$game.id)
+
+#creating a vector with all the games Greece played in
+greece.games <- unique(olympics$game.id[olympics$country == "Greece"])
+
+#using set diff to find the games Greece did not play in
+setdiff(all.games, greece.games)
+```
+Greece did not participate in the 1924 winter games, the 1928 winter games, the 1932 winter games, and the 1960 winter games.
+
+__d. Aggregate the data by individual athlete. You should use the "id" variable to do this, since there might be multiple different people who share the same name.__
+	
+__i. Which athlete has won the most Olympic medals? How many did this person win?__
+```{r}
+#Aggregating the data by individual athlete
+athlete <- aggregate(total ~ id,
+                 olympics,
+                 sum)
+
+#looking at which athlete won the most medals and by how many
+athlete[athlete$total == max(athlete$total, na.rm = T), c("id")] %>% na.omit() # "michael-phelps-1"
+max(athlete$total, na.rm = T) #28
+```
+Michael Phelps has won the most Olympic medals. He won 28 medals.
+		
+__ii. Which athletes have medaled in the most Olympic Games? How many did they win?__
+```{r}
+athletes <- olympics %>% group_by(id) %>%
+  summarize(medal.count = sum(total),
+            number.games.medal = sum(total>0),
+            sum.summer = sum(season == "summer"),
+            sum.winter = sum(season == "winter"),
+            summer.medal = sum(total[season == "summer"]),
+            winter.medal = sum(total[season == "winter"]),
+            latest.year = max(year))
+
+athletes %>% filter(number.games.medal == max(number.games.medal)) %>% select(id, medal.count, number.games.medal)
+```
+Aladar Gerevich, Anky Van Grunsven, Armin Zoggeler, Brigit Fischer Schmidt, Elisabeta Oleniuc Lipa, and Kim Rhode all medaled in the most Olympic Games, winning 6 medals.
+		
+__iii. How many athletes have participated in both a Summer and a Winter Games? (the any() function might be helpful here)__
+```{r}
+nrow(athletes %>% filter(sum.summer > 0 & sum.winter > 0))
+```
+164 athletes have participated in both a Summer and a Winter Games.
+
+__iv. How many athletes have received a medal in both a Summer and Winter Games? Who was the most recent person to accomplish this feat?__
+```{r}
+med.both.seasons <- athletes %>% filter(summer.medal > 0 & winter.medal > 0)
+nrow(med.both.seasons)
+
+med.both.seasons$id[which.max(med.both.seasons$latest.year)]
+```
+10 athletes have recieved a medal in both a Summer and Winter Games. The most recent person to accomplish this feat was Lauryn Williams.
+		
+__3. In this question, we're going to use data merging to investigate survey data in a new way. The GenForward Survey Project interviews a panel of 1,750 millennials between the ages of 18 and 34 every two months. Because the the same respondents are being interviewed multiple times, we can use the data to understand how their attitudes may change over time. __ 	
+	__We have provided two snapshots of the GenForward data. The object called `oct` contains survey responses from October 2017. The object called `dec` contains responses from December of the same year.__
+
+__a. Our first step in doing the data analysis is merging together the datasets. When we merge data, we must first determine whether we want to perform an inner, outer, left, or right merge/join. In this case, what type of merge would give us the most flexibility for analyzing our data? We must also determine how we will pair together data from the same respondent in the two datasets. Which variable in our data could be used to perform this merge?__
+```{r}
+#lets first load in the two datasets
+genfor <- load("gen-forward.RData")
+
+#now lets use the head function to take a look at the datasets
+head(oct)
+head(dec)
+```
+Doing an outer merge would give us the most flexibility in analyzing our data because some people may have been interviewed in October and not December, for example, so doing a merge that only keeps the overlapping cases or all of October only or all of December only would get rid of these additional observations. Doing an outer merge would ensure that these cases are in the dataset and can be analyzed, and can later be removed if necessary (but still starting with everything). The variable in our data that could be used to perform this merge is the GenF_ID variable, which is the unique identifier of each person in the data.
+		
+__b. How many respondents took the survey in both months? How many respondents took the survey in October, but not December? How many took it in December, but not October? Based on these answers, what is your best guess at the number of rows our data would have if we did a outer merge?__		
+```{r}
+#finding how many respondents took the survey in both months
+table(oct$GenF_ID %in% dec$GenF_ID) #1387
+
+#using the set diff function to see how many respondents took the survey in October, but not December
+setdiff(oct$GenF_ID, dec$GenF_ID) #489
+
+#using the set diff function to see how many respondents took the survey in December, but not October
+setdiff(dec$GenF_ID, oct$GenF_ID) #457
+
+#adding up the rows
+1387+489+457
+```
+1387 respondents took the survey in both months. 489 respondents took the survey in October, but not December. 457 respondents took the survey is December, but not October. Based on these answers and the sums of each result, I would guess that there would be 2333 rows in the data if we did an outer merge.
+
+__c. Use the `merge()` function to merge the two datasets together. Use your answers from question A to properly specify the arguments inside the function. Also, use the 'suffixes' argument to make it easier to distinguish between the columns of data from the October data and those from the unmerged December data. How many rows and columns does the merged dataset have?__
+```{r}
+#merge the two datasets together
+month <- merge(oct, 
+                dec,
+                by = c("GenF_ID"),
+                all = T,
+                suffixes  = c(".oct",".dec"))
+
+#finding the number of rows and columns in the merged dataset
+nrow(month)
+ncol(month)
+dim(month)
+```
+There are 2333 rows and 37 columns in the merged dataset.
+
+__d. A big concern with panel surveys like this one is the level of attrition, i.e. the rate at which people drop out of the study by not taking later versions of the survey. If attrition is random (not correlated with anything), then it's not a big concern. But if a person's likelihood of dropping out of the study can be predicted by measured (like demographics) or unmeasured factors (like their underlying interest in politics), then attrition becomes a problem that has to be dealt with. We'll use our merged data to do a simple exploration of attrition to answer the question of whether gender/sex was predictive of attrition.__
+		__First, create a new variable in the merged dataset which tells us whether or not each respondent took the December wave of the survey. Conveniently, there are no NAs in the unmerged December data for variable Q0. Use this fact to create this new variable in the merged data. Then create another variable (using missingness in the October Q0 variable) which tells us whether or not each respondent took the October wave of the survey. Create a third variable (using the first two) to create a variable that tells us whether or not each person took both the October and December wave of the survey.__		
+		
+__Now use these variables to compare the percent of the respondents who are female between the group of people who took the October and December survey to those who took only the October survey. Is there a difference in the gender composition of the group who dropped out of the study and those who stayed in it?__
+```{r}
+#creating a new variable that tells us if the respondent took the December survey (1 is yes, 0 is no)
+month$yes.dec[month$Q0.dec == "1"] <- 1
+month$yes.dec[month$Q0.dec == "2"] <- 1
+month$yes.dec[month$Q0.dec == "3"] <- 1
+month$yes.dec[month$Q0.dec == "4"] <- 1
+month$yes.dec[month$Q0.dec == "77"] <- 0
+month$yes.dec[month$Q0.dec == "98"] <- 0
+month$yes.dec[month$Q0.dec == "99"] <- 0
+month$yes.dec[month$Q0.dec == "NA"] <- 0 
+
+#changing the NAs to zeros
+month$yes.dec[is.na(month$yes.dec)] <- 0
+
+#creating a new variable that tells us if the respondent took the October survey (1 is yes, 0 is no)
+month$yes.oct[month$Q0.oct == "1"] <- 1
+month$yes.oct[month$Q0.oct == "2"] <- 1
+month$yes.oct[month$Q0.oct == "3"] <- 1
+month$yes.oct[month$Q0.oct == "4"] <- 1
+month$yes.oct[month$Q0.oct == "77"] <- 0
+month$yes.oct[month$Q0.oct == "98"] <- 0
+month$yes.oct[month$Q0.oct == "99"] <- 0
+month$yes.oct[month$Q0.oct == "NA"] <- 0 
+
+#changing the NAs to zeros
+month$yes.oct[is.na(month$yes.oct)] <- 0
+
+#finally, creating a new variable for all of the people who took both surveys (1 is yes, 0 is no)
+month$both <- 0
+month$both[month$yes.oct == 1 & month$yes.dec == 1] <- 1
+```
+
+```{r}
+#comparing the % of respondents who are female in the oct/dec group and only oct group
+
+#for those who took the survey in both october and december
+mean(month$gender.dec[month$both == 1] == 2) #0.5039826
+
+mean(month$gender.dec[month$both == 1] == 2)
+
+#for those who just took it in october
+mean(month$gender.oct[month$yes.dec == 0 & month$yes.oct == 1] == 2) #0.6057495
+```
+Yes, there is a difference in the gender composition of the group who dropped out of the study and those who stayed in it. The proportion of the group who stayed in the survey (50%) is about 10 percent lower than the group who took the survey in just October (61%).
+
+__e. Let's look at how people are evaluating the strength of the economy by taking advantage of the panel structure of our data. Question 7 asks how respondents would describe the nation's economy. What percentage of respondents gave the same rating to the economy in both October and December? What percentage of respondents believe the economy was stronger in December than it was in October? What percentage believe the economy was weaker in December than in October? You can treat the responses 'not sure', 'skipped', and 'refused' as missing data.__
+```{r}
+#setting the responses not sure, skipped, and refused to be missing
+month$Q7.oct[month$Q7.oct == "Not sure"] <- NA
+month$Q7.oct[month$Q7.oct == "SKIPPED ON WEB"] <- NA
+month$Q7.oct[month$Q7.oct == "refused"] <- NA
+month$Q7.dec[month$Q7.dec == "Not sure"] <- NA
+month$Q7.dec[month$Q7.dec == "SKIPPED ON WEB"] <- NA
+month$Q7.dec[month$Q7.dec == "refused"] <- NA
+
+#finding how many people answered the same in october and december to question 7
+month[month$Q7.oct == month$Q7.dec, c("GenF_ID")] %>% na.omit() #713
+
+#finding how many people took both surveys
+month[month$both == 1, c("GenF_ID")] %>% na.omit() #1387
+
+#calculating the proportion
+713/1387 #0.5140591
+
+#finding how many people answered that the economy was stronger in december
+month[month$Q7.oct < month$Q7.dec, c("GenF_ID")] %>% na.omit()  #274
+
+#calculating the proportion
+274/1387 #0.1975487
+
+#finding how many people answered that the economy was weaker in december
+month[month$Q7.oct > month$Q7.dec, c("GenF_ID")] %>% na.omit()  #400
+
+#calculating the proportion
+400/1387 #0.2883922
+
+#double checking that the percents add up to 100
+0.2883922+0.1975487+0.5140591
+
+#double checking this with the mean function
+mean(month$Q7.oct == month$Q7.dec, na.rm = T)
+mean(month$Q7.oct < month$Q7.dec, na.rm = T)
+mean(month$Q7.oct > month$Q7.dec, na.rm = T)
+```
+51.4% of respondents gave the same rating to the economy in both October and December. 19.8% of respondents said that the economy was stronger in December than October. 28.8% of respondents said that the economy was weaker in December than October.
+	
+### Problem Set 4
+__1. In this question, we'll look at data about population density and the results from the 2016 presidential election.__
+
+__a. To begin, we'll need to read in all the data. First, unzip the "pop-density.zip" file. You don't need to use R code to do this; you can just do the unzipping in your file browser. Make sure that the 50 "pop-density-[state].csv" files are inside your working directory.__ 
+	__You'll see that the population density data are split across 50 different CSVs. The presidential vote results, however, all all contained within one file. To combine everything together, we'll first need to append together all 50 files of population density data.__ 
+	__To do this, we'll need to get a list of the files that we need to read in. Use the `dir()` function (and the "pattern" argument) to create a vector of the 50 filenames of population density data.__
+	__Now use those filenames in the `map()` function (in the `purrr` package) to create a list of 50 dataframes with the data we want to read.__  
+	__Once you have the list of dataframes, use the `bind_rows()` function (in the `dplyr` package) to append them together into a single dataframe. How many rows and columns does this dataframe have?__
+```{r}
+#load the purrr and dplyr packages
+library(purrr)
+library(dplyr)
+
+#I can use dir to create the filenames vector
+filenames <- dir(pattern = "pop-density-", path = "population-density", full.names = TRUE)
+
+#I can use map to read in all of the files
+pop <- map(filenames, read.csv)
+
+#I can use bind rows to put in into a dataset
+pop <- bind_rows(pop)
+
+#Use nrow and ncol to find the number of rows and columns in the appended dataframe
+nrow(pop)
+ncol(pop)
+dim(pop)
+```
+The appended dataframe has 3140 rows and 5 columns.
+	
+__b. Now read in the presidential vote results. How many rows and columns does this dataframe have? Explore the data a bit. Why does the population density data have a different number of rows than the votes data?__
+```{r} 
+#reading in the presidential vote results
+vote.unchanged <- read.csv("2016-president-results.csv")
+
+#Use nrow and ncol to find the number of rows and columns in this dataframe
+nrow(vote.unchanged)
+ncol(vote.unchanged)
+dim(vote.unchanged)
+
+#exploring the data
+table(vote.unchanged$state)
+table(pop$State)
+
+#which state is not in the population density data
+head(pop$State[!unique(pop$State) %in% pop$Geographic.area])
+
+#this shows many repeated fips codes
+
+#finding those fips codes
+ind <- pop$Fipscode %in% unique(vote.unchanged$fipscode[!vote.unchanged$jurisdiction %in% pop$Geographic.area])
+
+#which areas in the pop density data have the same fips codes of the repeated fips in the votes data
+pop$Geographic.area[ind]
+
+#find the states where this is this case
+unique(pop$State[ind])
+```
+The presidential vote results dataframe has 4639 rows and 9 columns. The population density data has less rows than the votes data because the counties listed are represented as the individual jurisdictions within the counties rather than as the county as a whole, like they are in the population density data. This occured in Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, and Vermont. The population density data is also missing the entire state of Alaska.
+	
+__c. Because of the different numbers of rows, we'll need to aggregate the votes data so that there is only one row per county and all the vote counts are in terms of county totals (not towns/cities). The `summarize()` and `group_by()` functions will be helpful here, as will the "fipscode" variable. How many rows does the aggregated data have?__
+```{r}
+#aggregating the data
+vote <- vote.unchanged %>%
+          group_by(fipscode) %>%
+          summarize(vote.count = sum(totalvotes), clinton = sum(clinton), trump = sum(trump))
+
+#Use nrow to find the number of rows in this dataframe
+nrow(vote)
+dim(vote)
+```
+The aggregated data has 3111 rows.
+
+__d. Let's merge the population density and aggregated vote count data together. What variable should we use to perform the merge? What type of merge should we do if we're interested in comparing population density to Trump's vote share in 2016? How many rows does the final dataset have?__
+```{r}
+#renaming the fipscode so its lowercase
+pop <- rename(pop, "fipscode" = "Fipscode")
+
+#merge the population density and aggregated vote count together
+merged <- merge(pop, 
+              vote,
+              by = c("fipscode"),
+              all = T)
+
+#finding the number of rows the final dataset has 
+nrow(merged)
+```
+In order to perform this merge, we should use the fipscode variable. Since we are interested in comparing population density to Trump's vote share in 2016, we should do an outer merge so that all of the counties from both datasets are included. The final dataset had 3140 rows.
+
+__e. We can finally analyze what we've got. Let's create three new variables. The first will be the population density, which we'll calculate by dividing the population by the land area in each county. The second is Trump's overall vote percentage, which we'll get my dividing his vote total by the vote total in the county. The third will be the Republican two-party vote percentage, which we'll calculate in each county by dividing Trump's vote count by the sum of Clinton and Trump's vote counts. What are the mean values of each of these three new variables?__
+```{r}
+#creating the population density variable
+merged$pop.density <- merged$Population / merged$Land.Area.in.square.miles
+
+#finding the mean
+mean(merged$pop.density)
+
+#creating the Trump overall vote percentage variable
+merged$trump.overall <- merged$trump / merged$vote.count
+
+#finding the mean
+mean(merged$trump.overall, na.rm = T)
+
+#creating the Republican two party vote percentage
+merged$rep.2 <- merged$trump / (merged$trump + merged$clinton)
+
+#finding the mean
+mean(merged$rep.2, na.rm = T)
+```
+The mean value of the population density variable is 256. The mean value of the Trump overall vote percentage variable is 0.63. The mean value of the Republican two party vote percentage variable is 0.67.
+	
+__f. Now recalculate the mean of Trump's overall vote percentage, but this time use the total number of votes in each county as a weight. How does this average differ from the average you calculated in part E? Why do you think they are different?__
+```{r}
+#load in the weights package
+library(weights)
+
+#calculating the weighted mean of Trump's overall vote percentage
+weighted.mean(merged$trump.overall, w = merged$vote.count, na.rm = T) 
+```
+The weighted mean of Trump's overall vote percentage is 0.46. This is 0.17 points lower than the unweighted average that I calculated in part E, which was 0.63. One reason I think they are different is that people who voted for Trump are overrepresented in the unweighted data. When the data is weighted Trump's overall vote percentage dropped, which means that people who voted for Trump had smaller weights than people who were did not vote for him.
+	
+__g. Using either the `plot()` or `ggplot()` function, make a simple scatterplot of the relationship between the log of the population density (use the `log()` function) in each county (on the x-axis) and Trump's vote percentage (on the y-axis). What does this tell us about the 2016 election?__
+```{r}
+#make a scatterplot
+plot(x = log(merged$pop.density), y = merged$trump.overall, main = "Log of Population Density and Trump's Vote Percentage", xlab = "Log of Population Density", ylab = "Trump's Vote Percentage")
+```
+This graph tells us that there is a strong negative relationship between the log of population density and Trump's vote percentage in the 2016 election. This means that for jurisdictions with smaller population densities, Trump's vote percentage was higher. For jurisdictions with larger population densities, Trump's vote percentage was smaller This makes sense since people who live in cities with larger population densities were less likely to vote for Trump, while people who live in rural areas with smaller population densities were more likely to vote for Trump.
+	
+__h. Aggregate the data to the state level, and recalculate the Republican 2-party vote percentage (i.e. Rep / (Rep+Dem)) and population density variables. What is the correlation between the log of each state's population density and the Republican 2-party vote percentage? How does this number compare to the same correlation, calculated at the county level? What might this tell us about the importance of the unit of analysis we choose when we're analyzing data?__
+
+```{r}
+#aggregating to the state level
+state <- merged %>%
+          group_by(State) %>%
+          summarise(trump.state = sum(trump), clinton.state = sum(clinton), pop.state = sum(Population), area.state = sum(Land.Area.in.square.miles))
+
+#recalculating the rep 2 party vote percentage variable
+state$rep.2.state <- state$trump.state / (state$trump.state + state$clinton.state)
+
+#recalculating the  population density variable
+state$pop.density.state <- state$pop.state / state$area.state
+
+#calculating the correlation between the log of each state's population density and the Republican 2 party vote %
+cor(log(state$pop.density.state), state$rep.2.state, use = "complete.obs")
+
+#calculating the correlation for the county level
+cor(log(merged$pop.density), merged$rep.2, use = "complete.obs")
+```
+The correlation between the log of each state's population density and the Republican 2 party vote percentage when aggregated by state is -0.61, while it is -0.49 when aggregated by county. This means that when the data is aggregated by state, the relationship is stronger, meaning that when the log of each state's population density increases, the Republican 2 party vote percentage decreases (and vice versa) more than it would at the county level. This tells us that the unit of analysis is incredibly important because we could have different results if we do not pick the most specific unit for what we are studying. If we just looked at states, it could have been too generalized and breaking it up by counties would give more accurate results.
+	
+
+__2. If you've ever taken a probability class you may have heard of the 'birthday problem'.^[You can read more about the birthday problem here: [https://en.wikipedia.org/wiki/Birthday_problem](https://en.wikipedia.org/wiki/Birthday_problem). There's also a recent episode of This American Life that discusses what the birthday problem can teach us about voter fraud (in the section called `Fraud Complex'):[https://www.thisamericanlife.org/630/things-i-mean-to-know](https://www.thisamericanlife.org/630/things-i-mean-to-know)] The problem demonstrates (perhaps counter-intuitively) that in a group of only 23 people the probability of at least two people sharing a birthday exceeds 50__
+
+__In this question, we're going to explore a variation of the birthday problem. Ultimately we want you to answer the following question: in a large group of people, what is the probability that you pick a random day of the year and nobody in the group has that birthday? For these questions you can assume that all years have 365 days. Throughout this question, we'll only worry about birth month and day (i.e. you can ignore birth year)__
+	
+__a)  We'll begin with the basics. Write a line or two of code that randomly draws birthdays for 300 people and checks whether nobody has a birthday on the first day of the year (i.e. January 1). The `sample()` function should be helpful here. Hint: use the numbers 1 through 365 to represent birthdays, and sample from those numbers.__
+```{r}
+#randomly drawing birthdays for 300 people
+!(1 %in% sample(1:365, 300, replace = TRUE))
+```
+Out of this random sample, somebody has a birthday on the first day of the year.
+	
+__b) The previous question allowed us to calculate whether or not somebody had a January 1 birthday in the sample we drew. That's not especially interesting, since our answer could change if we drew a new sample. It would be more interesting to know (before we draw the sample) what the *probability* is that nobody in our group had a birthday on January 1.__
+	
+__We can use for-loops to estimate these types of probabilities. The idea is that if we repeat the simulation we did in part A a large number of times (each time drawing a new random sample of birthdays), the proportion of the samples/simulations in which nobody had a January 1 birthday equals the probability that nobody has a January 1 birthday (for a group this size).__
+		
+__Write a for-loop that repeats the calculation you did in part A 250 times. Each time, you should store the result (i.e. whether or not there was anybody with a January 1 birthday) in a vector so that you can see all 250 results after the loop is complete.__
+```{r}
+#creating an empty vector
+bday <- c()
+
+#setting the seed so I get the same results
+set.seed(1)
+
+#create the for loop with my code from above
+for(i in 1:250){
+  bday[i] <- !(1 %in% sample(1:365, 300, replace = TRUE))
+}
+
+#show results
+bday
+```
+
+__c) Find the mean of the vector of results you created in part B. What is the probability that, in a group of 300 people, nobody in the group has a birthday on January 1? Hint: Your answer should be somewhere between 0 and 1 (i.e. 0\% and 100\%). If your answer equals exactly 0 or 1, you've done something wrong.__
+```{r}
+#find the mean of the vector of the results
+mean(bday)
+```
+The mean of the vector of the results is 0.46. This means that the probability that, in a group of 300 people, nobody in the group has a birthday on January 1 is 46%.
+	
+__d) Now let's use what we learned about writing our own functions to make our code a little bit more general. Write a function where you can alter the number of people in (rather than fixing it at 300), and the function tells you the probability that nobody in a group that size has a January 1 birthday. Use the function to estimate that probability for a group of 750 people. What is that probability?__
+```{r}
+#setting the seed to get the same number
+set.seed(1)
+
+#creating a function
+prop.bday <- function(num = 300, runs = 250){
+  bday <- c()
+  for(i in 1:runs){
+  bday[i] <- !(1 %in% sample(1:365, num, replace = TRUE))
+  }
+  return(mean(bday))
+}
+
+#finding the probability for a group of 750 people
+prop.bday(num = 750)
+```
+The probability that in a group of 750 people nobody in the group has a January 1 birthday is 14%.
+		
+__e) Use your function and another for-loop to calculate the probability for every group size between 300 and 1300. Make a simple scatter plot of your results. What do you notice about the relationship between the size of a group of people and the chances that nobody has a January 1st birthday?__
+	
+__Note: this calculation might take as much as a minute to run on your computer, so every time you re-knit your Markdown code, it will take a while. To avoid waiting as you're working on the pset, change the number of simulations from 250 to something small (like 25), get all your code working, and then when you're done with the whole problem set, change it back to 250 and wait for everything to compute.__
+```{r}
+#creating a new data frame to store everything
+large <- as.data.frame(matrix(nrow = 1001, ncol = 2))
+large[,1] <- 300:1300
+
+#creating the for loop[]
+for(i in 1:1001){
+  large[i,2] <- prop.bday(num = large[i,1])
+}
+
+#renaming the columns
+names(large) <- c("Size", "Probability")
+
+#creating a scatter plot
+plot(x = large$Size, y = large$Probability, main = "The Probability That No One in a Group Sized Between\n 300 and 1300 has a Birthday on January 1st", xlab = "Size of the Group", ylab = "Probability")
+```
+There is a strong negative relationship between the size of the group and the probability that no one in a group sized 300 to 1300 has a birthday on January 1st. This means that the larger the group size, the smaller the chances the nobody has a birthday on January 1st.
+
+__3. (Midterm evaluation question) Typically when we're working with survey data, our goal is to use the responses of the survey to understand the larger group of people that the survey respondents represent (usually called the *sample frame*). If we're interested in understanding the political attitudes of everybody who lives in the United States, then we could use a survey of Americans to further our understanding. It's almost impossible, however, that a sample of a few thousand (or even a hundred thousand) people would have demographic attributes that are exactly identical to the US population as a whole. Because of this fact, we use survey weights to slightly adjust the composition of our sample to match the sampling frame.__
+
+__In an ideal world, every respondents' survey weight would equal exactly 1. In practice, this is never really possible in any real-world scenario. The best we can do is to draw a survey that's as representative of the sampling frame as possible, and then use weights to make small adjustments to account for the imperfection and randomness in the sampling process.__
+	
+__In this question, we're going to use survey data from a July 2019 survey about American politics ("july-2019-sm-poll.sav). To keep things a bit simpler, the data we've provided for this problem set doesn't include every question on the survey.__
+	
+__a. We'll begin by looking at the `weight` variable in the dataset. What is the average weight given to people in the dataset? Why is it generally a good idea for survey weights to have this average?__
+```{r}
+#load in rio
+library(rio)
+
+#load in data 
+poll <- import("july-2019-sm-poll.sav")
+
+#finding the average weight
+mean(poll$weight)
+```
+The average weight given to people in the dataset is 1. It is generally a good idea for survey weights to have the average of 1 because a weight of 1 means that each person would count once in the dataset and it would be representative of the population.
+		
+__b. Sometimes we trim survey weights so that no single respondent has a huge amount of influence on the conclusions we draw from the data. Does it appear that the survey weights in the anger data have been trimmed? If so, what value were they trimmed to?__
+```{r}
+#calculate the range 
+range(poll$weight)
+```
+Yes, it appears that the survey weights in the data have been trimmed at 7.0. This means that this was the highest weight value assigned to someone in the dataset.
+
+__c. Identify the person in the data that has the highest survey weight. What is the race and gender of this person? Why might this person have such a high survey weight?__
+```{r}
+#finding the highest survey weight
+poll[poll$weight == max(poll$weight), c("respondentId", "gender", "race", "weight")] %>% na.omit()
+
+#determining what race and gender are coded for
+attributes(poll$gender) # 1 male 2 female
+attributes(poll$race) # 1 White 2 Black 3 Hispanic 4 Asian 5 Other
+```
+The person in the data that has the highest survey weight is weighted to 7, and is a Hispanic female. This person may have such a high weight because there may be very few or only one Hispanic females in the survey, so they are upweighted so that that demographic is represented.
+	
+__d. What is the unweighted average age of people in the dataset? Using the survey weights, what is the weighted average age of people in the data? The `weighted.mean()` function might be helpful here. You can ignore the people who did not provide their age in the survey, and leave them out of the denominators. What does the difference between these two numbers indicate to you?__
+```{r}
+#calculating the unweighted average age of people in the dataset
+mean(poll$age, na.rm = T) #52.12744
+
+#calculating the weighted average age
+weighted.mean(poll$age, w = poll$weight, na.rm = T) #45.02371
+```
+The unweighted average age of people in the dataset is 52. The weighted average age of people in the dataset is 45.This difference between these two numbers indicates that more people who were older took the survey. Once the average age was weighted, the average age of respondents drops, which means that people who were older had smaller weights than people who were younger.
+		
+__e. Compare the unweighted versus weighted percentages of people in the survey who are white, black, Hispanic, and Asian. When you apply the weights, which groups increase in size and which decrease? By how much do each of the group sizes change (in terms of percentage points)? You might find the `wpct()` function in the 'weights' package to be useful.__
+```{r}
+#unweighted percentage of people who are white
+prop.table(table(poll$race == "1")) #0.7372014
+
+#weighted percentage of people who are white
+wpct(poll$race == "1", weight = poll$weight) #0.6170958
+
+#unweighted percentage of people who are Black
+prop.table(table(poll$race == "2")) #0.08996072
+
+#weighted percentage of people who are Black
+wpct(poll$race == "2", weight = poll$weight) #0.1289135
+
+#unweighted percentage of people who are Hispanic
+prop.table(table(poll$race == "3")) #0.06497521
+
+#weighted percentage of people who are Hispanic
+wpct(poll$race == "3", weight = poll$weight) #0.1600116
+
+#unweighted percentage of people who are Asian
+prop.table(table(poll$race == "4")) #0.03412969
+
+#weighted percentage of people who are Asian
+wpct(poll$race == "4", weight = poll$weight) #0.03031985
+```
+When the weights are applied, the groups of white and Asian survey respondents increases while the groups of Black and Hispanic survey respondents decreases. The group of white survey respondents decreases by 12 percentage points, the group of Black survey respondents increases by 3.9 percentage points, the group of Hispanic survey respondents increases by 9.5 percentage points, and the group of Asian survey respondents decreases by 0.004 percentage points.
+
+__f. What percentage of people said that they would be somewhat or very willing to pay higher taxes to pay for infrastructure improvements? What is this percentage when you only look at Republicans? What about when you only look at Democrats? You should use the survey weights and omit people who did not answer the question from your calculations.__
+```{r}
+#looking at the attributes for the tax variable
+attributes(poll$taxes_improve_infrastructure) # 1 very willing, 2 somewhat willing, 3 not too willing, 4 not at all willing, 5 no answer
+
+#looking at the attributes for the republicans variable
+attributes(poll$party) # 1 republican, 2 independent, 3 democrat
+
+#calculating the percentage of people that would be somewhat or very willing to pay higher taxes to pay for infrastructure improvements
+wpct(poll$taxes_improve_infrastructure == "1" | poll$taxes_improve_infrastructure == "2", weight = poll$weight) #0.5709911
+
+#calculating the percentage of people that would be somewhat or very willing to pay higher taxes to pay for infrastructure improvements for republicans
+weighted.mean(poll$taxes_improve_infrastructure[poll$party == 1] == 1 
+              | poll$taxes_improve_infrastructure[poll$party ==1] == 2, 
+              w = poll$weight[poll$party == 1], na.rm = T)
+
+#calculating the percentage of people that would be somewhat or very willing to pay higher taxes to pay for infrastructure improvements for democrats
+weighted.mean(poll$taxes_improve_infrastructure[poll$party == 3] == 1 
+              | poll$taxes_improve_infrastructure[poll$party ==3] == 2, 
+              w = poll$weight[poll$party == 3], na.rm = T)
+```
+57% of people said that they would be somewhat or very willing to pay higher taxes to pay for infrastructure improvements. When only looking at Republicans, 49% of people said that they would be somewhat or very willing to pay higher taxes to pay for infrastructure improvements. When only looking at Democrats, 70% of people said that they would be somewhat or very willing to pay higher taxes to pay for infrastructure improvements.
+		
+__g. Analyze the questions about trust in the state and federal governments. Use those variables, and others in the dataset, to find some interesting pattern or result in the data. What did you find?__
+```{r}
+#loading ggplot packages
+library(ggplot2)
+library(ggthemes)
+
+#exploring the data
+attributes(poll$trust_fed_gov) # 1 always, 2 most, 3 half, 4 some, 5 never 
+attributes(poll$trust_state_gov) # 1 always, 2 most, 3 half, 4 some, 5 never 
+
+#removing no answers
+poll$trust_fed_gov[poll$trust_fed_gov == "6"] <- NA
+poll$trust_state_gov[poll$trust_state_gov == "6"] <- NA
+poll$taxes_improve_infrastructure[poll$taxes_improve_infrastructure == "5"] <- NA
+
+#correlation between trusting the federal gov always / most of the time and being very / somewhat willing to pay higher taxes for infrastructure improvements
+cor(poll$trust_fed_gov == "1" | poll$trust_fed_gov == "2", poll$taxes_improve_infrastructure == "1" | poll$taxes_improve_infrastructure == "2", use = "complete.obs") #0.06639313
+
+#correlation between trusting the federal gov never / some of the time and being very / somewhat willing to pay higher taxes for infrastructure improvements
+cor(poll$trust_fed_gov == "4" | poll$trust_fed_gov == "5", poll$taxes_improve_infrastructure == "1" | poll$taxes_improve_infrastructure == "2", use = "complete.obs") #-0.06220522
+
+#correlation between trusting the state gov always / most of the time and being very / somewhat willing to pay higher taxes for infrastructure improvements
+cor(poll$trust_state_gov == "1" | poll$trust_state_gov == "2", poll$taxes_improve_infrastructure == "1" | poll$taxes_improve_infrastructure == "2", use = "complete.obs") #0.146496
+
+#correlation between trusting the state gov never / some of the time and being very / somewhat willing to pay higher taxes for infrastructure improvements
+cor(poll$trust_state_gov == "4" | poll$trust_state_gov == "5", poll$taxes_improve_infrastructure == "1" | poll$taxes_improve_infrastructure == "2", use = "complete.obs") #-0.1734566
+```
+
+```{r}
+#finding percentages for federal 
+
+#number of people who always / most of the time trust the federal government and are very / somewhat willing to pay higher taxes for infrastructure improvements
+table(poll$trust_fed_gov, poll$taxes_improve_infrastructure)
+# 95+74+364+761 = 1294
+sum(table(poll$trust_fed_gov, poll$taxes_improve_infrastructure)) #14988
+1294/14988 #0.08633574
+
+#number of people who never / some of the time trust the federal government and are very / somewhat willing to pay higher taxes for infrastructure improvements
+table(poll$trust_fed_gov, poll$taxes_improve_infrastructure)
+# 1057+798+2247+1599 = 5701
+sum(table(poll$trust_fed_gov)) #15112
+5701/15112 #0.3772499
+
+#number of people who always / most of the time trust the state government and are very / somewhat willing to pay higher taxes for infrastructure improvements
+table(poll$trust_state_gov, poll$taxes_improve_infrastructure)
+# 150+136+827+1581 = 2694
+sum(table(poll$trust_state_gov, poll$taxes_improve_infrastructure)) #14991
+2694/14991 #0.1797078
+
+#number of people who never / some of the time trust the state government and are very / somewhat willing to pay higher taxes for infrastructure improvements
+table(poll$trust_state_gov, poll$taxes_improve_infrastructure)
+# 729+1684+473+897 = 3783
+sum(table(poll$trust_state_gov, poll$taxes_improve_infrastructure)) #14991
+3783/14991 #0.2523514
+```
+
+```{r}
+#creating the data frame
+labs <- c("Federal Government", "Federal Government", "State Government", "State Government")
+
+graph <- data.frame(avg.prop=c(0.09, 0.38, 0.18, 0.25),
+                Legend=c("Always / Mostly Trust Govt", "Never / Sometimes Trust Govt"), labs)
+
+#plotting this
+ggplot(graph, aes(x = Legend, y = avg.prop, fill = Legend)) + 
+  geom_bar(stat="identity", position = "dodge") +
+  geom_text(aes(label=avg.prop), vjust=-0.3, size=4) +
+  ylab("Percentage") +
+  scale_fill_manual(values = c("deeppink", "darkturquoise")) +
+  facet_wrap(vars(labs),
+             ncol = 2, 
+             nrow = 1) +
+  xlab("Trust in Government") +
+  ggtitle("Percent of People Who are Very or Somewhat Willing\n to Pay Higher Taxes for Infrastructure Improvements") +  
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent_format(accuracy = 1)) + 
+  scale_x_discrete(labels=c("Always / Mostly", "Never / Sometimes", "Always / Mostly", "Never / Sometimes")) +
+  theme(legend.position = "none")
+```
+I wanted to look at the relationship between the percent of people who are very or somewhat willing to pay higher taxes for infrastructure improvements and the amount of trust people have in the state and federal governments. I first looked at the correlations to get a sense of the relationships. The correlation of people who trust the federal government always or most of the time and are very or somewhat willing to pay higher taxes for infrastructure improvements is 0.066, while the correlation of people who trust the federal government never or some of the time and are very or somewhat willing to pay higher taxes for infrastructure improvements is -0.062. This makes sense, because I would expect that when people have more distrust for the federal government, they would be less supportive of paying higher taxes for infrastructure. Similarly, the correlation of people who trust the state government always or most of the time and are very or somewhat willing to pay higher taxes for infrastructure improvements is 0.146, while the correlation of people who trust the state government never or some of the time and are very or somewhat willing to pay higher taxes for infrastructure improvements is -0.173. This also makes sense that there would be a negative relationship between people with more distrust in the government and willingness to pay for improvements. Additionally, I wanted to graph this relationship. I found that 9% of people who are very or somewhat willing to pay higher taxes for infrastructure improvements always or most of the time trust the federal government, while 38% of people who are very or somewhat willing to pay higher taxes for infrastructure improvements never or some of the time trust the federal government. This was surprising, because I would think that people who always or most of the time trust the federal government would have higher support for higher taxes for infrastructure improvements because they may trust where the money is going. I found a similar, but weaker, difference for trust in the state government. I found that 18% of people who are very or somewhat willing to pay higher taxes for infrastructure improvements always or most of the time trust the state government, while 25% of people who are very or somewhat willing to pay higher taxes for infrastructure improvements never or some of the time trust the state government. While this is less pronounced, this still seems weird that people with less trust in the government are more likley to support higher taxes for infrastructure improvements. 
+
+
+### Problem Set 5
+
+__1. For this exercise, we'll be working with daily weather data from a weather station in New York City's Central Park. The station has been running continuously since January of 1869, so we'll be able to analyze 150+ years of weather patterns. The data come from a dataset extraction tool provided by the National Oceanic and Atmospheric Administration.^[You can download data for other cities or locations here: https://www.ncdc.noaa.gov/cdo-web/search?datasetid=GHCND.]__
+
+__a. Begin by loading the temperature data.^[All temperatures are in terms of Fahreinheit.] Use the `separate()` function to turn the `DATE` variable into three separate variables for year, month, and date. Which years are missing at least one day of temperature data, and how many days are missing?__
+```{r}
+require(tidyr)
+require(tidyverse)
+
+#loading in the data
+temp <- read.csv("nyc-central-park-temps.csv")
+
+#separating the date variable
+temp <- separate(temp,
+                  col = "DATE",
+                  into = c("year","month","day"),
+                  sep = "-")
+
+#looking at which years are missing data
+table(temp$year)
+
+#1869 has 358
+365-358
+```
+1869 is missing 7 days of temperature data.
+
+__b. Create a variable that tells us the difference between the highest and lowest temperature for each day. Across the full dataset, what the average of this difference? Which day during this 150 year window had the biggest difference between the highest and lowest temperature? Averaging across years, which month tends to have the highest average difference in daily high and low temperatures?__
+```{r}
+#creating a variable to tell the difference between max and min temps
+temp$diff <- temp$TMAX - temp$TMIN
+
+#finding the average across the entire dataset
+mean(temp$diff) #14.71454
+
+#finding the day with the biggest difference
+temp[temp$diff == max(temp$diff), c("day", "month", "year", "diff")] %>% na.omit()
+
+#aggregating by month and year
+month.year <- aggregate(temp$diff, by=list(Category=temp$month, temp$year), FUN=sum)
+
+#seeing which month appears most
+month.year %>% 
+ arrange(desc(x)) %>%
+ select(Category)
+```
+The average of the difference between the highest and lowest temperature for each day across the entire dataset is 14.71 degrees Fahrenheit. March 28, 1921 had the biggest difference between the highest and lowest temperature, which was 48 degrees Fahrenheit. Averaging across years, May tends to have the highest average difference in daily high and low temperatures.
+
+__c. Load and merge in the precipitation data. What type of merge does it mark sense to perform? Which variable(s) will you merge on? Perform the merge, then use the results to figure out how many days had a high temperature of at least 50 degrees and received at least 1 inch of snowfall.__
+```{r}
+#loading in the precipitation data
+prec <- read.csv("nyc-central-park-precipitation.csv")
+
+#separating the date column
+prec <- separate(prec,
+                  col = "DATE",
+                  into = c("year","month","day"),
+                  sep = "-")
+
+#merging the two datasets
+weather <- merge(temp, 
+                prec,
+                by = c("STATION", "year", "month", "day"),
+                all = T)
+
+#finding out how many days had a high temp of at least 50 and received at least 1 inch of snowfall
+weather[weather$TMAX >= 50 & weather$SNOW >= 1, c("day")] %>% na.omit()
+```
+It makes sense to perform an outer merge so that all of the variables are included. I will merge on the variables station, year, month, and day, so that all of the information is correct and accurate. 25 days had a high temperature of at least 50 and received at least 1 inch of snowfall.
+	
+__d. Aggregate the data by month to figure out what percentage of days have had preciptation since 1869. Your resulting dataset should have 12 rows (one per month). You should use the PRCP variable (and ignore the SNOW variable). Which month tends to have the most rainy days in New York City? What percentage of days does it usually rain in this month? And which month tends to be the dryest (i.e. fewest days with precipitation)? What percentage?__
+```{r}
+#aggregating the data by month
+prec.1869 <- weather %>%
+          group_by(month) %>%
+          summarise(PRCPCOUNT = sum(PRCP > 0)/n()*100)
+
+#finding the month with the most rain
+prec.1869[prec.1869$PRCPCOUNT == max(prec.1869$PRCPCOUNT), c("month", "PRCPCOUNT")] %>% na.omit()
+
+#finding the month with the least rain
+prec.1869[prec.1869$PRCPCOUNT == min(prec.1869$PRCPCOUNT), c("month", "PRCPCOUNT")] %>% na.omit()
+
+```   
+March tends to have the most rainy days in New York City, with 36.33% of days being rainy. October tends to be the driest month, with 27.45% of days being dry.
+	
+__e. Use aggregation to figure out how many days in each year since 1869 had a low temperature of 32 degree or below. Create a graph that shows the relationship between the year and the number of cold days in Central Park. What pattern do you notice in this graph?__
+```{r}
+library(ggplot2)
+
+cold <- weather %>%
+          group_by(year) %>%
+          summarise(temp = sum(as.numeric(TMIN <= 32)))
+
+graph <- ggplot(data = cold, aes(x = as.numeric(year), y = temp)) +
+  ggtitle("Number of Cold Days per Year") +
+  geom_bar(stat = "identity", width = 0.8) +
+  scale_x_continuous(name = "Year", breaks = seq(1870, 2021, by = 10)) +
+  scale_y_continuous(name = "Number of Cold Days") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 12))
+graph
+```
+The pattern in the graph shows that the number of decreases slowly decrease over time.
+
+__2.  The graph below shows what effect a particular treatment had on the probability that a voter supported Diane Feinstein, Kevin de Leon, or another candidate in a recent California primary election.__
+
+![](experiment-graph-bad.pdf)
+
+__Imagine you have been given that data that created this graph (`election-data-for-graph.RData`), and have been asked to improve the graph. Begin by replicating the graph exactly as it appears here. Then improve the graph in any way you see fit. One specific thing your client has asked is that you to make each of the three sets of points and line segments into three separate colors. You may also want to improve the labeling or text that appears on the graph. In your submission, explain why you corrected for these features in your replication.__
+```{r}
+#load in the packages and data
+require(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+load("election-data-for-graph.RData")
+
+#changing the levels of the candidates variable
+experiment$candidates <- as.character(experiment$candidates)
+experiment$candidates <- factor(experiment$candidates, levels = unique(experiment$candidates))
+
+#creating labels for the graph
+experiment$label <- paste(round(experiment$ATE * 100, digits = 1), "%", sep = "")
+experiment$label[1] <- paste("+", experiment$label[1], sep = "")
+
+#making the plot
+old <- ggplot(data = experiment, mapping = aes(x = candidates, y = ATE)) + 
+  geom_point(shape = "diamond", size = 2, col = "red") +            #red diamond points
+  ggtitle("Average Treatment Effect on Candidate Support") +        #title
+  xlab("Candidate Support") +                                       #x axis
+  scale_y_continuous(name = "a.t.e.", limits = c(-0.4,0.6),         #y axis and limits
+                     breaks = seq(from = -0.4, to = 0.4, by = 0.2),
+                     expand = c(0.02,0)) +
+  geom_errorbar(aes(ymin = ci_lower,                                #error bars
+                    ymax = ci_upper,
+                    width = 0), size = 0.2) +
+  geom_text(aes(size = 3, label = label, hjust = -0.2),             #text
+            show.legend = FALSE) +
+  theme(text = element_text(family = "Helvetica"),                  #text of title
+        plot.title = element_text(size = 9, hjust = 0.5, face = "bold"),    #title size and boldness
+        axis.title = element_text(size = 12),                       #axis size
+        axis.title.x = element_text(vjust = -3),                    #axis position
+        axis.line = element_line(color = "black", size = 0.3),      #get rid of grid and border lines
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey", size = 0.1),  #add grey lines
+        axis.text.x = element_text(color = "black", size = 12, vjust = 0.7),  #make axis labels black and right size
+        axis.text.y = element_text(color = "black", size = 12),
+        axis.ticks.length = unit(0.25, "cm"),                               #make ticks longer
+        axis.ticks = element_line(size = 0.2, color = "black"),
+        plot.margin = margin(1,1,10,1))                             #change margins
+old
+```
+```{r}
+#adding a color designater to the data
+experiment$color <- NA
+experiment$color[experiment$candidates == "Vote Feinstein"] <- 1
+experiment$color[experiment$candidates == "Vote de León"] <- 2
+experiment$color[experiment$candidates == "Vote Other Candidate"] <- 3
+
+#making the new graph
+new <- ggplot(data = experiment, mapping = aes(x = candidates, y = ATE, color = as.factor(color))) + 
+  geom_point(shape = "diamond", size = 4) +            #red diamond points
+  ggtitle("Average Treatment Effect on Candidate Support") +        #title
+  xlab("Candidate Support") +                                       #x axis
+  scale_y_continuous(name = "Average Treatment Effect", limits = c(-0.4,0.6),         #y axis and limits
+                     breaks = seq(from = -0.4, to = 0.4, by = 0.2),
+                     expand = c(0.02,0), labels = scales::percent) +
+  geom_errorbar(aes(ymin = ci_lower,                                #error bars
+                    ymax = ci_upper,
+                    width = 0), size = 0.8) +
+  geom_text(aes(size = 3, label = label, hjust = -0.2),             #text
+            show.legend = FALSE) +
+  scale_color_manual(values = c("deeppink", "midnightblue", "darkviolet")) +
+  theme(legend.position = "none") +
+  theme(text = element_text(family = "Helvetica"),                  #text of title
+        plot.title = element_text(size = 15, hjust = 0.5, face = "bold"),    #title size and boldness
+        axis.title = element_text(size = 12),                       #axis size
+        axis.title.x = element_text(vjust = -3),                    #axis position
+        axis.line = element_line(color = "black", size = 0.3),      #get rid of grid and border lines
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey", size = 0.1),  #add grey lines
+        axis.text.x = element_text(color = "black", size = 12, vjust = 0.7),  #make axis labels black and right size
+        axis.text.y = element_text(color = "black", size = 12),
+        axis.ticks.length = unit(0.25, "cm"),                               #make ticks longer
+        axis.ticks = element_line(size = 0.2, color = "black"),
+        plot.margin = margin(1,1,10,1))                             #change margins
+new
+```
+In the new graph, I made the diamond size bigger so that it was easier to read and made the error bars thicker so they were easier to see. I changed the the y-axis label from a.t.e. to average treatment effect so that it was more meaningful. I made the title size bigger so that it was easier to read, and I made each candidate point and error bar a different color so that they could be easily differentiated. Finally, I changed the y-axis labels into percentages instead of decimals so that it was easier to understand and matched the text on the graph.
+
+
+__3. In many states, convicted felons are banned from voting while they serve their prison, parole, or probation sentence. In some of those states, they are able to have their voting rights restored. Even after voting rights are restored, former felons continue to register to vote and vote at extremely low rates. In this question, we will look at an experiment (co-authored by UPenn's Dr. Marc Meredith) that sought to understand what caused these low rates. The researchers were specifically interested in how much of this low rate could be explained by felons' not knowing that their voting rights had been or could be restored after serving their sentence.__
+
+__For these exercises, you will use the dataset 'felons.RData' to replicate some of the findings in the article "Can Incarcerated Felons be (Re)integrated into the Political System? Results from a Field Experiment."^[[https://onlinelibrary.wiley.com/doi/abs/10.1111/ajps.12166](https://onlinelibrary.wiley.com/doi/abs/10.1111/ajps.12166)]__
+
+__a. Imagine you wanted to understand the effect that felony convictions and incarceration have on voter registration and turnout (after the sentence has been served). Somebody suggests that you compare the voter registration rates and turnout rates of former felons to people who never have served time for a felony. Discuss why this research design could or could not help you to get a good estimate of the causal effect that you are interested in.__
+I do not think that this research design could help us get a good estimate of the causal effect that we are interested in because the two groups are too different. People who have never served time for a felony are more likely to be more educated and politically active, and thus more likely to vote in general. In terms of former felons, they may not know if they are eligible to vote, may have barriers (like paying restitution) that stop them from voting, or may not even know about the candidates at all and have never voted before their sentence. This would also not be able to prove whether or not felons voted before incarceration. Because of these differences that are too difficult to control for, the research design would not help get us the causal effect that we are interested in.
+	
+__b. Read the `Experimental Design` section of the "Can Incarcerated Felons be (Re)integrated into the Political System?" (pages 915 through 917 in \emph{gerber, et al 2015.pdf}).__
+		__i. What are the causal effect(s) that the authors are interested in studying?__
+		    The causal effect that the authors are interested in studying is the effect that political outreach to former felons has on their likelihood of registering to vote and actually voting.
+		__ii. Describe the treatment and control conditions in the experiment.__
+		    There were two treatment groups, with both receiving a mailing in an envelope from the Secretary of State's office that provided them with general information related to the election and that they were not registered to vote. The letters mentioned appeals to civic duties and had a statement that said that they were "eligible to register to vote." This was all that the first treatment group received. The second treatment group, however, got an assurance explained mailing that contained an additional paragraph to address any concerns about being turned away or questioned about being an ex felon. The control group received neither of these treatments.
+		__iii. Describe the randomization strategy that the authors used.__
+		    The authors randomly assigned individuals to either the control or one of two treatment groups. The control group consisted of about 50% of the sample, and each treatment group had 25%. The assignment was within blocks for different crimes, so that all three groups were balanced. For leftover cases that could not be blocked, they were independently and randomly assigned to a group.
+
+__c. Now we're going to analyze the results from the experiment. Begin by removing the 161 people in the dataset who returned to prison before the experiment was conducted. Then create a new variable called `treatment_collapsed' which tells us whether each observation in the data was in the control group (FALSE) or a treatment group (TRUE).__
+```{r}
+#load in the data
+load("felons.RData")
+
+#removing the people who returned to prison
+felons <- felons %>% filter(returntoprison != 1)
+
+#creating the treatment_collapsed variable
+attributes(felons$treatment)
+
+felons$treatment_collapsed <- FALSE
+felons$treatment_collapsed[felons$treatment == "2"] <- TRUE
+felons$treatment_collapsed[felons$treatment == "3"] <- TRUE
+```
+
+__d. The first thing you should always do before analyzing the results of an experiment is assess whether you have balance in your treatment and control groups. In a well-balanced experiment, no pre-treatment covariates (i.e. the variables that existed before you ran the experiment) would predict whether or not somebody ended up in the treatment or control group. For the following questions, use the 	`treatment_collapsed` variable.__
+	
+		__i. Use 4 t-tests to assess whether the felons' age, number of days served in prison, time since their release from prison, or 2008 vote turnout is a statistically significant predictor of treatment. To do the t-tests, you'll want to write code that looks like this: `t.test(felons$age ~ felons$treatment_collapsed)`. Create a well-formatted table the present the average values for each of these variables in the treatment and control groups, as well as the the p-value associated with the difference between those averages. You can pull out these values from the output of the `t.test()` object using the $ operator.  Is there significant imbalance for any of those four variables?__
+```{r}
+library(kableExtra)
+library(dplyr)
+
+#testing age
+t.test(felons$age ~ felons$treatment_collapsed) #control = 35.34835, treatments = 35.23333, p-value = 0.6604
+
+#testing number of days served in prison
+t.test(felons$days_served ~ felons$treatment_collapsed) #control = 370.1308, treatments = 369.4835, p-value = 0.9194
+
+#testing time since release from prison
+t.test(felons$yrs_since_release ~ felons$treatment_collapsed) #control = 1.809551, treatments = 1.808286, p-value = 0.9553
+
+#testing 2008 vote turnout
+t.test(felons$vote08 ~ felons$treatment_collapsed) #control = 0.04952830, treatments = 0.05223172, p-value = 0.6894
+
+#creating a table of these results
+control <- c("35.34835", "370.1308", "1.809551", "0.04952830")
+treatment <- c("35.23333", "369.4835", "1.808286", "0.05223172")
+p.value <- c("0.6604", "0.9194", "0.9553", "0.6894")
+variable <- c("Age", "Days Served", "Time Since Release", "2008 Vote Turnout")
+table <- cbind(variable, control, treatment, p.value)
+
+kbl(table, caption = "T-Test Results", col.names = c("Variable", "Control Mean", "Treatment Mean", "P-Value")) %>%
+kable_classic_2()
+```
+There is no significant imbalances for any of the variables. All of the p-values are above the 0.05 threshold, so none of the values are statistically significant.
+
+__ii. Use linear regression to assess whether the type of crime predicts whether somebody ended up in the treatment or control group. Were any crimes strong predictors of the treatment?__
+```{r}
+#running a linear regression for crime type
+reg.crime <- lm(treatment_collapsed ~ felony_type, data=felons)
+summary(reg.crime)
+```
+None of the crimes were strong predictors of ending up in the treatment group.
+
+__iii. Use linear regression to assess balance for all the variables (age, days in prison, time since release, 2008 turnout, crime type) simultaneously. When you do this, do you find imbalance for any of the pre-treatment covariates?__
+```{r}
+#running a linear regression for all of the variables
+reg.all <- lm(treatment_collapsed ~ felony_type + age + days_served + yrs_since_release + vote08, data=felons)
+summary(reg.all)
+```
+When I run a linear regression to assess balance for all of the variables, I do not find an imbalance for any of the pre-treatment covariates. All of the coefficients are really small, and none of them are significant. This means that the groups are all well balanced.
+
+__e. Did the experiment have an effect on whether or not ex-felons registered to vote? Did it impact their turnout in 2012? If so, how much did the treatment increase or decrease the probability that they registered or turned out? You can use linear regression and the 'treatment_collapsed' variable to answer this question.__
+```{r}
+#running a linear regression for registering to vote 
+reg.registered <- lm(treatment_collapsed ~ registered, data=felons)
+summary(reg.registered)
+
+#running a linear regression for turnout
+reg.vote12 <- lm(treatment_collapsed ~ vote12, data=felons)
+summary(reg.vote12)
+```
+The experiment had an effect on both whether or not ex-felons registered to vote and on their turnout in 2012. If the ex-felons were treated, they had a 0.709 increase in likelihood of registering to vote than if they were not treated. The treated ex-felons also had a 0.068 increase in the likelihood of turning out to vote in 2012. Both of these values are significant.
+	
+__f. Use linear regression to estimate these two treatment effects again. This time, control for the five pre-treatment covariates (the ones you checked for balance in part C in your regression. What effect did the treatment have on registration and voting?__
+```{r}
+#running a linear regression for registering to vote 
+reg.registered.control <- lm(treatment_collapsed ~ registered + age + days_served + yrs_since_release + vote08, data=felons)
+summary(reg.registered.control)
+
+#running a linear regression for turnout
+reg.vote12.control <- lm(treatment_collapsed ~ vote12 + age + days_served + yrs_since_release + vote08, data=felons)
+summary(reg.vote12.control)
+```
+The experiment had an effect on whether or not ex-felons registered to vote, but not on their turnout in 2012. Controlling for the age, years since release, days served, and vote in 2008 variables, if the ex-felons were treated, they had a 0.08468 increase in likelihood of registering to vote than if they were not treated. The p-value is 0.0488, and both are significant. However, the treated ex-felons  had a 0.0717 increase in the likelihood of turning out to vote in 2012. The p-value is 0.2792, and neither of these values are significant. 
+
+
+### Problem Set 6
+
+__1. Given any three randomly chosen integers between 1 and infinity, what are the chances that their product is divisible by 100?__
+
+	__a. We'll begin by finding the exact solution to the problem, using integers between 1 and 99 (instead of infinity). We'll figure out every possible triplet of the numbers 1 through 99, and see how many of them have a product that's divisible by 100. To do this, first create a matrix that contains all 970,299 (99^3) possible triplets of the numbers between 1 and 99. The `expand.grid()` function should make this easy. Now use multiplication to get the product of the three numbers in each triplet. How many of those products are divisible by 100? The modulus operator (%%) will help here. To understand how it works, type `300 %% 100` into R. Then type `301 %% 100`. What percentage of the triplets have a product divisible by 100? In other words, what is the probability of choosing 3 numbers between 1 and 99 and having their product be divisible by 100?__
+```{r}
+#using expand grid to create the matrix
+df <- expand.grid(first = seq(1, 99, 1),
+                  second = seq(1, 99, 1),
+                  third = seq(1, 99, 1))
+
+#finding the product of the triplets
+df$product <- df$first * df$second * df$third
+
+#finding which products are divisible by 100
+df$divisible <- ifelse(df$product %% 100 == 0, 1, 0)
+
+#finding the probability 
+mean(df$divisible)
+```
+The probability of choosing 3 numbers between 1 and 99 and having their product be divisible by 100 is 9.75%.
+	
+__b. Now let's imagine we weren't able to create all 970,299 triplets. We could try to estimate the solution to the problem by using simulation. To do this, write some code that randomly samples 3 numbers from between 1 and 99 and checks whether their product is divisible by 100. Use a for loop to repeat this process 5000 times, and use those 5000 results to estimate the probability of choosing 3 numbers between 1 and 99 that have a product that's divisible by 100. How close was this estimated probably to the true probability we calculated in part A?__
+```{r}
+#setting the seed
+set.seed(1)
+
+#creating the vector
+products <- c()
+
+#creating the for loop
+ for(i in 1:5000){
+    vec <- sample(1:99, 3, replace = T)
+    products[i] <- prod(vec)
+  }
+
+#finding the probability
+(mean(products %% 100 == 0) * 100)
+
+#finding the difference
+9.75-9.16
+```
+Using the simulation, the probability of choosing 3 numbers between 1 and 99 that have a product that's divisible by 100 is 9.16%. This is close to the true probability calculated in part A (which was 9.75%), but was 0.59% off.
+
+__c. Let's imagine we wanted to we wanted to solve the same problem, except our triplets came from any number between 1 and 999 (instead of just 99). If we wanted to check every possible triplet (like in part A), we'd have to look at almost a billion combinations of numbers! Turn your code from part B into a function that takes, as an argument, the upper number (i.e. 99 or 999), and returns the probability of the product of 3 randomly chosen numbers between 1 and that number being divisible by 100. What is this probability if the upper bound in 999?__
+```{r}
+#setting the seed
+set.seed(1)
+
+#creating the function with the code from part B
+divisible.by.100 <- function(x){
+  products <- c()
+  
+  for(i in 1:5000){
+    vec <- sample(1:x,3, replace = T)
+    products[i] <- prod(vec)
+  }
+  
+  return(mean(products %% 100 == 0) * 100)
+  
+}
+
+#testing the function on 999
+divisible.by.100(999)
+```
+The probability of choosing 3 numbers between 1 and 99 that have a product that's divisible by 100 when the upper bound is 999 is 12.32%.
+	
+__d. Now use your function inside another for loop to estimate the probabilities when the upper bound is 1, 2, 3, ... 997, 998, 999. Store all these probabilities in a vector called `all.probabilities`, and then use `plot(all.probabilities)` to examine the pattern of your results. What do you notice about the results?__
+```{r}
+#setting my seed
+set.seed(1)
+
+#creating a vector
+all.probabilities <- c()
+
+#creating the for loop
+for(i in 1:999){
+  all.probabilities[i] <- divisible.by.100(i)
+}
+
+#plotting the results
+plot(all.probabilities)
+```
+The plot shows that the probability of choosing 3 numbers between 1 and 99 that have a product that's divisible by 100 does not ever get higher than about 13%.
+
+__2. Download the Philadelphia Youth Risk dataset. You will use these data to explore how location relates to risk for children in the city.__
+
+__Description of the variables:__
+
+__- CODE: Zip code__
+
+__- Risk: Each zip code was assigned an overall "Risk score" based on factor analysis__
+
+__- Poverty: Percent of families with children below the poverty line__
+
+__- Education: Percent of individuals with less than a high school diploma__
+
+__- Unemployment: Percent of unemployed individuals within the zip code__
+
+__- Crime: Shooting victims per 10,000__
+
+__- ACEs: Percent with at least one Adverse Childhood Experience__
+
+__- RiskF: a variable that bins the Risk scores into 4 sections__
+
+__a. Explore the Risk, Poverty, Education, Unemployment, Crime, and ACEs variables by looking at the mean, median, and any other descriptive statistics that you think are important to know. Write up your findings in a couple of sentences for each variable.__
+```{r}
+#load in the data and packages
+risk <- read.csv("philly-youth-risk.csv")
+require(tidyr)
+require(tidyverse)
+
+#calculating descriptive statistics for the risk variable
+summary(risk$Risk)
+risk[risk$Risk == min(risk$Risk), c("CODE", "Risk")] %>% na.omit()
+risk[risk$Risk == max(risk$Risk), c("CODE", "Risk")] %>% na.omit()
+
+#calculating descriptive statistics for the poverty variable
+summary(risk$Poverty)
+risk[risk$Poverty == min(risk$Poverty), c("CODE", "Poverty")] %>% na.omit()
+risk[risk$Poverty == max(risk$Poverty), c("CODE", "Poverty")] %>% na.omit()
+
+#calculating descriptive statistics for the education variable
+summary(risk$Education)
+risk[risk$Education == min(risk$Education), c("CODE", "Education")] %>% na.omit()
+risk[risk$Education == max(risk$Education), c("CODE", "Education")] %>% na.omit()
+
+#calculating descriptive statistics for the unemployment variable
+summary(risk$Unemployment)
+risk[risk$Unemployment == min(risk$Unemployment), c("CODE", "Unemployment")] %>% na.omit()
+risk[risk$Unemployment == max(risk$Unemployment), c("CODE", "Unemployment")] %>% na.omit()
+
+#calculating descriptive statistics for the crime variable
+summary(risk$Crime)
+risk[risk$Crime == min(risk$Crime), c("CODE", "Crime")] %>% na.omit()
+risk[risk$Crime == max(risk$Crime), c("CODE", "Crime")] %>% na.omit()
+
+#calculating descriptive statistics for the ACEs variable
+summary(risk$ACEs)
+which(risk$ACEs == 60.70)
+which(risk$ACEs == 98.20)
+```
+The mean risk score assigned to a zip code is 49.68, with the median being 49.95. The zip code with the lowest risk score (2.1) is 19102, while the zip code with the highest risk score (97.8) is 19133. The mean percent of families with children below the poverty line is 25.40%, while the median is 23.73%. The zip code with the smallest percent of families with children below the poverty line (1.49%) is 19118, while the zip code with the largest percent of families with children below the poverty line (61.81%) is 19133. The mean percent of individuals with less than a high school diploma is 5.851, while the median is 4.770. The zip code with the smallest percent of individuals with less than a high school diploma (0.59%) is 19103, while the zip code with the largest percent of individuals with less than a high school diploma (19.21%) is 19133. The mean percent of unemployed individuals is 14.04, while the median is 13.81. The zip code with the smallest percent of unemployed individuals (3.5%) is 19106, while the zip code with the largest percent of unemployed individuals (25.89%) is 19133. The mean number of shooting victims per 10,000 people is 7.435, while the median is 4.725. The zip codes with the smallest number of shooting victims per 10,000 people (0) are 19137, 19115, 19128, 19118, 19102, while the zip code with the largest number of shooting victims per 10,000 people (27.610) is 19133. The mean percent of people with at least one Adverse Childhood Experience is 82.44%, while the median is 82.10%. The zip code with the smallest percent of people with at least one Adverse Childhood Experience (60.70%) is 19147, while the zip code with the largest percent of people with at least one Adverse Childhood Experience (98.20%) is 19140. For almost all of the variables (risk score, poverty, education, unemployment, and crime), the zip code of 19133 (located in North Philadelphia) had the maximum values. This means that 19133 had the highest risk score, highest percent of families with children below the poverty line, highest percent of individuals with less than a high school diploma, highest percent of unemployed individuals, and highest number of shooting victims per 10,000 people.
+
+__b. Create a Place Matters choropleth map (like in class) that highlights the difference in risk scores between Philadelphia zip codes. You'll need to unzip the "Zipcodes_Poly.zip" file. Remember that the shapefile *folder* should appear in your working directory (i.e. don't put the individual files within that folder into your working directory. Keep them inside their own folder called "Zipcodes_Poly" and put that folder into your working directory.)__
+```{r}
+#load in necessary packages
+library(leaflet)
+library(dplyr)
+library(sf)
+
+#reading in the shape file
+zips <- read_sf("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/Zipcodes_Poly")
+  
+#making the code variable a character so the two match
+risk$CODE <- as.character(risk$CODE)
+
+# use a left_join to merge them
+info <- left_join(zips, risk, by = c("CODE" = "CODE"))
+  
+# writing the pop up values
+ info_popup <- paste0(
+    "<strong>Zip Code: </strong>",
+    info$CODE,
+    "<br>Risk Score: ",
+    info$Risk
+  )
+  
+# coloring by factor level, from risk variable
+factpal <- colorFactor(c("#FFCCE5",
+                           "#FF66B2",
+                            "#FF3399",
+                              "#CC0066"), info$RiskF)
+
+#creating the map
+  map <- leaflet(info) %>%
+    fitBounds(-124, 34,-62, 40) %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    addPolygons(
+      stroke = TRUE,
+      smoothFactor = 0.2,
+      fillOpacity = .8,
+      color = ~ factpal(RiskF),
+      weight = 1,
+      popup = info_popup
+    ) %>%
+    addLegend(
+      "topright",
+      colors = c("#FFCCE5","#FF66B2","#FF3399", "#CC0066"),
+      labels = c(
+        "Significantly Lowest Risk Score",
+        "Lower Risk Score",
+        "Higher Risk Score",
+        "Significantly Higher Risk Score"
+      ),
+      title = "Difference in the Risk Scores of Different Zip Codes in Philadelphia",
+      opacity = 1
+    )
+map
+```
+
+
+__c. Place your choropleth into a Shiny app.__
+
+
+__[Midterm assessment question]__
+
+__3. Using the data for the final project (either what we provided, or different survey data that you're planning to use), create a graph that visualizes a response (or set of responses) that you find interesting. For instance, you may want to think about displaying how responses to one of the substantive questions vary by demographic group. Your visual should include enough information to clearly communicate the numbers behind the visual. At a minimum, your graph should include:__
+
+	__- A title__
+	__- Appropriate axes__
+	__- Appropriate labels__
+	__- Appropriate sizing of the text and numbers__
+
+__You should export your graph to a .png file and include it in your submission. It should also include a brief caption that accompanies the figure.__
+
+```{r}
+#load in library
+require(rio)
+library(ggplot2)
+library(ggthemes)
+library(dplyr)
+
+#load in the data
+data <- rio::import("pa-survey-data.SAV")
+
+#looking at data attributes
+attributes(data$Q7)
+
+#graphing Q7 (important issue) and Q24 (political party)
+plot <- ggplot(data, aes(factor(data$Q24), fill = as.factor(data$Q7))) +
+geom_bar(stat="count", position = "dodge") +
+  ggtitle("Current Most Important Issue and Political Party") +
+  scale_x_discrete(name = "Political Party", labels = c("Republican", "Democrat", "Independent")) +
+  scale_y_continuous(name = "Count") +
+   theme(plot.title = element_text(size = 15, hjust = 0.5, face = "bold"),   
+        axis.title = element_text(size = 12),                 
+        axis.title.x = element_text(vjust = 0),                  
+        axis.line = element_line(color = "black", size = 0.3),     
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey", size = 0.1),
+          plot.caption = element_text(hjust = 0))  +
+  scale_fill_discrete(name = "Important Issue", labels = c("COVID-19", "Inflation", "Economy", "Taxes",
+                                                           "Crime", "Education", "Health Care", "Immigration", "Russia/Ukraine")) +
+  labs(caption = "This graph shows the respondent's current most important issues and their political party. Inflation was more commonly cited as the most important \nissue for Republicans than Democrats, while the situation in Russia and Ukraine was more commonly cited by Democrats \nthan Republicans. These two issues were also most common among Independents, but there were less respondents than \nDemocrats or Republicans.")
+plot
+
+ggsave(filename = "issue.png", 
+       plot = plot,
+       width = 12, 
+       height = 7)
+```
+
+
+### Final Project
+
+__Lean of Independents Signifies their Approval of Biden__
+
+A new survey of Pennsylvanians has found that support for the way that Joe Biden is handling his job as President differs most for Independents, rather than Democrats or Republicans.
+
+```{r, echo=FALSE, results=FALSE}
+#loading in some libraries
+require(rio)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+require(weights)
+
+#loading in the data
+survey <- rio::import("pa-survey-data.SAV")
+```
+
+Looking first at Biden approval by party
+```{r, echo=FALSE, results=FALSE}
+#subsetting biden approval and party
+biden.party <- survey %>%
+          group_by(Q24) %>%
+          summarise(perc.strong.approve = weighted.mean(Q15 == "1", weight = WT, na.rm = T),
+                    perc.some.approve = weighted.mean(Q15 == "2", weight = WT, na.rm = T),
+                    perc.approve = (perc.strong.approve+perc.some.approve)*100,
+                    perc.strong.disapprove = weighted.mean(Q15 == "3", weight = WT, na.rm = T),
+                    perc.some.disapprove = weighted.mean(Q15 == "4", weight = WT, na.rm = T),
+                    perc.disapprove = (perc.strong.disapprove+perc.some.disapprove)*100)
+
+#cleaning up the data frame a little so that it is easier to graph
+party <- c("Republican", "Republican", "Democrat", "Democrat", "Independent", "Independent")
+
+approval <- c(10.12146, -89.87854, 81.91882, -18.08118, 35.57895, -64.42105)
+
+color <- c(1, 2, 3, 4, 5, 6)
+
+biden.party.full <- data.frame(party, approval, color)
+
+#fixing the levels of the party variable
+biden.party.full$party <- factor(party, levels = c("Republican", "Democrat", "Independent"))
+
+biden.party.full$party <- factor(biden.party.full$party, levels = rev(levels(biden.party.full$party)))
+```
+
+
+```{r, echo=FALSE}
+ggplot(data = biden.party.full,
+       aes(x = party, y = approval, fill=as.factor(color)))+
+  geom_bar(stat = "identity", width = .8)+
+  coord_flip()+
+  geom_hline(yintercept = 0)+
+  scale_y_continuous(labels = abs, limits = c(-100,100), 
+                     name = "Disapprove                                                                          Approve")+
+    scale_x_discrete(labels=c("1" = " ", 
+                            "2" = " ", 
+                            "3" = " "),
+                   name= NULL)+ 
+  scale_fill_manual(values=c("#FF0000","#FFD7D7", "#0000FF", "#CCE5FF", "#808080", "#C0C0C0")) +
+  ggtitle("Percent of Support for the way Joe Biden is Handling his Job as President by Political Party") +
+  annotate("text", x = 1, y = 10, size = 12, label = "36%", color = "#C0C0C0") +
+  annotate("text", x = 1, y = -10, size = 12, label = "64%", color = "#606060") +
+  annotate("text", x = 2, y = 10, size = 12, label = "82%", color = "#CCE5FF") +
+  annotate("text", x = 2, y = -9, size = 12, label = "18%", color = "#0000FF") +
+  annotate("text", x = 3, y = 17, size = 12, label = "10%", color = "#FF0000") +
+  annotate("text", x = 3, y = -10, size = 12, label = "90%", color = "#FF0000") +
+   theme(plot.title = element_text(size = 23),
+         axis.text.x = element_text(size = 20),
+         axis.text.y = element_text(size = 20),
+         axis.title = element_text(size = 20)) +
+  theme(legend.position = "none") 
+```
+
+Overall, there is low support for the way that Joe Biden is handling his job as President across Republicans and Independents in Pennsylvania, whereas Democrats in Pennsylvania still approve of Biden at high rates. Unsurprisingly, 90% of Republicans disapprove of Biden, while 82% of Democrats approve of him. This aligns with what would be expected of people who support the President strongly based on their party, rather than other factors. 
+
+More interestingly, 64% of Independents disapprove of how Biden is handling his job, while 36% approve. While this is not an even, fifty-fifty split, the 64% disapproval rating is a weak majority leaning more towards the right, and is certainty not as drastic as Republican’s 90% disapproval rating. One reason for this weak disapproval rating may be that only 28% of the Independents in the survey lean Republican (which is greater than the 22% that lean Democrat). This small percentage (as well as the 50% that lean neither Republican nor Democrat) may account for the slight lean to the right in the survey responses. This article will take a deeper look into the differences in demographics of Independents, and whether or not these demographics help to highlight a trend for either approval or disapproval for how Biden is handling his job as President. 
+
+__Region of Pennsylvania__
+
+Looking first at the region of Pennsylvania that the survey respondent is from, there is an overall trend towards higher disapproval than approval for Biden across all six regions for Independents (Greater Philadelphia, Greater Pittsburgh, North Central, Northeast, Northwest, and South Central).
+
+```{r, echo=FALSE, results=FALSE}
+#load in the data
+zips <- read.csv("zip-codes.csv")
+county <- readRDS("PA-county-shapefile.RDS")
+
+#subsetting independents
+independents <- subset(survey, subset = Q24 == 3)
+
+#calculating the weighted means for the zip code and biden variables
+zip.means <- independents %>%
+          group_by(Q34) %>%
+          summarise(perc.strong.approve = weighted.mean(Q15 == "1", weight = WT, na.rm = T),
+                    perc.some.approve = weighted.mean(Q15 == "2", weight = WT, na.rm = T),
+                    perc.approve = (perc.strong.approve+perc.some.approve),
+                    perc.strong.disapprove = weighted.mean(Q15 == "3", weight = WT, na.rm = T),
+                    perc.some.disapprove = weighted.mean(Q15 == "4", weight = WT, na.rm = T),
+                    perc.disapprove = (perc.strong.disapprove+perc.some.disapprove))
+
+#making the variable type match
+zips$zipcode <- as.character(zips$zipcode)
+zip.means$Q34 <- as.character(zip.means$Q34)
+
+#using a left_join to merge them
+all <- left_join(zip.means, zips, by = c("Q34" = "zipcode"))
+
+#making the variable type match
+all$county_fips <- as.character(all$county_fips)
+county$county_fips <- as.character(county$county_fips)
+
+#removing the geometry column
+county <- county[ -c(4) ]
+
+#merging with county data to get long and lat info
+with.county <- left_join(all, county, by = c("county_fips" = "county_fips"))
+
+#aggregate from zips to county
+zips.to.county <- with.county %>%
+                    group_by(county_fips, region.x) %>%
+                        summarise(perc.approve.county = mean(perc.approve),
+                                  perc.disapprove.county = mean(perc.disapprove))
+
+#aggregate from county to region
+county.to.region <- zips.to.county %>% 
+                      group_by(region.x) %>%
+                        summarise(perc.approve.region = mean(perc.approve.county),
+                                  perc.disapprove.region = mean(perc.disapprove.county))
+
+#cleaning up the data frame a little so that it is easier to graph
+region <- c("Greater Philadelphia", "Greater Philadelphia", "Greater Pittsburgh", "Greater Pittsburgh", "North Central", "North Central", "Northeast", "Northeast", "Northwest", "Northwest", "South Central", "South Central")
+
+approval <- c(37.60090, -62.39910, 40.90050, -59.09950, 21.23016, -78.76984, 34.59077, -65.40923, 36.25000, -63.75000, 16.23623, -83.76377)
+
+color <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+
+region.full <- data.frame(region, approval, color)
+```
+
+```{r, echo=FALSE}
+ggplot(data = region.full,
+       aes(x = region, y = approval, fill=as.factor(color)))+
+  geom_bar(stat = "identity", width = .8)+
+  coord_flip()+
+  geom_hline(yintercept = 0)+
+  scale_y_continuous(labels = abs, limits = c(-100,100), 
+                     name = "Disapprove                                                                          Approve")+
+    scale_x_discrete(labels=c("1" = " ", 
+                            "2" = " ", 
+                            "3" = " "),
+                   name= NULL)+ 
+  scale_fill_manual(values=c("#FF3399","#FF99CC", "#FF9933", "#FFCC99", "#F6DA21", "#FFE957", "#00CC66", "#CCFFCC", "#0000FF", "#1FDBFF", "#B266FF", "#E5CCFF")) +
+  ggtitle("Percent of Support from Independents for the way Joe Biden is Handling his Job as President by Region of Pennsylvania") +
+  annotate("text", x = 1, y = 8, size = 10, label = "38%", color = "white") +
+  annotate("text", x = 1, y = -10, size = 10, label = "62%", color = "black") +
+  annotate("text", x = 2, y = 8, size = 10, label = "41%", color = "white") +
+  annotate("text", x = 2, y = -10, size = 10, label = "59%", color = "black") +
+  annotate("text", x = 3, y = 8, size = 10, label = "21%", color = "white") +
+  annotate("text", x = 3, y = -10, size = 10, label = "79%", color = "black") +
+  annotate("text", x = 4, y = 8, size = 10, label = "35%", color = "white") +
+  annotate("text", x = 4, y = -10, size = 10, label = "65%", color = "black") +
+  annotate("text", x = 5, y = 8, size = 10, label = "36%", color = "white") +
+  annotate("text", x = 5, y = -10, size = 10, label = "64%", color = "black") +
+  annotate("text", x = 6, y = 8, size = 10, label = "16%", color = "white") +
+  annotate("text", x = 6, y = -10, size = 10, label = "84%", color = "black") +
+   theme(plot.title = element_text(size = 23),
+         axis.text.x = element_text(size = 20),
+         axis.text.y = element_text(size = 20),
+         axis.title = element_text(size = 20)) +
+  theme(legend.position = "none") 
+```
+
+The greatest percentages of approval from Independents for Biden came from the Greater Pittsburgh region (at 41% approval), followed by the Greater Philadelphia region (at 38% approval). The next two highest levels of approval came from the Northwest and Northeast regions, at 36% and 35%, respectfully. Finally, the lowest amount of support came from the North Central region (at 21%), and then the South Central region (at 16%). Historically, areas like Philadelphia and Pittsburgh are more Democratic than the Central regions of the state. In the same vein, larger cities are more likely to be Democratic than rural areas, which may explain why the Greater Philadelphia and Pittsburgh regions have the greatest approval ratings among Independents while the North and South Central regions have the lowest. 
+
+Additionally, Biden’s approval rating depends on which party the Independents lean to. In Pittsburgh, for example, only 11% of the Independents lean Democrat. However, 63% lean neither Democratic nor Republican. This data points towards a large percentage of the people who lean to neither party approving of how Biden is handling his job, which would explain why this region has the highest approval rating. Similarly, 34% of Independents in the South Central region lean Republican, while only 12% lean Democrat. This relatively large number of Independents who lean Republican is likely bringing the approval rating for Biden down, indicating the only 16% approval rating from this region. 
+
+__Most Important Policy Issue__
+
+Another demographic that yielded a trend from Independents for the support of the way that Biden was handling his job as President is the most import policy issue picked by the survey respondents.
+
+```{r, echo=FALSE, results=FALSE}
+#calculating the weighted means for the issue and biden variables
+biden.issue <- independents %>%
+          group_by(Q7) %>%
+          summarise(perc.strong.approve = weighted.mean(Q15 == "1", weight = WT, na.rm = T),
+                    perc.some.approve = weighted.mean(Q15 == "2", weight = WT, na.rm = T),
+                    perc.approve = (perc.strong.approve+perc.some.approve),
+                    perc.strong.disapprove = weighted.mean(Q15 == "3", weight = WT, na.rm = T),
+                    perc.some.disapprove = weighted.mean(Q15 == "4", weight = WT, na.rm = T),
+                    perc.disapprove = (perc.strong.disapprove+perc.some.disapprove))
+
+#removing some columns so it is easier to work with
+biden.issue <- biden.issue[ -c(2,3,5,6) ]
+
+#cleaning up the data frame a little so that it is easier to graph
+issue <- c("COVID-19", "COVID-19", "Inflation", "Inflation", "Economy", "Economy", "Taxes", "Taxes", "Crime", "Crime", "Education", "Education", "Health Care", "Health Care", "Immigartion", "Immigartion", "Russia / Ukraine", "Russia / Ukraine")
+
+approval <- c(54.54545, -45.45455, 27.50000, -72.50000, 22.22222, -77.77778, 16.00000, -84.00000, 37.14286, -62.85714, 35.71429, -64.28571, 53.22581, -46.77419, 15.78947, -84.21053, 51.38889, -48.61111)
+
+color <- c(1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12, 13, 14, 15, 16, 17, 18)
+
+issue.full <- data.frame(issue, approval, color)
+
+#fixing the levels of the variable
+issue.full$issue <- factor(issue, levels = c("COVID-19", "Inflation", "Economy", "Taxes", "Crime", "Education", "Health Care", "Immigartion", "Russia / Ukraine"))
+
+issue.full$issue <- factor(issue.full$issue, levels = rev(levels(issue.full$issue)))
+```
+
+```{r, echo=FALSE, results=FALSE}
+ggplot(data = issue.full,
+       aes(x = issue, y = approval, fill=as.factor(color)))+
+  geom_bar(stat = "identity", width = .8)+
+  coord_flip()+
+  geom_hline(yintercept = 0)+
+  scale_y_continuous(labels = abs, limits = c(-100,100), 
+                     name = "Disapprove                                                                          Approve")+
+    scale_x_discrete(labels=c("1" = " ", 
+                            "2" = " ", 
+                            "3" = " "),
+                   name= NULL)+ 
+  scale_fill_manual(values=c("#FF0000", "#FFD7D7", "#FF9933", "#FFCC99", "#F6DA21", "#FDFFA1", "#00CC66", "#CCFFCC", "#6CE8E0", "#B6FFFB", "#0000FF", "#1FDBFF", "#B266FF", "#E5CCFF", "#FF66FF", "#FFCCFF", "#FF3399","#FF99CC")) +
+  ggtitle("Percent of Support by Independents for the way Joe Biden is Handling his Job as President by Most Important Policy Issue") +
+  annotate("text", x = 1, y = 8, size = 10, label = "51%", color = "white") +
+  annotate("text", x = 1, y = -8, size = 10, label = "49%", color = "black") +
+  annotate("text", x = 2, y = 8, size = 10, label = "16%", color = "white") +
+  annotate("text", x = 2, y = -8, size = 10, label = "84%", color = "black") +
+  annotate("text", x = 3, y = 8, size = 10, label = "53%", color = "white") +
+  annotate("text", x = 3, y = -8, size = 10, label = "47%", color = "black") +
+  annotate("text", x = 4, y = 8, size = 10, label = "36%", color = "white") +
+  annotate("text", x = 4, y = -8, size = 10, label = "64%", color = "black") +
+  annotate("text", x = 5, y = 8, size = 10, label = "37%", color = "white") +
+  annotate("text", x = 5, y = -8, size = 10, label = "63%", color = "black") +
+  annotate("text", x = 6, y = 8, size = 10, label = "16%", color = "white") +
+  annotate("text", x = 6, y = -8, size = 10, label = "84%", color = "black") +
+  annotate("text", x = 7, y = 8, size = 10, label = "22%", color = "white") +
+  annotate("text", x = 7, y = -8, size = 10, label = "78%", color = "black") +
+  annotate("text", x = 8, y = 8, size = 10, label = "28%", color = "white") +
+  annotate("text", x = 8, y = -8, size = 10, label = "72%", color = "black") +
+  annotate("text", x = 9, y = 8, size = 10, label = "55%", color = "white") +
+  annotate("text", x = 9, y = -8, size = 10, label = "45%", color = "black") +
+   theme(plot.title = element_text(size = 23),
+         axis.text.x = element_text(size = 20),
+         axis.text.y = element_text(size = 20),
+         axis.title = element_text(size = 20)) +
+  theme(legend.position = "none") 
+```
+
+Independents who picked COVID-19 as their current most important issue had the greatest approval for the way Biden is handling his job, at 55%. Closely afterwards, Independents who picked health care had the next highest approval (at 53%), followed by Independents who picked the situation in Russia and the Ukraine (at 51%). Interestingly, 24% of Independents who picked COVID-19 lean Democrat compared to 9% that lean Republican, 32% of Independents who picked health care lean Democrat compared to 10% that lean Republican, and 38% of Independents who picked the situation in Russia and the Ukraine lean Democrat compared to 17% that lean Republican. Because these three issues (COVID-19, health care, and the situation in Russia and the Ukraine) are important policy issues for Democrats, it makes sense that a relatively high number of Independents who lean Democrat picked these issues as well. 
+
+On the other hand, Independents who picked immigration or taxes as their current most important issue had the greatest disapproval for Biden, both at 84%. Closely afterwards, Independents who picked the economy had the next greatest disapproval for Biden (at 78%), followed by Independents who picked inflation (at 72%). Additionally, 28% of Independents who picked taxes as their most important issue lean Republican compared to the 8% that lean Democrat, 58% of Independents who picked immigration lean Republican compared to the 16% that lean Democrat, 37% of Independents who picked inflation lean Republican compared to the 19% that lean Democrat, and finally 37% of Independents who picked the economy lean Republican compared to the 10% that lean Democrat. This follows a similar trend to the Independents who picked COVID-19, health care, and the situation in Russia and the Ukraine as their most important issues and leaned Democrat –– those Independents who picked issues that Republicans prioritize were also more likely to lean Republican.
+
+ Overall, a survey respondent’s political party showed the greatest trend of whether or not they approved of the way Biden is handling his job as President. Survey respondents who identified as Republican highly disapproved of Biden, while those who identified as Democrat highly approved of Biden. None of this data is surprising – it is the Independents who leaned to a certain side based off of the region in Pennsylvania where they live in and their most important policy issue that drew the most fascinating data points. Based off of this data, Independent’s carry a great deal of weight on Biden’s approval rating.
+
+__Methodology__
+
+This survey was conducted from March 25 through April 3, 2022, by the Penn Program on Opinion Research and Election Studies (PORES) team. It was fielded in Pennsylvania, so all respondents are adult Pennsylvanians. The sample size is 1511 people, made up of 1011 respondents who replied online and 500 respondents who were polled after the phone. Responses were weighted to gender, age, and race and education, and all of the calculations in the article are weighted so that they could better represent the population.
+
+
+
 
 
 

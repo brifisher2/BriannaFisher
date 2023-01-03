@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # __Here is my resume:__
 
 
-![](images/resume.jpg)
+![](images/resume2.jpg)
 </a>
 
 
