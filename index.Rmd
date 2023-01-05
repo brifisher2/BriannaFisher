@@ -21,7 +21,7 @@ output: html_document
 
 I’m a positive, passionate, perfectionist college student trying to make the world a better place. Coffee & Criminal Justice reform enthusiast.
 
-This website is an introduction to me and my interests, including a compilation of projects that I have completed in R Studio which demonstrate both my coding and analytic skills. 
+This website is an introduction to me and my interests, including a compilation of projects that I have completed in R Studio which demonstrate both my coding and analytic skills (including data cleaning, data visualization, SQL, webscrapping, special features objects, shiny apps, and mapping.) 
 
 
 You can reach me at brifish@sas.upenn.edu or 954-439-1414!

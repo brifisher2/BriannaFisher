@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Here is some of my work in R Studio!</title>
+
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Brianna Fisher</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="About.html">About</a>
+</li>
+<li>
+  <a href="CV.html">CV / Published Work</a>
+</li>
+<li>
+  <a href="portfolio2.html">Portfolio</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Here is some of my work in R Studio!</h1>
+
+</div>
+
+
+<div id="portfolio" class="section level1 tabset">
+<h1>Portfolio</h1>
+<div id="introduction-to-data-science" class="section level2">
+<h2>Introduction to Data Science</h2>
+<h2>
+Introduction to Data Science
+</h2>
+<div id="problem-set-1" class="section level3">
+<h3>Problem Set 1</h3>
+<p><strong>Question 1a</strong></p>
+<pre class="r"><code>state &lt;- c(1, 2, 3, 4, 5)
+pop &lt;- c(12.80, 19.45, 3.56, 0.97, 8.88)
+cases &lt;- c(139623, 439238, 52095, 17857, 196337)</code></pre>
+<p>The first vector, state, is created using the concatenate function to combine the five states within the data set (state 1, 2, 3, 4, and 5). The second vector, pop, is created using the concatenate function to combine the populations for those five states (12.80, 19.45, 3.56, 0.97, 8.88). The third vector, cases, is created using the concatenate function to combine the numbers of cases for the five states within the data set (139623, 439238, 52095, 17857, 196337). Now, these three vectors store all of the data on COVID-19 for five northeastern states as provided within the data table.</p>
+<p><strong>Question 1b</strong></p>
+<pre class="r"><code>ne.covid &lt;- cbind(state, pop, cases)
+ne.covid</code></pre>
+<pre><code>##      state   pop  cases
+## [1,]     1 12.80 139623
+## [2,]     2 19.45 439238
+## [3,]     3  3.56  52095
+## [4,]     4  0.97  17857
+## [5,]     5  8.88 196337</code></pre>
+<p>The object ne.covid was created by combining the three columns (state, population, cases) from the data set into a matrix. The function cbind was implemented and assigned to ne.covid. Once created, running ne.covid displays the same data table but in R.</p>
+<p><strong>Question 1c</strong></p>
+<pre class="r"><code>mean(ne.covid[,2])</code></pre>
+<pre><code>## [1] 9.132</code></pre>
+<pre class="r"><code>median(ne.covid[,2])</code></pre>
+<pre><code>## [1] 8.88</code></pre>
+<pre class="r"><code>max(ne.covid[,2])</code></pre>
+<pre><code>## [1] 19.45</code></pre>
+<pre class="r"><code>min(ne.covid[,2])</code></pre>
+<pre><code>## [1] 0.97</code></pre>
+<p>The mean of the second column of ne.covid is 9.132, the median is 8.88, the maximum is 19.45, and the minimum is 0.97.</p>
+<p><strong>Question 1d</strong></p>
+<pre class="r"><code>mean(ne.covid[,3])</code></pre>
+<pre><code>## [1] 169030</code></pre>
+<pre class="r"><code>median(ne.covid[,3])</code></pre>
+<pre><code>## [1] 139623</code></pre>
+<pre class="r"><code>max(ne.covid[,3])</code></pre>
+<pre><code>## [1] 439238</code></pre>
+<pre class="r"><code>min(ne.covid[,3])</code></pre>
+<pre><code>## [1] 17857</code></pre>
+<p>The mean of the third column of ne.covid is 169030, the median is 139623, the maximum is 439238, and the minimum is 17857.</p>
+<p><strong>Question 1e</strong></p>
+<pre class="r"><code>#creating a vector for state population in thousands
+pop.in.1000s &lt;- pop*1000
+
+#creating a vector for covid-19 cases per 1000 residenrs
+cases.per.1000 &lt;- cases /pop.in.1000s</code></pre>
+<p>The vector cases.per.1000 is created by assigning the result of the cases divided by 1000 to the vector. This vector represents the number of COVID-19 cases in each state per 1000 residents.</p>
+<p><strong>Question 1f</strong></p>
+<pre class="r"><code>state_chr &lt;- c(&quot;PA&quot;, &quot;NY&quot;, &quot;CT&quot;, &quot;DE&quot;, &quot;NJ&quot;)
+
+plot(y=cases.per.1000, x=pop, xlab = &quot;Population in Millions&quot;, ylab = &quot;Cases per 1000 Residents&quot;, main = &quot;COVID-19 in the Northeast&quot;, type = &quot;n&quot;)</code></pre>
+<p><img src="portfolio2_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>plot(y=cases.per.1000, x=pop, xlab = &quot;Population in Millions&quot;, ylab = &quot;Cases per 1000 Residents&quot;, main = &quot;COVID-19 in the Northeast&quot;, text(x = pop, y = cases.per.1000, labels = state_chr))</code></pre>
+<p><img src="portfolio2_files/figure-html/unnamed-chunk-6-2.png" width="672" /> The scatterplot “COVID-19 in the Northeast” was created by using the plot function. Within the plot, y is designated as cases.per.1000, x is designated as population in millisons, the x-axis is labeled population with the xlab function, and the y-axis is labeled Cases per 1000 Residents with the ylab function. The title is created with the main function, and is labeled COVID-19 in the Northeast. The states are assigned to their corresponding dot on the scatterplot with the text function.</p>
+<p><strong>Question 1g</strong></p>
+<pre class="r"><code>#adding cases.per.1000 and state_chr as columns to the ne.covid matrix
+ne.covid &lt;- cbind(ne.covid, cases.per.1000, state_chr)
+
+#subsetting to identify the state most affected by COVID 19
+ne.covid[ne.covid[, &quot;cases.per.1000&quot;] == max(cases.per.1000), c(&quot;state_chr&quot;, &quot;cases.per.1000&quot;)]</code></pre>
+<pre><code>##          state_chr     cases.per.1000 
+##               &quot;NY&quot; &quot;22.5829305912596&quot;</code></pre>
+<pre class="r"><code>#subsetting to identify the state least affected by COVID 19
+ne.covid[ne.covid[, &quot;cases.per.1000&quot;] == min(cases.per.1000), c(&quot;state_chr&quot;, &quot;cases.per.1000&quot;)]</code></pre>
+<pre><code>##      state_chr cases.per.1000 
+##           &quot;PA&quot; &quot;10.908046875&quot;</code></pre>
+<p>New York has been the most affected by COVID-19, with around 22.58 cases per 1000 residents. Pennsylvania has been the least affceted by COVID-19, with about 10.91 cases per 1000 residents.</p>
+<p><strong>Question 1h</strong> If I could get one more piece of information about COVID-19 to describe how affected each of these states are, it would be the death rates. The death rates would signify the level of impact COVID-19 had on the states, as some people within the cases category may be asymptomatic or have mild symptoms and are okay now.</p>
+<p><strong>Question 2a</strong></p>
+<pre class="r"><code>load(&quot;/Users/briannafisher/Dropbox/Github/BriannaFisher/data/2019MLBTeamsData.Rdata&quot;)
+bb$avgattpergame &lt;- as.numeric(bb$home.attendance/bb$games.played)
+median(bb$avgattpergame)</code></pre>
+<pre><code>## [1] 14055.35</code></pre>
+<pre class="r"><code>max(bb$avgattpergame)</code></pre>
+<pre><code>## [1] 24532.77</code></pre>
+<pre class="r"><code>min(bb$avgattpergame)</code></pre>
+<pre><code>## [1] 5008.037</code></pre>
+<p>Because there are an even number of teams, no singular team had the median average attendance of 14055.35 but the two in the middle were the Washington Nationals (with a median average attendance of 13949.27) and the Minnesota Twins (with a median average attendance of 14161.43). The team with the maximum average attendance per game was the Los Angeles Dodgers, with a maximum of 24532.77. The team with the minimum average attendance per game was the Miami Marlins, with a minimum of 5008.037.</p>
+<p><strong>Question 2b</strong></p>
+<pre class="r"><code>bb$teambattavg &lt;- as.numeric(bb$hits/bb$at.bats)
+median(bb$teambattavg)</code></pre>
+<pre><code>## [1] 0.2492307</code></pre>
+<pre class="r"><code>max(bb$teambattavg)</code></pre>
+<pre><code>## [1] 0.2740068</code></pre>
+<pre class="r"><code>min(bb$teambattavg)</code></pre>
+<pre><code>## [1] 0.2364828</code></pre>
+<p>Because there are an even number of teams, no singular team had the median team batting average of 0.2492307 but the two in the middle were the Oakland Athletics (with a median team batting average of 0.2488761) and the Cleveland Indians (with a median team batting average of 0.2495853). The team with the maximum batting average is the Houston Astros with a maximum of 0.2740068. The team with the minimum batting average is the Toronto Blue Jays with a minimum of 0.2364828.</p>
+<p><strong>Question 2c</strong></p>
+<pre class="r"><code>plot(y=bb$avgattpergame, x=bb$teambattavg, xlab = &quot;Team Batting Average&quot;, 
+     ylab = &quot;Average Attendance Per Game&quot;, main = &quot;MLB 2019 Data&quot;)</code></pre>
+<p><img src="portfolio2_files/figure-html/unnamed-chunk-10-1.png" width="672" /> The graph looks very spread out, with the dots in seemingly randomly places. It is fairly nonlinear with no clear direction or association. The graph tells you that there is no relationship between team skill and attendance.</p>
+<p><strong>Question 2d</strong></p>
+<pre class="r"><code>bb$runs.pitch &lt;- as.numeric(bb$opponent.runs/bb$outs.pitched)
+plot(y=bb$avgattpergame, x=bb$runs.pitch, xlab = &quot;Opponent Runs per Outs Pitched&quot;, 
+     ylab = &quot;Average Attendance Per Game&quot;, main = &quot;MLB 2019 Data 2&quot;)</code></pre>
+<p><img src="portfolio2_files/figure-html/unnamed-chunk-11-1.png" width="672" /> The graph looks like the lower the opponent runs per outs pitched, the higher the average attendance per game. The same is for the opposite, the lower the average attendance per game, the higher the opponent runs per outs pitched. There are some outliers, though, that do not fit the pattern. This tells you that while there is not a linear relationship between team skill and attendance, there is an association between the two.</p>
+<p><strong>Question 2e</strong></p>
+<pre class="r"><code>bb$teamwinper &lt;- as.numeric(bb$wins/bb$games.played)
+plot(y=bb$teamwinper, x=bb$teambattavg, xlab = &quot;Team Batting Average&quot;, 
+     ylab = &quot;Team Winning Percentage&quot;, main = &quot;MLB 2019 Data 3&quot;)</code></pre>
+<p><img src="portfolio2_files/figure-html/unnamed-chunk-12-1.png" width="672" /> The graph looks more linear than the other two, with team winning percentage increasing as team batting average increases. This tells you that there is a positive relationship between team batting average and team winning percentage.</p>
+<p><strong>Question 2 Bonus</strong></p>
+<pre class="r"><code>prediction &lt;- lm(formula = teamwinper ~ teambattavg, data = bb)
+plot(bb$teamwinper ~ bb$teambattavg, xlab = &quot;Team Batting Average&quot;, 
+     ylab = &quot;Team Winning Percentage&quot;, main = &quot;MLB 2019 Data 3&quot;)
+abline(prediction)</code></pre>
+<p><img src="portfolio2_files/figure-html/unnamed-chunk-13-1.png" width="672" /> To make a better prediction of a team’s winning percentage, the least squares regression line can be calculated and plotted in order to show where the predicted values would lie. This line is used to predict the value of y, or team winning percentage, for any value of x, or team batting average.</p>
+<p><strong>Question 3a</strong></p>
+<pre class="r"><code>recentgrads &lt;- read.csv(&quot;/Users/briannafisher/Dropbox/Github/BriannaFisher/data/recentgrads.csv&quot;, header = TRUE, na=&quot;NA&quot;)
+ncol(recentgrads)</code></pre>
+<pre><code>## [1] 15</code></pre>
+<pre class="r"><code>nrow(recentgrads)</code></pre>
+<pre><code>## [1] 173</code></pre>
+<p>There are 15 columns and 173 rows in the “recentgrads” data set. The unit of analysis of the data is major, as the data focuses on the jobs college graduates received depending on their major.</p>
+<p><strong>Question 3b</strong></p>
+<pre class="r"><code>table(recentgrads$Major_category)</code></pre>
+<pre><code>## 
+##     Agriculture &amp; Natural Resources                                Arts 
+##                                  10                                   8 
+##              Biology &amp; Life Science                            Business 
+##                                  14                                  13 
+##         Communications &amp; Journalism             Computers &amp; Mathematics 
+##                                   4                                  11 
+##                           Education                         Engineering 
+##                                  16                                  29 
+##                              Health           Humanities &amp; Liberal Arts 
+##                                  12                                  15 
+## Industrial Arts &amp; Consumer Services                   Interdisciplinary 
+##                                   7                                   1 
+##                 Law &amp; Public Policy                   Physical Sciences 
+##                                   5                                  10 
+##            Psychology &amp; Social Work                      Social Science 
+##                                   9                                   9</code></pre>
+<p>There are 16 different major categories that the data are divided into. The engineering category has the most majors, with 29 different majors.</p>
+<p><strong>Question 3c</strong></p>
+<pre class="r"><code>sum(recentgrads$Women, na.rm = T)</code></pre>
+<pre><code>## [1] 3895228</code></pre>
+<pre class="r"><code>percentwomen &lt;- sum(recentgrads$Women, na.rm = T)/sum(recentgrads$Total, na.rm = T)
+percentwomen * 100</code></pre>
+<pre><code>## [1] 57.52255</code></pre>
+<p>There are 3,895,228 women included in the dataset. 57.52% of the people in the dataset are women.</p>
+<p><strong>Question 3d</strong></p>
+<pre class="r"><code>recentgrads$womengrads &lt;- as.numeric(recentgrads$Women/recentgrads$Total)
+order(recentgrads$womengrads, na.last = T)</code></pre>
+<pre><code>##   [1]  74  67  27   2   4   9   1 107 112  12   6   3  51  53  82  15  29  10
+##  [19]  11  66  21  26  76  20  46  39  32  18  43  54  25  44  72  23  85 113
+##  [37]  14  16 111  64  34  28  24 144  36   5  31  17  19  37 106 108  73  80
+##  [55] 159  33 136  65 142  63  70  38  48  58  13   7 148  42 115  59  86  77
+##  [73]  95  90  79 103 140  75 147 118  83  68  41  47  84 126   8  69 123  30
+##  [91]  98  55 122 133  81  93 161  60  91  62 134 124 143  78 102 168  61  57
+## [109] 169 109 131  71 128 121 117 167 150  94  88  97 145 137 141  50 166  96
+## [127] 158 138  92 163  49 125 100 160 127 120 162 116 130 154  87  40 153  45
+## [145]  99 132 105 110 135 146 119 172 156 171 155 114 170 149  56 104 129 173
+## [163]  89  35 152 157 101 151 139  52 164 165  22</code></pre>
+<pre class="r"><code>recentgrads[74,]</code></pre>
+<pre><code>##    Major_code                 Major Total Men Women
+## 74       3801 MILITARY TECHNOLOGIES   124 124     0
+##                         Major_category Employed Full_time Part_time
+## 74 Industrial Arts &amp; Consumer Services        0       111         0
+##    Full_time_year_round Unemployed Unemployment_rate Median P25th P75th
+## 74                  111          0                 0  40000 40000 40000
+##    womengrads
+## 74          0</code></pre>
+<pre class="r"><code>order(recentgrads$womengrads, na.last = F)</code></pre>
+<pre><code>##   [1]  22  74  67  27   2   4   9   1 107 112  12   6   3  51  53  82  15  29
+##  [19]  10  11  66  21  26  76  20  46  39  32  18  43  54  25  44  72  23  85
+##  [37] 113  14  16 111  64  34  28  24 144  36   5  31  17  19  37 106 108  73
+##  [55]  80 159  33 136  65 142  63  70  38  48  58  13   7 148  42 115  59  86
+##  [73]  77  95  90  79 103 140  75 147 118  83  68  41  47  84 126   8  69 123
+##  [91]  30  98  55 122 133  81  93 161  60  91  62 134 124 143  78 102 168  61
+## [109]  57 169 109 131  71 128 121 117 167 150  94  88  97 145 137 141  50 166
+## [127]  96 158 138  92 163  49 125 100 160 127 120 162 116 130 154  87  40 153
+## [145]  45  99 132 105 110 135 146 119 172 156 171 155 114 170 149  56 104 129
+## [163] 173  89  35 152 157 101 151 139  52 164 165</code></pre>
+<pre class="r"><code>recentgrads[165,]</code></pre>
+<pre><code>##     Major_code                     Major Total  Men Women Major_category
+## 165       2307 EARLY CHILDHOOD EDUCATION 37589 1167 36422      Education
+##     Employed Full_time Part_time Full_time_year_round Unemployed
+## 165    32551     27569      7001                20748       1360
+##     Unemployment_rate Median P25th P75th womengrads
+## 165        0.04010498  28000 21000 35000  0.9689537</code></pre>
+<p>The major that had the highest percentage of women graduates is education, with a percentage of 96.90%. The major that had the lowest percentage of women graduates is military technologies, with a percentage if 0%.</p>
+<p><strong>Question 4</strong> Random sampling is such a vital component of survey research because it ensures that there is no bias within the sample. If people were chosen to take a survey, the surveyor could have picked specific people who they know will prove their hypothesis and therefore discredit the validity and accuracy of the survey. Random sampling also ensures that the results are representative of the entire population, which is why a sample of 1500 people is enough to learn about the whole US population. If the sample is completely random, then we can be confident that a sample of only 1500 people will include people who represent all different backgrounds and interests within the country.</p>
+</div>
+<div id="problem-set-2" class="section level3">
+<h3>Problem Set 2</h3>
+<p><strong>Question 1a</strong></p>
+<pre class="r"><code>load(&quot;/Users/briannafisher/Dropbox/Github/BriannaFisher/data/exitpoll2016.RData&quot;)
+require(tidyverse)
+exit.untouched &lt;- exit
+
+#The unit of observation is people, and the dataset had more than one row for every observation.
+#Because there are two rows for each observation, using the spread function will condense each repeated row into one. Since the favorable candidate and favorable rating variables are the ones repeated, they are used to create the new columns
+exit &lt;- spread(exit,
+                 key = favorable.cand,
+                 value = favorable.rating)
+head(exit)</code></pre>
+<pre><code>##       id PRSPA16 PHIL3 partyid married       sex.age.race educ.hs educ.somecoll
+## 1 138951       2     3       2       1   male 30-44 White       1             0
+## 2 138952       1     2       1       1     male 65+ White       0             0
+## 3 138953       2     3       1       2   male 45-65 White       1             0
+## 4 138954       1     1       1       1   female 65+ White       0             0
+## 5 138955       1     1       2       2 female 18-29 White       0             1
+## 6 138956       2     3       2       1     male 65+ White       1             0
+##   educ.bach educ.postgrad clinton trump
+## 1         0             0       2     1
+## 2         0             1       1     2
+## 3         0             0       2     1
+## 4         0             1       1     2
+## 5         0             0       1     2
+## 6         0             0       2     1</code></pre>
+<pre class="r"><code>#Using the recode function, the values of 1 and 2 can be replaced for favorable and unfavorable
+attributes(exit.untouched$favorable.rating)</code></pre>
+<pre><code>## $label
+## [1] &quot;Is your opinion of [favorable.cand]:&quot;
+## 
+## $labels
+##   favorable unfavorable        omit 
+##           1           2           9</code></pre>
+<pre class="r"><code>exit$clinton &lt;- recode(exit$clinton, &quot;1&quot; = &quot;Favorable&quot;, &quot;2&quot; = &quot;Unfavorable&quot;)
+exit$trump &lt;- recode(exit$trump, &quot;1&quot; = &quot;Favorable&quot;, &quot;2&quot; = &quot;Unfavorable&quot;)</code></pre>
+<p><strong>Question 1b</strong></p>
+<pre class="r"><code>#the gather function brings responses that are spread over multiple columns into one. The recode function
+#changes the data from numeric values (0/1) that don&#39;t make sense
+exit &lt;- gather(exit,
+                 key = &quot;educ&quot;, 
+                 value = &quot;val&quot;,
+               starts_with(&quot;educ.&quot;))
+
+exit$educ &lt;- recode(exit$educ, &quot;educ.hs&quot; = &quot;hs&quot;, &quot;educ.somecoll&quot; = &quot;some college&quot;, 
+                    &quot;educ.bach&quot; = &quot;bachelors&quot;, &quot;educ.postgrad&quot; = &quot;postgrad&quot;)
+
+#Since all unknown values are coded as 99 (using attributes checks this), I can recode those values to NA
+attributes(exit.untouched$educ.hs)</code></pre>
+<pre><code>## $label
+## [1] &quot;What was the last grade of school you completed? [high school or less]&quot;
+## 
+## $labels
+##     yes      no unknown 
+##       1       0      99</code></pre>
+<pre class="r"><code>attributes(exit.untouched$educ.somecoll)</code></pre>
+<pre><code>## $label
+## [1] &quot;What was the last grade of school you completed? [some college/assoc. degree]&quot;
+## 
+## $labels
+##     yes      no unknown 
+##       1       0      99</code></pre>
+<pre class="r"><code>attributes(exit.untouched$educ.bach)</code></pre>
+<pre><code>## $label
+## [1] &quot;What was the last grade of school you completed? [college graduate]&quot;
+## 
+## $labels
+##     yes      no unknown 
+##       1       0      99</code></pre>
+<pre class="r"><code>attributes(exit.untouched$educ.postgrad)</code></pre>
+<pre><code>## $label
+## [1] &quot;What was the last grade of school you completed? [postgraduate study]&quot;
+## 
+## $labels
+##     yes      no unknown 
+##       1       0      99</code></pre>
+<pre class="r"><code>exit[exit$educ == &quot;99&quot;] &lt;- NA
+
+exit$val &lt;- NULL
+
+#Could have also changed the names by reshaping the education data
+exit$educ[exit$educ == &quot;educ.hs&quot;] &lt;- &quot;hs&quot;
+exit$educ[exit$educ == &quot;educ.somecoll&quot;] &lt;- &quot;some college&quot;
+exit$educ[exit$educ == &quot;educ.bach&quot;] &lt;- &quot;bachelors&quot;
+exit$educ[exit$educ == &quot;educ.postgrad&quot;] &lt;- &quot;postgrad&quot;</code></pre>
+<p><strong>Question 1c</strong></p>
+<pre class="r"><code>#The separate function splits the sex.age.race column into three separate columns
+exit &lt;- separate(exit,
+         col = &quot;sex.age.race&quot;,
+         into = c(&quot;sex&quot;,&quot;age&quot;,&quot;race&quot;), sep = &quot; &quot;)
+
+#Converting the columns to factors and then replacing the missing/unknown values with NA cleans the data
+exit$age = as.factor(exit$age)
+summary(exit$age)</code></pre>
+<pre><code>##  -999 18-29 30-44 45-65   65+ 
+##    52  1948  2924  4600  2304</code></pre>
+<pre class="r"><code>exit$age[which(exit$age == &quot;-999&quot;)] = NA
+summary(exit$age)</code></pre>
+<pre><code>##  -999 18-29 30-44 45-65   65+  NA&#39;s 
+##     0  1948  2924  4600  2304    52</code></pre>
+<pre class="r"><code>exit$sex = as.factor(exit$sex)
+summary(exit$sex)</code></pre>
+<pre><code>##  female    male unknown 
+##    6484    5328      16</code></pre>
+<pre class="r"><code>exit$sex[which(exit$sex == &quot;unknown&quot;)] = NA
+summary(exit$sex)</code></pre>
+<pre><code>##  female    male unknown    NA&#39;s 
+##    6484    5328       0      16</code></pre>
+<pre class="r"><code>#The race values are already coded as NA for missing, but could have done this 
+exit$race = as.factor(exit$race)
+summary(exit$race)</code></pre>
+<pre><code>##           Asian           Black Hispanic/Latino              NA           Other 
+##             124            1268             768              92             180 
+##           White 
+##            9396</code></pre>
+<pre class="r"><code>exit$race[which(exit$race == &quot;NA&quot;)] = NA
+summary(exit$race)</code></pre>
+<pre><code>##           Asian           Black Hispanic/Latino              NA           Other 
+##             124            1268             768               0             180 
+##           White            NA&#39;s 
+##            9396              92</code></pre>
+<p><strong>Question 1d</strong></p>
+<pre class="r"><code>#the new varible third.party is created by recoding everything as NA and then recoding each value to the 
+#new value. Using NULL removes the variable from the data set
+attributes(exit.untouched$PRSPA16)</code></pre>
+<pre><code>## $label
+## [1] &quot;In today&#39;s election for president, did you just vote for:&quot;
+## 
+## $format.stata
+## [1] &quot;%8.0g&quot;
+## 
+## $labels
+##    Did not vote Hillary Clinton    Donald Trump    Gary Johnson      Jill Stein 
+##               0               1               2               3               4 
+##           Other 
+##               9</code></pre>
+<pre class="r"><code>exit$third.party &lt;- &quot;NA&quot;
+exit$third.party[exit$PRSPA16 == 1] &lt;- &quot;0&quot;
+exit$third.party[exit$PRSPA16 == 2] &lt;- &quot;0&quot;
+exit$third.party[exit$PRSPA16 == 3] &lt;- &quot;1&quot;
+exit$third.party[exit$PRSPA16 == 4] &lt;- &quot;1&quot;
+exit$third.party[exit$PRSPA16 == 9] &lt;- &quot;1&quot;
+
+exit$PRSPA16 &lt;- NULL</code></pre>
+<p><strong>Question 1e</strong></p>
+<pre class="r"><code>#the as.numeric function converts the married variable into a dummy variable, coding 1 for married and 
+#0 for not married
+attributes(exit.untouched$married) #tells us that 1 is yes and 2 is no</code></pre>
+<pre><code>## $label
+## [1] &quot;Are you currently married?&quot;
+## 
+## $format.stata
+## [1] &quot;%8.0g&quot;
+## 
+## $labels
+## Yes  No 
+##   1   2</code></pre>
+<pre class="r"><code>exit$married &lt;- as.numeric(exit$married==1)</code></pre>
+<p><strong>Question 1f</strong></p>
+<pre class="r"><code>#the factor function recodes the PHIL3 and partyid variables into meaningful labels 
+attributes(exit.untouched$PHIL3)</code></pre>
+<pre><code>## $label
+## [1] &quot;On most political matters, do you consider yourself:&quot;
+## 
+## $format.stata
+## [1] &quot;%8.0g&quot;
+## 
+## $labels
+##      Liberal     Moderate Conservative 
+##            1            2            3</code></pre>
+<pre class="r"><code>exit$PHIL3 &lt;- factor(exit$PHIL3, labels = c(&quot;Liberal&quot;, &quot;Moderate&quot;, &quot;Conservative&quot;))
+
+attributes(exit.untouched$partyid)</code></pre>
+<pre><code>## $label
+## [1] &quot;No matter how you voted today, do you usually think of yourself as a:&quot;
+## 
+## $format.stata
+## [1] &quot;%8.0g&quot;
+## 
+## $labels
+##       Democrat     Republican    Independent Something else 
+##              1              2              3              4</code></pre>
+<pre class="r"><code>exit$partyid &lt;- factor(exit$partyid, labels = c(&quot;Democrat&quot;, &quot;Republican&quot;, &quot;Independent&quot;,
+                                                &quot;Something Else&quot;))</code></pre>
+<p><strong>Question 1g</strong></p>
+<pre class="r"><code>#the rename function will change the name of a column to something more meaningful
+exit &lt;- rename(exit, ideology = PHIL3)</code></pre>
+<p><strong>Question 1h</strong></p>
+<pre class="r"><code>#I split the age variable into the different groups and then also made the partyid ordinal so that they can be compared. From there I made them into a table, and then did the frequencies of the results. Lastly, I added together all of the values in the table to make sure that they are equal to 1. 
+exit$Age.group &lt;- &quot;NA&quot;
+exit$Age.group[exit$age == &quot;18-29&quot;] &lt;- 1
+exit$Age.group[exit$age == &quot;30-44&quot;] &lt;- 2
+exit$Age.group[exit$age == &quot;45-65&quot;] &lt;- 3
+exit$Age.group[exit$age == &quot;65+&quot;] &lt;- 4
+
+exit$ID &lt;- &quot;NA&quot;
+exit$ID[exit$partyid == &quot;Republican&quot;] &lt;- 5
+exit$ID[exit$partyid == &quot;Democrat&quot;] &lt;- 6
+exit$ID[exit$partyid == &quot;Independent&quot;] &lt;- 7
+exit$ID[exit$partyid == &quot;Something Else&quot;] &lt;- 8
+
+mytable &lt;- table(exit$Age.group, exit$ID)
+prop.table(mytable)</code></pre>
+<pre><code>##     
+##                 5            6            7            8           NA
+##   1  0.0568143389 0.0696652012 0.0229962800 0.0064254312 0.0087926953
+##   2  0.0825160636 0.0980723706 0.0480216436 0.0121745012 0.0064254312
+##   3  0.1531958066 0.1531958066 0.0520798106 0.0125126818 0.0179235712
+##   4  0.0723706459 0.0798106189 0.0280689888 0.0030436253 0.0114981400
+##   NA 0.0006763612 0.0020290835 0.0013527224 0.0000000000 0.0003381806</code></pre>
+<pre class="r"><code>sum(prop.table(mytable))</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>Comparing the frequencies of the age group and ID variables, there is a 6.97% chance of people in the age group of 18-29 being democratic and a 5.68% chance of people being 18-29 and republican. The values are lower for independents and ‘something else,’ with a 0.64% chance of someone 18-29 being independent and a 0.88% chance of someone being 18-29 and something else. This is fairly expected, as young people are more likely to be democratic than any other party. Another interesting observation is that there is the same 15.32% chance of someone being 45-65 years old and either a republican or democrat. The 45-65-year-old age group also has the highest chance of being independent (5.21%) and something else (1.25%) than any other group. This may be explained by the fact that middle aged and older people are more likely to watch the news and therefore align with a particular political party, or because this age group has particularly high voter turnout and therefore need to be registered to a party to participate.</p>
+<p><strong>Question 2a</strong></p>
+<pre class="r"><code>library(rio)
+UNICEF_untouched &lt;- rio::import(&quot;/Users/briannafisher/Dropbox/Github/BriannaFisher/data/unicefdata.xlsx&quot;)
+
+UNICEF &lt;- UNICEF_untouched
+
+#Problems with the data:
+#1. Columns are named with numbers
+#2. Column names are in the actual columns
+#3. Have dashes and x&#39;s within the data</code></pre>
+<p><strong>Question 2b</strong></p>
+<pre class="r"><code>#The names function renames the columns with the names in the first row, and then the first two rows can be deleted. Using rownames will renumber the rows so that it does not start at 3.
+names(UNICEF) &lt;- lapply(UNICEF[1, ], as.character)
+UNICEF = UNICEF[-1,] 
+UNICEF = UNICEF[-1,] 
+row.names(UNICEF) &lt;- 1:nrow(UNICEF)</code></pre>
+<p><strong>Question 2c</strong></p>
+<pre class="r"><code>#rowmeans tells us the mean value of each row in the data set. The rows that have &quot;1&quot; as their mean 
+#are blank and should be removed. The -c function lets you drop rows or 
+#columns from the data set
+rowMeans(is.na(UNICEF))</code></pre>
+<pre><code>##          1          2          3          4          5          6          7 
+## 0.14285714 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 0.14285714 
+##          8          9         10         11         12         13         14 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##         15         16         17         18         19         20         21 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.07142857 0.07142857 0.14285714 
+##         22         23         24         25         26         27         28 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.07142857 0.07142857 
+##         29         30         31         32         33         34         35 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##         36         37         38         39         40         41         42 
+## 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##         43         44         45         46         47         48         49 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.00000000 0.14285714 0.14285714 
+##         50         51         52         53         54         55         56 
+## 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##         57         58         59         60         61         62         63 
+## 0.14285714 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 0.14285714 
+##         64         65         66         67         68         69         70 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##         71         72         73         74         75         76         77 
+## 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 
+##         78         79         80         81         82         83         84 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##         85         86         87         88         89         90         91 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 
+##         92         93         94         95         96         97         98 
+## 0.14285714 0.14285714 0.07142857 0.14285714 0.07142857 0.14285714 0.07142857 
+##         99        100        101        102        103        104        105 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 
+##        106        107        108        109        110        111        112 
+## 0.00000000 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 0.14285714 
+##        113        114        115        116        117        118        119 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##        120        121        122        123        124        125        126 
+## 0.07142857 0.14285714 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 
+##        127        128        129        130        131        132        133 
+## 0.07142857 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##        134        135        136        137        138        139        140 
+## 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 
+##        141        142        143        144        145        146        147 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##        148        149        150        151        152        153        154 
+## 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 
+##        155        156        157        158        159        160        161 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##        162        163        164        165        166        167        168 
+## 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##        169        170        171        172        173        174        175 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 
+##        176        177        178        179        180        181        182 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 
+##        183        184        185        186        187        188        189 
+## 0.14285714 0.14285714 0.14285714 0.07142857 0.14285714 0.14285714 0.14285714 
+##        190        191        192        193        194        195        196 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.07142857 
+##        197        198        199        200        201        202        203 
+## 0.14285714 1.00000000 0.92857143 0.14285714 0.14285714 0.14285714 0.14285714 
+##        204        205        206        207        208        209        210 
+## 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 0.14285714 1.00000000 
+##        211        212        213        214        215        216        217 
+## 0.92857143 0.92857143 0.92857143 0.92857143 0.92857143 0.92857143 0.92857143 
+##        218 
+## 0.92857143</code></pre>
+<pre class="r"><code>which(rowMeans(is.na(UNICEF)) == 1)</code></pre>
+<pre><code>## 198 210 
+## 198 210</code></pre>
+<pre class="r"><code>UNICEF &lt;- UNICEF[,-c(12,14)]
+UNICEF &lt;- UNICEF[-c(198),]
+row.names(UNICEF) &lt;- 1:nrow(UNICEF)
+UNICEF &lt;- UNICEF[-c(209),]
+row.names(UNICEF) &lt;- 1:nrow(UNICEF)
+
+#Now, the dataset has 12 columns and 216 rows. (When I take out the summary indicators on 2. h.,
+#the dataset has 12 columns and 215 rows).NICEF)) == 1)</code></pre>
+<p><strong>Question 2d</strong></p>
+<pre class="r"><code>UNICEF &lt;- rename(UNICEF, c(&quot;Countries&quot; = &quot;Countries and areas&quot;, 
+                 &quot;U5MR.1990&quot; = &quot;Under-5 mortality rate (U5MR) (1990)&quot;,
+                 &quot;U5MR.2015&quot; = &quot;Under-5 mortality rate (U5MR) 2015&quot;,
+                 &quot;U5MR.Male&quot; = &quot;U5MR (male)&quot;, &quot;U5MR.Female&quot; = &quot;U5MR (female)&quot;, 
+                 &quot;Total.Pop&quot; = &quot;Total population (thousands)&quot;,
+                 &quot;Annual.Births&quot; = &quot;Annual no. of births (thousands)&quot;,
+                 &quot;GNI.Per.Capita&quot; = &quot;GNI per capita (US$)&quot;, 
+                 &quot;Neonatal.Mortality.Rate&quot; = &quot;Neonatal  mortality  rate&quot;,
+                 &quot;Life.Expect.Birth&quot; = &quot;Life expectancy at birth (years)&quot;,
+                 &quot;Total.Adult.Lit.Rate&quot; = &quot;Total adult literacy rate          (%)&quot;,
+                 &quot;Primary.School.Net.Enrollment.Ratio&quot; = &quot;Primary school net enrolment ratio      (%)&quot;))</code></pre>
+<p><strong>Question 2e</strong></p>
+<pre class="r"><code>which(UNICEF$Countries == &quot;Notes:&quot;)</code></pre>
+<pre><code>## [1] 209</code></pre>
+<pre class="r"><code>UNICEF &lt;- UNICEF[-c(209:216),] </code></pre>
+<p><strong>Question 2f</strong></p>
+<pre class="r"><code>#This recodes all values of - in the dataset to NA
+UNICEF[UNICEF == &quot;-&quot;] &lt;- NA
+
+#This converts the columns to be numeric and replaces the letters with NAs
+UNICEF[,2:12] &lt;- as.numeric(as.character(unlist(UNICEF[,2:12])))</code></pre>
+<p><strong>Question 2g</strong></p>
+<pre class="r"><code>#The round function will round the values to the largest whole number after multiplying the variable by 1000
+UNICEF$Total.Pop &lt;- round(UNICEF$Total.Pop*1000)
+UNICEF$Annual.Births &lt;- round(UNICEF$Annual.Births*1000)</code></pre>
+<p><strong>Question 2h</strong></p>
+<pre class="r"><code>#Subsetting the data creates a new dataset with only the wanted obeservations.
+summary.indicators &lt;- subset(UNICEF[199:208,])
+UNICEF &lt;- UNICEF[-c(198:208),]
+
+#Now, the UNICEF dataset has 197 rows and the summary indicators dataset has 10 rows.</code></pre>
+<p><strong>Question 2i</strong></p>
+<pre class="r"><code>#to find the change in mortality rate from 1990 to 2015, the two can be subtracted (any countries with a positive value had an increase in mortality rate)
+change.mortality &lt;- (UNICEF$U5MR.2015) - (UNICEF$U5MR.1990)
+print(change.mortality)</code></pre>
+<pre><code>##   [1]  -90  -27  -21   -6  -69  -18  -15  -36   -5   -6  -63  -12  -17 -106   -5
+##  [16]  -12   -6  -23  -80 -101  -86  -13  -10  -45   -2  -12 -113  -90  -38  -88
+##  [31]  -50   -3  -47  -76  -11  -43  -19  -51  -49  -16   -7  -60   -9   -7   -8
+##  [46]  -12  -18  -89   -5  -54    4  -29  -35  -62  -42  -96 -104  -17 -146   -8
+##  [61]   -5   -5  -42 -101  -36   -5  -65   -8  -11  -52 -144 -136  -21  -77   NA
+##  [76]  -38  -13   -4  -78  -58  -42  -22   -5   -8   -6  -15   -3  -19  -39  -53
+##  [91]  -40   -9  -44  -95  -12  -25    2 -185  -29   NA  -12   -7 -111 -178  -10
+## [106]  -85 -139   -5  -14  -33   -9  -34  -21   -4  -86  -12  -52 -161  -60  -29
+## [121]  -22 -105   -4   -5  -45 -232 -104    9   -6  -27  -58  -20  -14  -32  -26
+## [136]  -63  -30  -12  -11  -13   -4  -17  -27  -16 -110  -17   -9   -7  -13   -8
+## [151]  -64  -29  -93  -21   -3 -144   -5  -11   -7  -12  -43  -19 -160   -7  -11
+## [166]  -23  -58  -27  -14   -4   -4  -24  -63  -25  -31 -123  -68   -5  -11  -43
+## [181]  -61  -40  -30 -132  -11  -10   -5 -116   -4  -13  -33   -8  -15  -29  -84
+## [196] -127   -5</code></pre>
+<p>Three countries had a mortality rate that increased over this 25-year period. The countries are Dominica, Lesotho, and Niue.</p>
+<p><strong>Question 2j</strong></p>
+<pre class="r"><code>#the cor functions finds the correlation between the GNI per captia and neonatal mortality rate
+cor(UNICEF$GNI.Per.Capita, 
+    UNICEF$Neonatal.Mortality.Rate, &quot;complete.obs&quot;)</code></pre>
+<pre><code>## [1] -0.560275</code></pre>
+<pre class="r"><code>#the plot function creates a scatterplot of the GNI per capita and neonatal mortality rate 
+plot(y=UNICEF$Neonatal.Mortality.Rate, x=UNICEF$GNI.Per.Capita,
+     xlab = &quot;Gross National Income Per Capita in U.S. Dollars&quot;,
+     ylab = &quot;Neonatal Mortality Rate&quot;, 
+     main = &quot;Gross National Income Per Capita in U.S. Dollars and Neonatal Mortality&quot;)</code></pre>
+<p><img src="portfolio2_files/figure-html/unnamed-chunk-35-1.png" width="672" /> When looking at the relationship between Gross National Income per capita and Neonatal Mortality Rate, the correlation can be calculated as -0.56. This indicates that there is a negative association between Gross National Income per capita and Neonatal Mortality Rate. This can also be seen in the plot of Gross National Income per capita and Neonatal Mortality Rate, with Neonatal Morality Rate decreasing as Gross National Income per capita increases.</p>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

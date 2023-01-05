@@ -1,0 +1,446 @@
+---
+title: "Here is some of my work in R Studio!"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 4
+    #code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
+```
+
+# Portfolio {.tabset}
+
+## Introduction to Data Science
+
+<h2>Introduction to Data Science</h2>
+
+### Problem Set 1
+
+__Question 1a__
+```{r}
+state <- c(1, 2, 3, 4, 5)
+pop <- c(12.80, 19.45, 3.56, 0.97, 8.88)
+cases <- c(139623, 439238, 52095, 17857, 196337)
+```
+The first vector, state, is created using the concatenate function to combine the five states within the data set (state 1, 2, 3, 4, and 5). The second vector, pop, is created using the concatenate function to combine the populations for those five states (12.80, 19.45, 3.56, 0.97, 8.88). The third vector, cases, is created using the concatenate function to combine the numbers of cases for the five states within the data set (139623, 439238, 52095, 17857, 196337). Now, these three vectors store all of the data on COVID-19 for five northeastern states as provided within the data table.
+
+__Question 1b__
+```{r}
+ne.covid <- cbind(state, pop, cases)
+ne.covid
+```
+The object ne.covid was created by combining the three columns (state, population, cases) from the data set into a matrix. The function cbind was implemented and assigned to ne.covid. Once created, running ne.covid displays the same data table but in R.
+
+__Question 1c__
+```{r}
+mean(ne.covid[,2])
+median(ne.covid[,2])
+max(ne.covid[,2])
+min(ne.covid[,2])
+```
+The mean of the second column of ne.covid is 9.132, the median is 8.88, the maximum is 19.45, and the minimum is 0.97.
+
+__Question 1d__
+```{r}
+mean(ne.covid[,3])
+median(ne.covid[,3])
+max(ne.covid[,3])
+min(ne.covid[,3])
+```
+The mean of the third column of ne.covid is 169030, the median is 139623, the maximum is 439238, and the minimum is 17857.
+
+__Question 1e__
+```{r}
+#creating a vector for state population in thousands
+pop.in.1000s <- pop*1000
+
+#creating a vector for covid-19 cases per 1000 residenrs
+cases.per.1000 <- cases /pop.in.1000s
+```
+The vector cases.per.1000 is created by assigning the result of the cases divided by 1000 to the vector. This vector represents the number of COVID-19 cases in each state per 1000 residents.
+
+__Question 1f__
+```{r}
+state_chr <- c("PA", "NY", "CT", "DE", "NJ")
+
+plot(y=cases.per.1000, x=pop, xlab = "Population in Millions", ylab = "Cases per 1000 Residents", main = "COVID-19 in the Northeast", type = "n")
+
+plot(y=cases.per.1000, x=pop, xlab = "Population in Millions", ylab = "Cases per 1000 Residents", main = "COVID-19 in the Northeast", text(x = pop, y = cases.per.1000, labels = state_chr))
+```
+The scatterplot “COVID-19 in the Northeast” was created by using the plot function. Within the plot, y is designated as cases.per.1000, x is designated as population in millisons, the x-axis is labeled population with the xlab function, and the y-axis is labeled Cases per 1000 Residents with the ylab function. The title is created with the main function, and is labeled COVID-19 in the Northeast. The states are assigned to their corresponding dot on the scatterplot with the text function.
+
+__Question 1g__
+```{r}
+#adding cases.per.1000 and state_chr as columns to the ne.covid matrix
+ne.covid <- cbind(ne.covid, cases.per.1000, state_chr)
+
+#subsetting to identify the state most affected by COVID 19
+ne.covid[ne.covid[, "cases.per.1000"] == max(cases.per.1000), c("state_chr", "cases.per.1000")]
+
+#subsetting to identify the state least affected by COVID 19
+ne.covid[ne.covid[, "cases.per.1000"] == min(cases.per.1000), c("state_chr", "cases.per.1000")]
+```
+New York has been the most affected by COVID-19, with around 22.58 cases per 1000 residents. Pennsylvania has been the least affceted by COVID-19, with about 10.91 cases per 1000 residents.
+
+__Question 1h__
+If I could get one more piece of information about COVID-19 to describe how affected each of these states are, it would be the death rates. The death rates would signify the level of impact COVID-19 had on the states, as some people within the cases category may be asymptomatic or have mild symptoms and are okay now.
+
+__Question 2a__
+```{r}
+load("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/2019MLBTeamsData.Rdata")
+bb$avgattpergame <- as.numeric(bb$home.attendance/bb$games.played)
+median(bb$avgattpergame)
+
+max(bb$avgattpergame)
+min(bb$avgattpergame)
+```
+Because there are an even number of teams, no singular team had the median average attendance of 14055.35 but the two in the middle were the Washington Nationals (with a median average attendance of 13949.27) and the Minnesota Twins (with a median average attendance of 14161.43). The team with the maximum average attendance per game was the Los Angeles Dodgers, with a maximum of 24532.77. The team with the minimum average attendance per game was the Miami Marlins, with a minimum of 5008.037.
+
+__Question 2b__
+```{r}
+bb$teambattavg <- as.numeric(bb$hits/bb$at.bats)
+median(bb$teambattavg)
+max(bb$teambattavg)
+min(bb$teambattavg)
+```
+Because there are an even number of teams, no singular team had the median team batting average of 0.2492307 but the two in the middle were the Oakland Athletics (with a median team batting average of 0.2488761) and the Cleveland Indians (with a median team batting average of 0.2495853). The team with the maximum batting average is the Houston Astros with a maximum of 0.2740068. The team with the minimum batting average is the Toronto Blue Jays with a minimum of 0.2364828.
+
+__Question 2c__
+```{r}
+plot(y=bb$avgattpergame, x=bb$teambattavg, xlab = "Team Batting Average", 
+     ylab = "Average Attendance Per Game", main = "MLB 2019 Data")
+```
+The graph looks very spread out, with the dots in seemingly randomly places. It is fairly nonlinear with no clear direction or association. The graph tells you that there is no relationship between team skill and attendance.
+
+__Question 2d__
+```{r}
+bb$runs.pitch <- as.numeric(bb$opponent.runs/bb$outs.pitched)
+plot(y=bb$avgattpergame, x=bb$runs.pitch, xlab = "Opponent Runs per Outs Pitched", 
+     ylab = "Average Attendance Per Game", main = "MLB 2019 Data 2")
+```
+The graph looks like the lower the opponent runs per outs pitched, the higher the average attendance per game. The same is for the opposite, the lower the average attendance per game, the higher the opponent runs per outs pitched. There are some outliers, though, that do not fit the pattern. This tells you that while there is not a linear relationship between team skill and attendance, there is an association between the two.
+
+__Question 2e__
+```{r}
+bb$teamwinper <- as.numeric(bb$wins/bb$games.played)
+plot(y=bb$teamwinper, x=bb$teambattavg, xlab = "Team Batting Average", 
+     ylab = "Team Winning Percentage", main = "MLB 2019 Data 3")
+```
+The graph looks more linear than the other two, with team winning percentage increasing as team batting average increases. This tells you that there is a positive relationship between team batting average and team winning percentage.
+
+__Question 2 Bonus__
+```{r}
+prediction <- lm(formula = teamwinper ~ teambattavg, data = bb)
+plot(bb$teamwinper ~ bb$teambattavg, xlab = "Team Batting Average", 
+     ylab = "Team Winning Percentage", main = "MLB 2019 Data 3")
+abline(prediction)
+```
+To make a better prediction of a team’s winning percentage, the least squares regression line can be calculated and plotted in order to show where the predicted values would lie. This line is used to predict the value of y, or team winning percentage, for any value of x, or team batting average.
+
+__Question 3a__
+```{r}
+recentgrads <- read.csv("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/recentgrads.csv", header = TRUE, na="NA")
+ncol(recentgrads)
+nrow(recentgrads)
+```
+There are 15 columns and 173 rows in the “recentgrads” data set. The unit of analysis of the data is major, as the data focuses on the jobs college graduates received depending on their major.
+
+__Question 3b__
+```{r}
+table(recentgrads$Major_category)
+```
+There are 16 different major categories that the data are divided into. The engineering category has the most majors, with 29 different majors.
+
+__Question 3c__
+```{r}
+sum(recentgrads$Women, na.rm = T)
+percentwomen <- sum(recentgrads$Women, na.rm = T)/sum(recentgrads$Total, na.rm = T)
+percentwomen * 100
+```
+There are 3,895,228 women included in the dataset. 57.52% of the people in the dataset are women.
+
+__Question 3d__
+```{r}
+recentgrads$womengrads <- as.numeric(recentgrads$Women/recentgrads$Total)
+order(recentgrads$womengrads, na.last = T)
+recentgrads[74,]
+order(recentgrads$womengrads, na.last = F)
+recentgrads[165,]
+```
+The major that had the highest percentage of women graduates is education, with a percentage of 96.90%. The major that had the lowest percentage of women graduates is military technologies, with a percentage if 0%.
+
+__Question 4__
+Random sampling is such a vital component of survey research because it ensures that there is no bias within the sample. If people were chosen to take a survey, the surveyor could have picked specific people who they know will prove their hypothesis and therefore discredit the validity and accuracy of the survey. Random sampling also ensures that the results are representative of the entire population, which is why a sample of 1500 people is enough to learn about the whole US population. If the sample is completely random, then we can be confident that a sample of only 1500 people will include people who represent all different backgrounds and interests within the country.
+
+
+### Problem Set 2
+
+__Question 1a__
+```{r}
+load("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/exitpoll2016.RData")
+require(tidyverse)
+exit.untouched <- exit
+
+#The unit of observation is people, and the dataset had more than one row for every observation.
+#Because there are two rows for each observation, using the spread function will condense each repeated row into one. Since the favorable candidate and favorable rating variables are the ones repeated, they are used to create the new columns
+exit <- spread(exit,
+                 key = favorable.cand,
+                 value = favorable.rating)
+head(exit)
+
+#Using the recode function, the values of 1 and 2 can be replaced for favorable and unfavorable
+attributes(exit.untouched$favorable.rating)
+
+exit$clinton <- recode(exit$clinton, "1" = "Favorable", "2" = "Unfavorable")
+exit$trump <- recode(exit$trump, "1" = "Favorable", "2" = "Unfavorable")
+```
+
+__Question 1b__
+```{r}
+#the gather function brings responses that are spread over multiple columns into one. The recode function
+#changes the data from numeric values (0/1) that don't make sense
+exit <- gather(exit,
+                 key = "educ", 
+                 value = "val",
+               starts_with("educ."))
+
+exit$educ <- recode(exit$educ, "educ.hs" = "hs", "educ.somecoll" = "some college", 
+                    "educ.bach" = "bachelors", "educ.postgrad" = "postgrad")
+
+#Since all unknown values are coded as 99 (using attributes checks this), I can recode those values to NA
+attributes(exit.untouched$educ.hs)
+attributes(exit.untouched$educ.somecoll)
+attributes(exit.untouched$educ.bach)
+attributes(exit.untouched$educ.postgrad)
+
+exit[exit$educ == "99"] <- NA
+
+exit$val <- NULL
+
+#Could have also changed the names by reshaping the education data
+exit$educ[exit$educ == "educ.hs"] <- "hs"
+exit$educ[exit$educ == "educ.somecoll"] <- "some college"
+exit$educ[exit$educ == "educ.bach"] <- "bachelors"
+exit$educ[exit$educ == "educ.postgrad"] <- "postgrad"
+```
+
+__Question 1c__
+```{r}
+#The separate function splits the sex.age.race column into three separate columns
+exit <- separate(exit,
+         col = "sex.age.race",
+         into = c("sex","age","race"), sep = " ")
+
+#Converting the columns to factors and then replacing the missing/unknown values with NA cleans the data
+exit$age = as.factor(exit$age)
+summary(exit$age)
+
+exit$age[which(exit$age == "-999")] = NA
+summary(exit$age)
+
+exit$sex = as.factor(exit$sex)
+summary(exit$sex)
+
+exit$sex[which(exit$sex == "unknown")] = NA
+summary(exit$sex)
+
+#The race values are already coded as NA for missing, but could have done this 
+exit$race = as.factor(exit$race)
+summary(exit$race)
+
+exit$race[which(exit$race == "NA")] = NA
+summary(exit$race)
+```
+
+__Question 1d__
+```{r}
+#the new varible third.party is created by recoding everything as NA and then recoding each value to the 
+#new value. Using NULL removes the variable from the data set
+attributes(exit.untouched$PRSPA16)
+
+exit$third.party <- "NA"
+exit$third.party[exit$PRSPA16 == 1] <- "0"
+exit$third.party[exit$PRSPA16 == 2] <- "0"
+exit$third.party[exit$PRSPA16 == 3] <- "1"
+exit$third.party[exit$PRSPA16 == 4] <- "1"
+exit$third.party[exit$PRSPA16 == 9] <- "1"
+
+exit$PRSPA16 <- NULL
+```
+
+__Question 1e__
+```{r}
+#the as.numeric function converts the married variable into a dummy variable, coding 1 for married and 
+#0 for not married
+attributes(exit.untouched$married) #tells us that 1 is yes and 2 is no
+exit$married <- as.numeric(exit$married==1)
+```
+
+__Question 1f__
+```{r}
+#the factor function recodes the PHIL3 and partyid variables into meaningful labels 
+attributes(exit.untouched$PHIL3)
+exit$PHIL3 <- factor(exit$PHIL3, labels = c("Liberal", "Moderate", "Conservative"))
+
+attributes(exit.untouched$partyid)
+
+exit$partyid <- factor(exit$partyid, labels = c("Democrat", "Republican", "Independent",
+                                                "Something Else"))
+```
+
+__Question 1g__
+```{r}
+#the rename function will change the name of a column to something more meaningful
+exit <- rename(exit, ideology = PHIL3)
+```
+
+__Question 1h__
+```{r}
+#I split the age variable into the different groups and then also made the partyid ordinal so that they can be compared. From there I made them into a table, and then did the frequencies of the results. Lastly, I added together all of the values in the table to make sure that they are equal to 1. 
+exit$Age.group <- "NA"
+exit$Age.group[exit$age == "18-29"] <- 1
+exit$Age.group[exit$age == "30-44"] <- 2
+exit$Age.group[exit$age == "45-65"] <- 3
+exit$Age.group[exit$age == "65+"] <- 4
+
+exit$ID <- "NA"
+exit$ID[exit$partyid == "Republican"] <- 5
+exit$ID[exit$partyid == "Democrat"] <- 6
+exit$ID[exit$partyid == "Independent"] <- 7
+exit$ID[exit$partyid == "Something Else"] <- 8
+
+mytable <- table(exit$Age.group, exit$ID)
+prop.table(mytable)
+sum(prop.table(mytable))
+```
+Comparing the frequencies of the age group and ID variables, there is a 6.97% chance of people in the age group of 18-29 being democratic and a 5.68% chance of people being 18-29 and republican. The values are lower for independents and ‘something else,’ with a 0.64% chance of someone 18-29 being independent and a 0.88% chance of someone being 18-29 and something else. This is fairly expected, as young people are more likely to be democratic than any other party. Another interesting observation is that there is the same 15.32% chance of someone being 45-65 years old and either a republican or democrat. The 45-65-year-old age group also has the highest chance of being independent (5.21%) and something else (1.25%) than any other group. This may be explained by the fact that middle aged and older people are more likely to watch the news and therefore align with a particular political party, or because this age group has particularly high voter turnout and therefore need to be registered to a party to participate.
+
+__Question 2a__
+```{r}
+library(rio)
+UNICEF_untouched <- rio::import("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/unicefdata.xlsx")
+
+UNICEF <- UNICEF_untouched
+
+#Problems with the data:
+#1. Columns are named with numbers
+#2. Column names are in the actual columns
+#3. Have dashes and x's within the data
+```
+
+__Question 2b__
+```{r}
+#The names function renames the columns with the names in the first row, and then the first two rows can be deleted. Using rownames will renumber the rows so that it does not start at 3.
+names(UNICEF) <- lapply(UNICEF[1, ], as.character)
+UNICEF = UNICEF[-1,] 
+UNICEF = UNICEF[-1,] 
+row.names(UNICEF) <- 1:nrow(UNICEF)
+```
+
+__Question 2c__
+```{r}
+#rowmeans tells us the mean value of each row in the data set. The rows that have "1" as their mean 
+#are blank and should be removed. The -c function lets you drop rows or 
+#columns from the data set
+rowMeans(is.na(UNICEF))
+which(rowMeans(is.na(UNICEF)) == 1)
+UNICEF <- UNICEF[,-c(12,14)]
+UNICEF <- UNICEF[-c(198),]
+row.names(UNICEF) <- 1:nrow(UNICEF)
+UNICEF <- UNICEF[-c(209),]
+row.names(UNICEF) <- 1:nrow(UNICEF)
+
+#Now, the dataset has 12 columns and 216 rows. (When I take out the summary indicators on 2. h.,
+#the dataset has 12 columns and 215 rows).NICEF)) == 1)
+
+```
+
+__Question 2d__
+```{r}
+UNICEF <- rename(UNICEF, c("Countries" = "Countries and areas", 
+                 "U5MR.1990" = "Under-5 mortality rate (U5MR) (1990)",
+                 "U5MR.2015" = "Under-5 mortality rate (U5MR) 2015",
+                 "U5MR.Male" = "U5MR (male)", "U5MR.Female" = "U5MR (female)", 
+                 "Total.Pop" = "Total population (thousands)",
+                 "Annual.Births" = "Annual no. of births (thousands)",
+                 "GNI.Per.Capita" = "GNI per capita (US$)", 
+                 "Neonatal.Mortality.Rate" = "Neonatal  mortality  rate",
+                 "Life.Expect.Birth" = "Life expectancy at birth (years)",
+                 "Total.Adult.Lit.Rate" = "Total adult literacy rate          (%)",
+                 "Primary.School.Net.Enrollment.Ratio" = "Primary school net enrolment ratio      (%)"))
+```
+
+__Question 2e__
+```{r}
+which(UNICEF$Countries == "Notes:")
+UNICEF <- UNICEF[-c(209:216),] 
+```
+
+__Question 2f__
+```{r}
+#This recodes all values of - in the dataset to NA
+UNICEF[UNICEF == "-"] <- NA
+
+#This converts the columns to be numeric and replaces the letters with NAs
+UNICEF[,2:12] <- as.numeric(as.character(unlist(UNICEF[,2:12])))
+```
+
+__Question 2g__
+```{r}
+#The round function will round the values to the largest whole number after multiplying the variable by 1000
+UNICEF$Total.Pop <- round(UNICEF$Total.Pop*1000)
+UNICEF$Annual.Births <- round(UNICEF$Annual.Births*1000)
+```
+
+__Question 2h__
+```{r}
+#Subsetting the data creates a new dataset with only the wanted obeservations.
+summary.indicators <- subset(UNICEF[199:208,])
+UNICEF <- UNICEF[-c(198:208),]
+
+#Now, the UNICEF dataset has 197 rows and the summary indicators dataset has 10 rows.
+```
+
+__Question 2i__
+```{r}
+#to find the change in mortality rate from 1990 to 2015, the two can be subtracted (any countries with a positive value had an increase in mortality rate)
+change.mortality <- (UNICEF$U5MR.2015) - (UNICEF$U5MR.1990)
+print(change.mortality)
+```
+Three countries had a mortality rate that increased over this 25-year period. The countries are Dominica, Lesotho, and Niue.
+
+__Question 2j__
+```{r}
+#the cor functions finds the correlation between the GNI per captia and neonatal mortality rate
+cor(UNICEF$GNI.Per.Capita, 
+    UNICEF$Neonatal.Mortality.Rate, "complete.obs")
+
+#the plot function creates a scatterplot of the GNI per capita and neonatal mortality rate 
+plot(y=UNICEF$Neonatal.Mortality.Rate, x=UNICEF$GNI.Per.Capita,
+     xlab = "Gross National Income Per Capita in U.S. Dollars",
+     ylab = "Neonatal Mortality Rate", 
+     main = "Gross National Income Per Capita in U.S. Dollars and Neonatal Mortality")
+```
+When looking at the relationship between Gross National Income per capita and Neonatal Mortality Rate, the correlation can be calculated as -0.56. This indicates that there is a negative association between Gross National Income per capita and Neonatal Mortality Rate. This can also be seen in the plot of Gross National Income per capita and Neonatal Mortality Rate, with Neonatal Morality Rate decreasing as Gross National Income per capita increases.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

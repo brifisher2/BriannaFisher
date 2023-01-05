@@ -9,5 +9,5 @@ navbar:
     - text: "CV / Published Work"
       href: CV.html
     - text: "Portfolio"
-      href: Portfolio.html
+      href: portfolio2.html
 output_dir: "docs"
