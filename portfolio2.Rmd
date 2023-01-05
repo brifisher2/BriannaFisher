@@ -2647,24 +2647,1103 @@ __References__
 Commission, U. S. S. (2014, June 25). Monitoring of federal criminal sentences, [united states], 2007. Monitoring of Federal Criminal Sentences, [United States], 2007. Retrieved December 12, 2021, from https://www.icpsr.umich.edu/web/NACJD/studies/22623. Cusick Director, J., Cusick, J., Director, Director, C. M. A., Montecinos, C., Director, A., Director, S. H. A., Hananel, S., Oduyeru Manager, L., Oduyeru, L., Manager, Gordon Director, P., Gordon, P., Director, J. P. D., Parshall, J., Director, D., Pearl, B., Perez, M., Chung, E., … Simpson, E. (2021, October 28). Ending the war on drugs: By the numbers. Center for American Progress. Retrieved December 12, 2021, from https://www.americanprogress.org/article/ending-war-drugs-numbers/. Rahamatulla, A. (2017, March 23). The War on Drugs has failed. what’s next? Ford Foundation. Retrieved December 12, 2021, from https://www.fordfoundation.org/just-matters/just-matters/posts/the-war-on-drugs-has-failed-what-s-next/. We Are The Drug Policy Alliance. (n.d.). A history of the Drug War. Drug Policy Alliance. Retrieved December 12, 2021, from https://drugpolicy.org/issues/brief-history-drug-war.
 
 
+## Criminal Justice Data Analytics
+
+<h2>Criminal Justice Data Analytics</h2>
+
+### Problem Set 1
+
+__Question 1__
+```{r}
+#load in the LEOKA data
+leoka <- read.csv("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/leoka-feloniously killed.csv")
+```
+
+__Question 2__
+```{r}
+#Use square brackets to print the first 3 rows of the data set
+leoka[1:3,]
+```
+The first three rows of data are from Connecticut, Maine, and Massachusetts.
+
+__Question 3__
+```{r}
+#use a subset to get the number of officers killed in Ohio in 2007
+subset(leoka, grepl("Ohio", Area) & (X2007)) 
+```
+Two officers were killed in Ohio in 2007.
+
+__Question 4__
+```{r}
+#use a subset to get the states in the East North Central region
+east.north <- subset(leoka, grepl("East North Central", Region2))
+
+#use a table to see how many officers were killed in 2012
+table(east.north$X2012)
+```
+Two officers were killed in the East North Central region in 2012.
+
+__Question 5__
+```{r}
+#Create a dataframe with the columns I want to add up
+cols <- c("X2004", "X2005", "X2006", "X2007", "X2008", "X2009","X2010", "X2011", "X2012", "X2013")
+
+#use row sums to add the colums and create a new variable
+leoka$total <- rowSums(leoka[,cols])
+```
+
+```{r}
+#I could have also done this by adding the columns together
+leoka$total <- leoka$X2004 + leoka$X2005 + leoka$X2006 + leoka$X2007 + 
+  leoka$X2008 + leoka$X2009 + leoka$X2010 + leoka$X2011 + leoka$X2012 +
+  leoka$X2013
+```
+
+__Question 6__
+```{r}
+#use max to find the largest number of officers killed
+max(leoka$total, na.rm=TRUE)
+
+#use which to find the Area that had 44 officers killed
+leoka[which(leoka$total == 44),]
+```
+Texas and California both had the largest number of officers killed, which was 44 officers.
+
+__Question 7__
+```{r}
+#use aggregate to find the number of officers killed per region
+aggregate(total~Region1, data=leoka, sum) 
+```
+The region with the largest number of officers killed is the South.
+
+__Question 8__
+```{r}
+#use which to find the Areas with 0 officers killed
+leoka[which(leoka$total == "0"),]
+```
+The areas that had no officers killed between 2004 and 2013 are Maine, Vermont, Nebraska, Wyoming, American Samoa, Guam, and the Mariana Islands. 
+
+__Question 9__
+```{r}
+#use which to look where and when 9 officers were killed
+leoka[which(leoka$X2004 == "9"),]
+leoka[which(leoka$X2005 == "9"),]
+leoka[which(leoka$X2006 == "9"),]
+leoka[which(leoka$X2007 == "9"),]
+leoka[which(leoka$X2008 == "9"),]
+leoka[which(leoka$X2009 == "9"),]
+leoka[which(leoka$X2010 == "9"),]
+leoka[which(leoka$X2011 == "9"),]
+leoka[which(leoka$X2012 == "9"),]
+leoka[which(leoka$X2013 == "9"),]
+```
+There were nine officers killed in Texas in 2007. 
+
+__Question 10__
+```{r}
+#use aggregate to find the number of officers killed per region in 2013
+region.2013 <- aggregate(X2013~Region1, data=leoka, sum) 
+
+#use order to sort the data frame from smallest to largest
+region.2013.sorted <- region.2013[order(region.2013$X2013),]
+```
+The Northeast had two officers killed in 2013, the Midwest had four officers killed in 2013, the West had six officers killed in 2013, and the South had 15 officers killed in 2013. 
+
+__Question 11__
+```{r}
+#use aggregate to find the number of officers killed per region
+region.full <- aggregate(total~Region1, data=leoka, sum)
+
+#use the bar plot function to create a bar plot of the number of officers killed by region
+barplot(region.full$total, main = "Number of Officers Killed Per Region", xlab = "Region", ylab = "Number of Officers Killed", names = c("Midwest", "Northeast", "Other", "South", "West"), ylim=c(0,250), col = c("red", "orange", "yellow", "green", "blue"))
+```
+
+__Question 12__
+```{r}
+#use the col sums function and the cols data frame created earlier
+off.by.year <- colSums(leoka[,cols])
+
+plot(off.by.year, main = "Total Number of Officers Killed By Year", xlab = "Year", ylab = "Number of Officers Killed", xaxt = "n")
+axis(1, at = seq(1:10), labels = c("2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013"))
+
+barplot(off.by.year)
+```
+
+### Problem Set 2
+
+__Question 1__
+```{r}
+#load in UCR data
+load("/Users/briannafisher/Dropbox/CRIM 4002/UCR Assignment/UCRdata copy.rda")
+
+#create a clean ucr data frame
+ucr <- data.frame(ORI   =as.character(da35021.0001$V3),
+                  AGENCY=as.character(da35021.0001$V29),
+                  AREA  =as.character(da35021.0001$V26),
+                  POP   =da35021.0001$V14+
+                         da35021.0001$V17+
+                         da35021.0001$V20,
+                  MONTHS=as.character(da35021.0001$V12),
+                  STATE=as.character(da35021.0001$V2))
+
+# variable definitions stored in the dataset's attributes
+var.lookup <- attributes(da35021.0001)$variable.labels
+
+# tabulate all the murder numbers
+var.names <- grep("ACT NUM MURDER",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$murder <- rowSums(da35021.0001[,var.names])
+
+var.names <- grep("ACT NUM RAPE",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$rape <- rowSums(da35021.0001[,var.names])
+
+# robbery - taking something by force/threat of force
+var.names <- grep("ACT NUM ROBBRY",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$robbery <- rowSums(da35021.0001[,var.names])
+
+# aggravated assault are #assaults - #simple assaults
+#    aggravated assaults - purpose is severe injury, normally with
+#       a weapon, 25% guns, 15% knives, 25% hands/feet, rest other
+var.names <- grep("ACT NUM ASSLT",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$assault <- rowSums(da35021.0001[,var.names])
+var.names <- grep("ACT # SIMPLE ASSLT",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$assault <- ucr$assault - rowSums(da35021.0001[,var.names])
+
+# burglary - entering a home/business to steal something
+var.names <- grep("ACT # BURGLARY",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$burglary <- rowSums(da35021.0001[,var.names])
+
+# larceny - stealing something, generally serious
+var.names <- grep("ACT # LARCENY",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$larceny <- rowSums(da35021.0001[,var.names])
+
+# vehicle theft
+var.names <- grep("ACT # VHC THEFT",var.lookup,value=TRUE)
+var.names <- names(var.names)
+ucr$gta <- rowSums(da35021.0001[,var.names])
+```
+
+```{r}
+#now that the UCR data frame is set up, I can use if else to calculate the homicide rate per 100,000
+ucr$hom.rate <- ifelse(ucr$POP == 0, 0, (ucr$murder/ucr$POP)*100000)
+
+#use order to sort the homicide rate from greatest to smallest
+i <- order(ucr$hom.rate, decreasing = TRUE)
+ucr <- ucr[i,]
+
+#use square brackets to pull the 10 cities with the highest homicide rate
+ucr[1:10,]
+```
+The ten cities with the highest homicide rate per 100,000 residents are Vernon, Suget, Glen Echo Park, Pocahontas, Shorter, Kinloch, Cumberland City, Helper, Sand City, and Whitakers.
+
+__Question 2__
+```{r}
+#subsetting for cities with more than 100,000 residents
+large.city <- subset(ucr, subset = POP > 100000)
+
+#use order to sort the homicide rate from greatest to smallest
+hom.order <- order(large.city$hom.rate, decreasing = TRUE)
+large.city <- large.city[hom.order,]
+
+#use square brackets to pull the 10 cities with the highest homicide rate
+large.city[1:10,]
+```
+The ten cities  with more than 100,000 residents that have the highest homicide rate per 100,000 residents are Flint, Detroit, New Orleans, Jackson, St. Louis, Baltimore, Newark, Oakland, Birmingham, and Baton Rouge. 
+
+__Question 3__
+
+__Which ten cities have the most costly crime burden?__
+```{r}
+#creating a cost of homicide variable
+ucr$cost.hom <- ucr$murder*5000000
+
+#creating a cost of rape variable
+ucr$cost.rape <- ucr$rape*150000
+
+#creating a cost of robbery variable
+ucr$cost.robbery <- ucr$robbery*23000
+
+#creating a cost of assault variable
+ucr$cost.assault <- ucr$assault*55000
+
+#creating a cost of burglary variable
+ucr$cost.burglary <- ucr$burglary*5000
+
+#creating a cost of rape variable
+ucr$cost.larceny <- ucr$larceny*2800
+
+#creating a cost of vehicle theft variable
+ucr$cost.gta <- ucr$gta*9000
+
+#adding up all the costs of the seven crimes
+ucr$total.costs <- with(ucr, cost.hom + cost.rape + cost.robbery + cost.assault + cost.burglary + cost.larceny + cost.gta)
+
+#use order to sort the total costs from greatest to smallest
+large.costs <- order(ucr$total.costs, decreasing = TRUE)
+ucrCost <- ucr[large.costs,]
+
+#use square brackets to pull the 10 cities with the highest homicide rate
+ucrCost[1:10,]
+
+#calculate cost per capita
+ucrCost$costpercapita <- with(ucrCost, total.costs/POP)
+ucrCost <- subset(ucrCost, POP > 0)
+```
+Using the accounting method from study 1, the ten cities that have the most costly crime burdens are New York, Chicago, Detroit, Los Angeles, Philadelphia, Houston, Baltimore, Memphis, Dallas, and Phoenix. 
+
+### Problem Set 3
+
+```{r}
+#scan in the file with the words
+words <- scan(file="/Users/briannafisher/Dropbox/CRIM 4002/Scrabble Assignment/scrabble4letter.txt", what="")
+```
+
+__Question 1__
+```{r}
+grep("^[z]", words, value=TRUE)
+```
+
+__Question 2__
+```{r}
+grep("zz", words, value=TRUE)
+```
+
+__Question 3__
+```{r}
+grep("[^aeiou][^aeiou][^aeiou][^aeiou]", words, value=TRUE)
+```
+
+__Question 4__
+```{r}
+grep("[r]...", words, value=TRUE) #185
+grep(".[r]..", words, value=TRUE) #200
+grep("..[r].", words, value=TRUE) #354 
+grep("...[r]", words, value=TRUE) #123
+```
+You are most likely to find an "r" in the third letter position. 
+
+__Question 5__
+```{r}
+rhyme <- grep("(it$)|(itt$)", words, value=TRUE)
+rhyme2 <- grep(".[^a]..", rhyme, value=TRUE)
+rhyme3 <- grep(".[^o]..", rhyme2, value=TRUE)
+rhyme4 <- grep(".[^u]..", rhyme3, value=TRUE)
+```
+
+### Problem Set 4
+
+```{r}
+#scan in the file with the words
+words <- scan(file="/Users/briannafisher/Dropbox/CRIM 4002/Scrabble Assignment/scrabble4letter.txt", what="")
+```
+
+__GREP:__
+
+__Question 1__
+```{r}
+grep("(.)\\1", words, value=TRUE)
+#letter one stored in register one followed by letter one called from register one
+```
+
+__Question 2__
+```{r}
+grep("(.)(.)\\2\\1", words, value=TRUE)
+#letter one stored in register one, letter two stored in register two, letter two called from register two, letter one called from register one
+```
+
+__GSUB:__
+
+__Question 1__
+```{r}
+gsub("ll", "l", words)
+```
+
+__Question 2__
+```{r}
+gsub("^g", "G", words)
+```
+
+__Question 3__
+```{r}
+letter <- gsub("([A-Za-z])([A-Za-z])([A-Za-z])([A-Za-z])", "\\1", words)
+```
+
+__Question 4__
+```{r}
+table(letter)
+sort(table(letter))
+```
+S is the most common starting letter
+
+### Problem Set 6
+```{r}
+# load library for working with SQL databases
+library(sqldf)
+library(lubridate)
+
+# packages for creating maps
+library(leaflet)
+library(ggmap)
+library(hexbin)
+
+#set up the database 
+setwd("/Users/briannafisher/Dropbox/CRIM 4002/Hotspot Map Assignment")
+a <- read.table("incidents_part1_part2_2020.csv",
+                sep=",",nrows=30000,header=TRUE)
+tail(a)
 
 
+sure.you.want.to.rebuild.database <- TRUE
+if(sure.you.want.to.rebuild.database) # run once to set up the database
+{
+  # connect to or create a new SQlite database
+  con <- dbConnect(SQLite(), dbname="phillycrimenew.db")
+  
+  # how is SQLite planning on storing the data?
+  variabletypes <- dbDataType(con, a)
+  
+  # remove a crime table if it already exists
+  if(dbExistsTable(con, "crime")) dbRemoveTable(con, "crime")
+  # import the cleaned data file into RSQLite
+  dbWriteTable(con, "crime",
+               "/Users/briannafisher/Dropbox/CRIM 4002/Hotspot Map Assignment/incidents_part1_part2_2020.csv",
+               row.names=FALSE,
+               header=TRUE,
+               field.types=variabletypes,
+               sep=",") #" RSQLite doesn't handle commas in quotes
+  dbListFields(con,"crime")
+  dbDisconnect(con)
+}
+
+#connect to the database 
+con <- dbConnect(SQLite(), dbname="phillycrimenew.db")
+dbListFields(con,"crime")
+```
+
+```{r}
+#create the map 
+res <- dbSendQuery(con, "
+                   SELECT lat,lng,text_general_code,ucr_general
+                   FROM crime;")
+a <- dbFetch(res, n = -1)
+dbClearResult(res)
+
+a$lat <- as.numeric(a$lat)
+a$lng <- as.numeric(a$lng)
+
+#create baseline of map with lat and long
+philly.map <- ggmap(get_map(c(-75.25, 39.93, -75.18, 39.98),
+                             scale="auto",source="stamen"))
+philly.map
+
+#add points to the map
+map.points <- philly.map +
+                  geom_point(aes(x=lng,y=lat), data=a,
+                    alpha=0.5, color="darkred", size = 1)
+map.points
+
+#look at crime type and ucr code
+res <- dbSendQuery(con, "
+                   SELECT DISTINCT text_general_code, ucr_general
+                   FROM crime
+                   GROUP BY text_general_code, ucr_general")
+dbFetch(res, n = -1)
+dbClearResult(res)
+```
+
+```{r}
+#subset for violent crimes 
+#400 - aggravated assault with a firearm, 400 - aggravated assault with no firearm, 
+#100 - homicide (criminal), 200 - rape, 300 - robbery with a firearm, 300 - robbery without a firearm 
+
+res <- dbSendQuery(con, "
+                   SELECT lat,lng,ucr_general
+                   FROM crime
+                   WHERE ucr_general='400' OR ucr_general='100' OR ucr_general='200' OR 
+                   ucr_general='300'")
+b <- dbFetch(res, n = -1)
+dbClearResult(res)
+
+b$lat <- as.numeric(b$lat)
+b$lng <- as.numeric(b$lng)
+
+#add points to the map
+violent.points <- philly.map +
+                      geom_point(aes(x=lng,y=lat), data=b,
+                         alpha=0.5, color="darkred", size = 1)
+violent.points
+
+#subset for each violent crime
+
+#homicide
+res <- dbSendQuery(con, "
+                   SELECT lat,lng,ucr_general
+                   FROM crime
+                   WHERE ucr_general='100'")
+homicide <- dbFetch(res, n = -1)
+dbClearResult(res)
+
+homicide$color <- "Homicide"
+
+#rape
+res <- dbSendQuery(con, "
+                   SELECT lat,lng,ucr_general
+                   FROM crime
+                   WHERE ucr_general='200'")
+rape <- dbFetch(res, n = -1)
+dbClearResult(res)
+
+rape$color <- "Rape"
+
+#robbery
+res <- dbSendQuery(con, "
+                   SELECT lat,lng,ucr_general
+                   FROM crime
+                   WHERE ucr_general='300'")
+robbery <- dbFetch(res, n = -1)
+dbClearResult(res)
+
+robbery$color <- "Robbery"
+
+#aggravated assault
+res <- dbSendQuery(con, "
+                   SELECT lat,lng,ucr_general
+                   FROM crime
+                   WHERE ucr_general='400'")
+agg.assault <- dbFetch(res, n = -1)
+dbClearResult(res)
+
+agg.assault$lat <- as.numeric(agg.assault$lat)
+agg.assault$lng <- as.numeric(agg.assault$lng)
+
+agg.assault$color <- "Aggravated Assault"
+
+#add all violent crimes to the map
+violent.points.color <- philly.map +
+                           geom_point(aes(x=lng,y=lat, fill = color), data=homicide,
+                                alpha=0.5, color="darkred", size = 1) +
+                          geom_point(aes(x=lng,y=lat, fill = color), data=rape,
+                                alpha=0.5, color="blue", size = 1) +
+                          geom_point(aes(x=lng,y=lat, fill = color), data=robbery,
+                                alpha=0.5, color="yellow", size = 1) +
+                          geom_point(aes(x=lng,y=lat, fill = color), data=agg.assault,
+                                alpha=0.5, color="hotpink", size = 1) +
+                          ggtitle("Violent Crimes in West Philadelphia in 2020") +
+                          xlab("Longitude") +
+                          ylab("Latitude") 
+
+#add a legend to the plot
+cols <- c("Homicide"="darkred", 'Rape'='blue', 'Robbery'='yellow', 'Aggravated Assault'='hotpink')
+
+violent.points.color +
+  scale_colour_manual(name="Type of Crime",values=cols) +
+  scale_fill_manual(name = "Type of Crime", values = cols,
+                  labels = c('Homicide', 'Rape', 'Robbery', 'Aggravated Assault')) +
+  guides(color = guide_legend(override.aes = list(color = cols))) 
+
+```
+
+### Problem Set 7
+In order to not crash Github, I am using the dataset I made as a result of webscrapping the box office website.
+```{r}
+#load in movie and box office data
+setwd("/Users/briannafisher/Dropbox/CRIM 4002/")
+load("11.3/movie revenue.RData")
+load("Regular Exp and Webscraping Assignment/boxoffice.RData")
+
+library(kableExtra)
+library(dplyr)
+library(ggpubr)
+library(ggplot2)
+library(lubridate)
+```
+
+```{r}
+#subset for the first day
+moviedataDay1 <- subset(movie.data, date == "2010-01-01")
+boxofficeDay1 <- subset(boxoffice.data, date == "2010-01-01")
+
+#compare tables for the numbers.com and box office data for one day
+table1 <- moviedataDay1 %>% 
+            kbl %>% 
+            kable_classic()
+
+table2 <- boxofficeDay1 %>% 
+            kbl %>% 
+            kable_classic()
+
+```
+Looking at the names of the movies, in the numbers.com data names that are too long are replaced with "&hellip;" instead of the rest of the title. In the box office data, this is not done and all of the movie names are complete.
+
+```{r}
+#look at changes over a month
+
+#numbers.com
+moviedataMonth <- movie.data[movie.data$date >= "2010-01-01" & movie.data$date <= "2010-01-31", ]
+
+numbers.line <- ggplot(data=moviedataMonth, aes(x=movie, y=gross, group=movie)) +
+                    geom_line(aes(color=movie))+
+                      geom_point(aes(color=movie))
+
+#box office
+boxofficedataMonth <- boxoffice.data[boxoffice.data$date >= "2010-01-01" & boxoffice.data$date <= "2010-01-31", ]
+
+boxoffice.line <- ggplot(data=boxofficedataMonth, aes(x=movie, y=gross, group=movie)) +
+                       geom_line(aes(color=movie))+
+                          geom_point(aes(color=movie))
+
+combined <- ggarrange(numbers.line, boxoffice.line,
+                        labels = c("Number.com", "Box Office"),
+                         ncol = 1, nrow = 2)
+```
+It looks like the change in movie gross over the month of January 2010 for both the numbers.com and box office data are the same. However, you can see in the list of movies that they are not the same
+
+```{r}
+#I want to compare the number of movies per month
+movie.month <- aggregate(gross~movie, data = moviedataMonth, FUN = sum)
+boxoffice.month <- aggregate(gross~movie, data = boxofficedataMonth, FUN = sum)
+
+#plot numbers.com
+movie.month.plot <- ggplot(data= movie.month, aes(x = reorder(movie, gross), 
+                                                y = gross, fill = reorder(movie, gross))) +
+  geom_bar(stat= "identity") +
+  xlab("") +
+  ylab("Movie Gross") +
+  ggtitle("January 2010 on Numbers.Com") +
+  scale_fill_discrete(name = "Movie Name") +
+  theme(axis.text.x= element_blank(),
+        axis.ticks.x=element_blank())
+
+#plot box office
+boxoffice.month.plot <- ggplot(data= boxoffice.month, aes(x = reorder(movie, gross), 
+                                                  y = gross, fill = reorder(movie, gross))) +
+  geom_bar(stat= "identity") +
+  xlab("") +
+  ylab("Movie Gross") +
+  ggtitle("January 2010 on Box Office") +
+  scale_fill_discrete(name = "Movie Name") +
+  theme(axis.text.x= element_blank(),
+        axis.ticks.x=element_blank())
+
+combined.month <- ggarrange(movie.month.plot, boxoffice.month.plot,
+                      ncol = 1, nrow = 2)
+
+nrow(boxoffice.month)
+nrow(movie.month)
+```
+While the aggregations look about the same for both websites, there are 29 more movies included in the numbers.com data for the month of January 2010 than are included in the box office data. It looks like there are missing movies in the box office data, not just duplicates or mistakes in the numbers.com data. While the box office data has nicer  formatted movie names, I think that it is more important to have all of the data and that we should use the numbers.com data set for our comparison with crime. 
 
 
+### Problem Set 7
+
+```{r}
+# to restart working with the data without having to rerun everything
+library(lubridate)
+library(sf)
+library(leaflet)
+library(jsonlite)
+library(crayon)
+setwd("/Users/briannafisher/Dropbox/CRIM 4002/11.8")
+load("PPD OIS final.RData")
+PPDmap <- st_read("Boundaries_PSA-shp 2")
+```
+
+```{r}
+# Search for hospitals
+ois$hospital <- "fill in"
+
+#look for Presby
+i <- grep("Presb",ois$text)
+cat(gsub("Presb", bgYellow$black$bold("Presb"), ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois$hospital[ois$id %in% c("22-07","22-03","20-29","19-04","18-02","17-13",
+                           "17-30","17-36","16-12","16-13","16-29","16-32",
+                           "16-35")] <- "Presby"
+
+#look for Hospital of the University of Pennsylvania
+i <- grep("Hospital of the University of Pennsylvania",ois$text)
+cat(gsub("Hospital of the University of Pennsylvania", 
+         bgYellow$black$bold("Hospital of the University of Pennsylvania"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois$hospital[ois$id %in% c("16-01")] <- "HUP"
+
+#look for Temple Hospital
+i <- grep("Temple Hospital",ois$text)
+cat(gsub("Temple Hospital", 
+         bgYellow$black$bold("Temple Hospital"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois[ois$id == "22-14",] 
+ois[ois$id == "22-10",]
+ois[ois$id == "22-06",]
+ois$hospital[ois$id %in% c("16-19", "18-28", "19-23", "20-33", "20-34",
+                           "22-14", "22-05", "21-10", "16-40", "16-43",
+                           "15-09", "20-30", "19-13", "19-14", "19-20",
+                           "18-01", "18-28", "17-19", "17-22", "17-23",
+                           "17-25", "17-17", "16-07", "16-28", "16-37")] <- "Temple Hospital"
 
 
+#look for Jefferson Hospital
+i <- grep("Jefferson Hospital",ois$text)
+cat(gsub("Jefferson Hospital", 
+         bgYellow$black$bold("Jefferson Hospital"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois[ois$date == "2020-05-09",] 
+ois[ois$location == "1300 Chancellor Street, Philadelphia, PA",] 
+ois$hospital[ois$id %in% c("20-15", "22-24")] <- "Jefferson Hospital"
+
+#look for Jefferson-Frankford Hospital
+i <- grep("Jefferson-Frankford",ois$text)
+cat(gsub("Jefferson-Frankford", 
+         bgYellow$black$bold("Jefferson-Frankford"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois$hospital[ois$id %in% c("20-32")] <- "Jefferson-Frankford"
+
+#look for Jefferson-Torresdale Hospital
+i <- grep("Jefferson-Torresdale",ois$text)
+cat(gsub("Jefferson-Torresdale", 
+         bgYellow$black$bold("Jefferson-Torresdale"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois$hospital[ois$id %in% c("20-08", "16-34")] <- "Jefferson-Torresdale"
+
+#look for Einstein Hospital
+i <- grep("Einstein Hospital",ois$text)
+cat(gsub("Einstein Hospital", 
+         bgYellow$black$bold("Einstein Hospital"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois$hospital[ois$id %in% c("22-22", "21-06", "21-04", "16-42", "20-26",
+                           "17-03", "17-37", "16-10", "16-33")] <- "Einstein Hospital"
+
+#look for Lankenau Hospital
+i <- grep("Lankenau Hospital",ois$text)
+cat(gsub("Lankenau Hospital", 
+         bgYellow$black$bold("Lankenau Hospital"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois$hospital[ois$id %in% c("21-15")] <- "Lankenau Hospital"
+
+#look for Episcopal Hospital
+i <- grep("Episcopal Hospital",ois$text)
+cat(gsub("Episcopal Hospital", 
+         bgYellow$black$bold("Episcopal Hospital"), 
+         ois$text[i]),
+    sep="\n\n")
+cat(paste(ois$id[i], collapse='","'))
+ois$hospital[ois$id %in% c("16-03")] <- "Episcopal Hospital"
 
 
+#people who died at the scene / were not injured / did not specify the hospital
+ois$hospital[ois$id %in% c("22-10", "22-06", "22-15", "21-14", "20-23",
+                           "22-09", "22-08", "22-04", "22-01", "21-12",
+                           "21-09", "15-02", "15-06", "15-10", "15-12",
+                           "20-31", "20-07", "20-20", "20-24", "19-06",
+                           "19-09", "19-11", "19-21", "18-08", "18-12",
+                           "18-19", "18-25", "18-27", "17-20", "17-28",
+                           "20-09", "20-12", "18-16", "18-17", "18-22",
+                           "18-26", "16-02", "16-11", "16-16", "16-18",
+                           "16-30", "16-38")] <- "NA"
+
+#make sure all of the hospitals are there
+sum(table(ois$hospital)) #+42 NA's
 
 
+#get the coordinates for each hospital
+hospitals <- textConnection(
+  "hospital;address;lon;lat
+Presby;51 N 39th St, Philadelphia, PA 19104;-75.19880;39.95887
+HUP;3400 Spruce St, Philadelphia, PA 19104;-75.19361;39.94999
+Temple;3401 N Broad St, Philadelphia, PA 19140;-75.150819;40.005273
+Jefferson;111 S 11th St, Philadelphia, PA 19107;-75.158308;39.949733
+Jefferson-Frankford;4900 Frankford Ave, Philadelphia, PA 19124;-75.081505;40.019822
+Jefferson-Torresdale;10800 Knights Rd, Philadelphia, PA 19114;-74.982773;40.071286
+Einstein;5501 Old York Rd, Philadelphia, PA  19141;-75.142147;40.036707
+Lankenau;100 E Lancaster Ave, Wynnewood, PA  19096;-75.261515;39.987894
+Episcopal;100 E Lehigh Ave, Philadelphia, PA  19125;-75.128937;39.990027")
+hospitals <- read.table(hospitals, sep=";", header=TRUE)
+
+#if you use the geocode function instead of adding coordinates
+# a <- lapply(hospitals$address, geocodeARCGIS)
+# hospitals$lon <- sapply(a, function(x) x$candidates$location$x[1])
+# hospitals$lat <- sapply(a, function(x) x$candidates$location$y[1])
+
+#create colors for each hospital
+#hospitals$col <- hcl.colors(nrow(hospitals), "Blue-Red 3)
+```
+
+```{r}
+# convert to sf object
+hospitals <- st_as_sf(hospitals,    
+                      coords=c("lon","lat"),
+                      crs=4326)
+
+#plot the locations of each hospital
+plot(st_geometry(PPDmap))
+plot(st_geometry(hospitals), add=TRUE, pch=19, col="blue")
+
+#add a label
+#text(st_coordinates(hospitals), labels = substring(hospitals$hospital,1,2))
+
+#plot the officer involved shootings that resulted in a hospital visit
+ois.hospital <- subset(ois, ois$hospital!="NA")
+plot(st_geometry(ois.hospital), add=TRUE, pch=19, col="hotpink")
+```
+
+```{r}
+#calculate the distance from each shooting to the hospitals
+dist <- st_distance(ois.hospital, hospitals)
+
+#add column to find which hospital is closest
+ois.hospital$closest <- NA
+for(i in 1:nrow(ois.hospital))
+{
+  
+  results <- which.min(dist[i,])
+  
+  if (results == 1) {
+    ois.hospital$closest[i] <- "Presby"
+  } else if (results == 2) {
+    ois.hospital$closest[i] <- "HUP"
+  } else if (results == 3) {
+    ois.hospital$closest[i] <- "Temple Hospital"
+  } else if (results == 4) {
+    ois.hospital$closest[i] <- "Jefferson Hospital"
+  } else if (results == 5) {
+    ois.hospital$closest[i] <- "Jefferson-Frankford Hospital"
+  } else if (results == 6) {
+    ois.hospital$closest[i] <- "Jefferson-Torresdale Hospital"
+  } else if (results == 7) {
+    ois.hospital$closest[i] <- "Einstein Hospital"  
+  } else if (results == 8) {
+    ois.hospital$closest[i] <- "Lankenau Hospital"
+  } else if (results == 9) {
+    ois.hospital$closest[i] <- "Episcopal Hospital"  
+  } else {
+    cat("Skipping\n")
+  }
+}
+
+#another way to do this
+# iclosest <- apply(dist, 1, which.min)
+# table(actual=hospitals$hospital[i],
+#  closest=hospitals$hospital[iclosest])
+# 100*mean(i==iclosest)
 
 
+#add column to see whether they were taken to the closest hospital
+ois.hospital$yes.closest <- NA
+for(i in 1:nrow(ois.hospital))
+{
+  if (ois.hospital$hospital[i] == ois.hospital$closest[i]) {
+    ois.hospital$yes.closest[i] <- 1
+  } else {
+    ois.hospital$yes.closest[i] <- 0
+  }
+}
+
+```
 
 
+```{r}
+#calculate in what percentage of PPD shootings do PPD officers transport the individuals 
+#they shoot to the nearest hospital?
 
+(sum(ois.hospital$yes.closest == 1))/54
+```
+In 44% of PPD shootings PPD officers transport the individuals they shoot to the nearest hospitals.
 
+### Final Exam
 
+__1. Setup the data, load the libraries, and inspect the data__
 
+__a. Load `finaldata2022.RData` file and the `lubridate` and `sf` packages. `finaldata2022.RData` contains two R objects:  `stops` is a data frame with all traffic stops made in Nashville in 2017 and 2018.  `precincts` is a geographic object describing the Nashville Police Precincts. (2 points)__
+```{r}
+setwd("/Users/briannafisher/Dropbox/Github/BriannaFisher/")
+load("data/finaldata2022.RData")
+
+library(lubridate)
+library(sf)
+```
+
+__b. Show the first 2 lines of the `stops` dataset. (2 points)__
+```{r}
+stops[1:2,]
+```
+
+__c. Write code that outputs the column names of the `stops` dataset. For the stop recorded in row 150, report the `violation` for which the driver was stopped and the `outcome` of the stop. (3 points)__
+```{r}
+names(stops)
+stops[150, c("violation", "outcome")]
+```
+For row 150, the violation was a safety violation and the outcome was a warning.
+
+__d. How many rows and columns are there in the `stops` dataset? (2 points)__
+```{r}
+nrow(stops)
+ncol(stops)
+dim(stops)
+```
+There are 449782 rows and 18 columns in the dataset. 
+
+__e. There is a single individual who was arrested (`arrest_made`) after a stop for "child restraint" (`violation`). Write code that displays the sex, age, and race of this individual.  (2 points)__
+```{r}
+with(stops, subject_sex[arrest_made == TRUE & violation == "child restraint"])
+with(stops, subject_age[arrest_made == TRUE & violation == "child restraint"])
+with(stops, subject_race[arrest_made == TRUE & violation == "child restraint"])
+```
+The individual who was arrested for a child restraint violation is a 61 year old Black female.
+
+__2. Fix Data Errors, Work with Time Variables and Create a New Dataset__
+
+__a. Use the appropriate `lubridate` functions to transform `date` into a properly formatted and stored date object. Also, create a new variable in the `stops` data frame called `year` for the year in which a stop was made. (2 points)__
+```{r}
+stops$date <- ymd(stops$date)
+is(stops$date) #check that it worked
+
+stops$year <- year(stops$date)
+is(stops$year)
+table(stops$year)
+```
+
+__b. Create a new data frame called `stops_underage` that only contains stops from 2018 of underage drivers (younger than 16). (2 points)__
+```{r}
+stops_underage <- subset(stops, year == 2018 & subject_age < 16)
+table(stops_underage$subject_age)
+table(stops_underage$year)
+```
+
+__c. In your `stops_underage` dataset, how old was the youngest stopped driver in 2018? How many drivers stopped were (strictly) younger than 14? (2 points)__
+```{r}
+table(stops_underage$subject_age)
+```
+The youngest driver that was stopped in 2018 was 10 years old.
+
+```{r}
+sum(stops_underage$subject_age == 10)+sum(stops_underage$subject_age == 11)+
+  sum(stops_underage$subject_age == 12)+sum(stops_underage$subject_age == 13)
+1+1+2+3 #or add up the table responses
+```
+7 drivers were stopped that were younger than 14.
+
+__d. What percent of all stop locations in the full `stop` dataset include the words `MURFEESBORO PIKE`? (Hint: You might want to use `grepl()`.) (4 points)__
+```{r}
+sum(grepl("MURFREESBORO PIKE", stops$location))
+
+(28555/449782)*100
+```
+6.35% of the stop locations include the words Murfreesboro Pike
+
+__e. Drop all stops for which no time was recorded in the dataset. (2 points)__
+```{r}
+sum(is.na(stops$time))
+stops <- subset(stops, stops$time != is.na(stops$time))
+```
+
+__f. Count the number of stops that were recorded to occur *exactly* on the hour or at half past the hour. (e.g. ..., 09:30:00, 10:00:00, 10:30:00, ...). (Hint: consider using `grep()`) (4 points)__
+```{r}
+sum(table(grep("[0-9]\\:(0)(0)\\:(0)(0)|[0-9]\\:(3)(0)\\:(0)(0)", stops$time, value=TRUE)))
+```
+There were 19159 stops recorded to occur exactly on the hour or at half past the hour.
+
+__g. Create a new column called `hour_of_stop` that lists the hour in which a stop was made. In what hour of the day do officers make the least stops? (4 points)__
+```{r}
+stops$time <- hms(stops$time)
+stops$hour_of_stop <- hour(stops$time)
+
+sort(table(stops$hour_of_stop))
+```
+Officers make the least amount of stops at 6 am.
+
+__h. Create a new variable called `drugs_or_weapons` that equals 1 if `contraband_weapons` or `contraband_drugs` is `TRUE` and equals 0 otherwise. For each stop `outcome`, calculate the percentage of stops in which either drugs or weapons were found. For which value of `outcome` do the police most frequently find contraband (weapons or drugs)? (Hint: Use `aggregate()`) (5 points)__
+```{r}
+stops$drugs_or_weapons <- 0
+stops$drugs_or_weapons[stops$contraband_drugs == "TRUE" | stops$contraband_weapons == "TRUE"] <- 1
+
+aggregate(drugs_or_weapons~outcome, stops, mean)
+```
+Police most frequently find contraband when the outcome of the stop is an arrest.
+
+__i. For each `stop_precinct`, how many unique zones are there? (Hint: `function(x) length(unique(x))` will give you the number of unique values... consider combining with `aggregate()`) (3 points)__
+```{r}
+length(unique(stops$stop_precinct))
+
+table(stops$zone)
+aggregate(zone~stop_precinct, stops, unique)
+```
+For precinct 1, there are 7 unique zones. For precinct 2, there are 8 unique zones. For precinct 3, there are 10 unique zones. For precinct 4, there are 6 unique zones. For precinct 5, there are 11 unique zones. For precinct 6, there are 8 unique zones. For precinct 7, there are 7 unique zones. For precinct 8, there are 9 unique zones.
+
+__j. Calculate the number of stops in 2018 by month of stop and type of `violation`. (4 points)__
+```{r}
+stops$month <- month(stops$date)
+aggregate(raw_row_number~violation+month, subset(stops, year == 2018), length)
+```
+
+__3. Examine the behavior of Officer ffd40c04a1__
+
+__a. Create a new dataframe called `officer1` that contains all stops made by officer with `officer_id` ffd40c04a1. (2 points).__
+```{r}
+officer1 <- subset(stops, officer_id == "ffd40c04a1")
+```
+
+__b. How many days passed between the first day on which this officer made a stop, and the last day on which this officer made a stop? (Hint: Use `difftime()` to calculate the number of days.) (5 points)__
+```{r}
+difftime(max(officer1$date),
+          min(officer1$date),
+          units = "days")
+
+range(officer1$date)
+
+difftime("2018-12-07",
+         "2017-01-03",
+         units = "days")
+```
+703 days passed between the first day on which this officer made a stop and the last day.
+
+__c. On what day did Officer ffd40c04a1 make the most stops? What do you notice about the location of the stops that this officer made on this day? (4 points)__
+```{r}
+sort(table(officer1$date))
+officer1[officer1$date == "2018-06-10",]
+```
+Officer ffd40c04a1 made the most stops of 06/10/2018. The location for all of these stops on this day is the same place.
+
+__d. Create `arrestDates` to be the collection of dates on which Officer ffd40c04a1 made an arrest. For each of the dates in `arrestDates`, count how many stops the officer made. (4 points)__
+```{r}
+arrestDates <- subset(officer1, arrest_made == "TRUE")
+
+officer1[officer1$date == "2017-01-11",] #3
+officer1[officer1$date == "2017-04-05",] #3
+officer1[officer1$date == "2017-06-22",] #1
+officer1[officer1$date == "2018-01-04",] #2
+officer1[officer1$date == "2018-01-19",] #1
+officer1[officer1$date == "2018-02-01",] #2
+officer1[officer1$date == "2018-03-05",] #1
+officer1[officer1$date == "2018-03-26",] #1
+officer1[officer1$date == "2018-04-10",] #1
+officer1[officer1$date == "2018-06-20",] #1
+```
+
+__e. Create a function called `last_stop_arrest()` that takes in a date and returns `TRUE` if the officer made an arrest during their last stop on the given day, and `FALSE` otherwise. Use your function `last_stop_arrest()` to check if the last stop on `"2017-01-11"` involved an arrest. `last_stop_arrest("2017-01-11")` should give you a value of `TRUE` or `FALSE`. (6 points)__
+```{r}
+last_stop_arrest <- function(x)
+{
+  if (isTRUE(max(officer1$time[x])) ==
+      isTRUE(officer1$arrest_made[x] == "TRUE")) {
+    return( TRUE )
+  } else {
+    return( FALSE )
+  }
+}
+
+last_stop_arrest("2017-01-11")
+```
+2017-01-11 did involve an arrest.
+
+__f. Make a barplot counting the number of Officer ffd40c04a1's stops by `outcome`. Label both the x and y axis and name the graph. (5 points)__
+```{r}
+data <- aggregate(raw_row_number~outcome, officer1, length)
+
+barplot(data$raw_row_number, names.arg = data$outcome, ylab = "Number of Stops",
+        xlab = "Outcome", main = "Officer ffd40c04a1's Stops by Outcome")
+```
+
+__4. Work with geographic data__
+
+__a. Plot the Nashville Police Precincts (2 points)__
+```{r}
+plot(st_geometry(precincts))
+```
+
+__b. Plot `precincts` and add the precinct names as labels. Use `st_centroid()` and `st_coordinates()` to retrieve the coordinates of the centers of precincts and `text()` to add the labels. Make sure the names are small enough that they do not overlap each other. (Ignore warnings of "st_centroid assumes attributes are constant over geometries of x") (6 points)__
+```{r}
+plot(st_geometry(precincts))
+labs <- with(precincts, paste0(precincts$precinct))
+text(st_coordinates(st_centroid(precincts)),
+     labels=labs, col="hotpink", cex = 0.5)
+```
+
+__c. Make a data frame called `arrests` containing only stops resulting in arrests, eliminating all observations with missing latitude or longitude. (3 points)__
+```{r}
+arrests <- subset(stops, arrest_made == "TRUE" & lat != is.na(lat) & lng != is.na(lng))
+```
+
+__d. Convert `arrests` into an `sf` spatial object called `arrests_sf`. You need to specify the correct values for `coords` and `crs`. Then make sure your new `arrests_sf` has the same CRS as `precincts`, transforming if necessary. (5 points)__
+```{r}
+arrests_sf <- st_as_sf(arrests,
+                     coords=c("lng","lat"),
+                     crs=4326)
+
+st_crs(precincts)
+arrests_sf <- st_transform(arrests_sf, st_crs(precincts))
+```
+
+__e. Plot the police precincts and plot all arrest locations. Color the districts in grey and arrests in red. Additionally, for arrests set arguments `pch=20` and `cex=0.3`. By looking at the map, are there any arrests outside the city boundaries? (5 points)__
+```{r}
+plot(st_geometry(precincts), col = "grey")
+plot(st_geometry(arrests_sf), add = TRUE, col = "red", pch = 20, cex = 0.3)
+```
+By looking at the map, there looks like there is one arrest outside of city boundaries in the top right hand corner.
+
+__f. Use `st_join()` to determine in which precinct each arrest occurred. To do so, note the `precincts` map object has a column called `precinct`. Use `st_join()` to merge `arrests_sf` with `precincts[,"precinct"]` making a new object called `arrests_precincts`. (3 points)__
+```{r}
+arrests_precincts <- st_join(arrests_sf, precincts[,"precinct"])
+```
+
+__g. `stop_precinct` reports the precinct in which the officer reported the stop occurred. Of the arrests the officer reported occurred in precinct 4 (which is the CENTRAL precinct), how many of the arrests had coordinates that were not in the CENTRAL precinct? (2 points)__
+```{r}
+precinct4 <- subset(arrests_precincts, stop_precinct == 4)
+central <- subset(precincts, precinct == "CENTRAL")
+
+i <- st_intersects(precinct4, central)
+precinct4$incentral <- lengths(i) > 0
+
+table(precinct4$incentral)
+```
+There are 10 arrests that had coordinates that were not in the central precinct
+
+__h. Plot just the CENTRAL precinct. Color the precinct in grey and arrests in red. Plot a blue triangle (`pch=17`) for the one individual whose race is "unknown". Make the blue triangle bigger than the red dots so that it is easier to see. (6 points)__
+```{r}
+plot(st_geometry(subset(precincts, precinct == "CENTRAL")), col = "grey")
+plot(st_geometry(subset(arrests_precincts, precinct == "CENTRAL")), 
+     col = "red", add = TRUE, pch = 20, cex = 0.3)
+plot(st_geometry(subset(arrests_precincts, precinct == "CENTRAL" & subject_race == "unknown")), 
+     col = "blue", add = TRUE, pch = 17, cex = 1)
+```
+
+__i. For each precinct, compute the percentage of arrests for which contraband drugs are found. Color precincts with drug recovery rates between 0-15% `white`, 15%-20% `orange`, and over 20% `red`. (8 points)__
+```{r}
+drug.data <- aggregate(drugs_or_weapons~precinct, arrests_precincts, mean)
+
+i <- match(precincts$precinct, drug.data$precinct)
+precincts$drugs_or_weapons <- drug.data$drugs_or_weapons[i]
+
+plot(st_geometry(precincts), col = "grey")
+plot(st_geometry(subset(precincts, precinct == "CENTRAL")), col = "orange", add = TRUE)
+plot(st_geometry(subset(precincts, precinct == "EAST")), col = "white", add = TRUE)
+plot(st_geometry(subset(precincts, precinct == "HERMITAGE")), col = "white", add = TRUE)
+plot(st_geometry(subset(precincts, precinct == "MADISON")), col = "orange", add = TRUE)
+plot(st_geometry(subset(precincts, precinct == "MIDTOWN-HILLS")), col = "red", add = TRUE)
+plot(st_geometry(subset(precincts, precinct == "NORTH")), col = "red", add = TRUE)
+plot(st_geometry(subset(precincts, precinct == "SOUTH")), col = "orange", add = TRUE)
+plot(st_geometry(subset(precincts, precinct == "WEST")), col = "orange", add = TRUE)
+```
 
 
 
