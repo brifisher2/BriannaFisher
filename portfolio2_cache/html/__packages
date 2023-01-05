@@ -32,3 +32,6 @@ reshape2
 sf
 jsonlite
 crayon
+gapminder
+scales
+ggthemes
