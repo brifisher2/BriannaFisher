@@ -430,6 +430,2232 @@ plot(y=UNICEF$Neonatal.Mortality.Rate, x=UNICEF$GNI.Per.Capita,
 When looking at the relationship between Gross National Income per capita and Neonatal Mortality Rate, the correlation can be calculated as -0.56. This indicates that there is a negative association between Gross National Income per capita and Neonatal Mortality Rate. This can also be seen in the plot of Gross National Income per capita and Neonatal Mortality Rate, with Neonatal Morality Rate decreasing as Gross National Income per capita increases.
 
 
+### Problem Set 3
+
+__Question 1a__
+```{r}
+library(rio)
+library(tidyr)
+library(dplyr)
+
+#the rio package reads in the data from excel
+mont_untouched <- rio::import("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/2018-General-Montgomery.xls")
+mont <- mont_untouched
+dekalb <- read.csv("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/dekalb-cleaned.csv")
+
+#first, dim is used to see how many columns are coded as precincts. Then the gather function is used to 
+#put all of the precincts in one column
+dim(mont)
+
+mont <- gather(mont, key = "precinct", value = "votes", 4:54)
+
+#Using !grepl, I can remove the columns with the over and under votes and the number of registered voters and 
+#ballots cast in each precinct
+mont <- mont[!grepl("Over Votes", mont$Candidate),]
+mont <- mont[!grepl("Under Votes", mont$Candidate),]
+mont <- mont[!grepl("REGISTERED VOTERS", mont$`Contest Title`),]
+mont <- mont[!grepl("BALLOTS CAST", mont$`Contest Title`),]
+row.names(mont) <- 1:nrow(mont)
+
+#na.omit is used to remove the rows with missing vote data
+mont <- na.omit(mont)
+
+mont <- rename(mont, "office" = "Contest Title", "party" = "Party",
+               "candidate" = "Candidate")
+
+#the recode function is used to clean the values within the party variable
+unique(mont$party)
+
+mont$party <- recode(mont$party, "DEM" = "Democrat", "REP" = "Republican", "NON" = "No party",
+               "IND" = "Independent")
+
+#you can create new variables for the state and county
+mont$state <- "Alabama"
+mont$county <- "Montgomery"
+
+#the "c" function reorders the columns
+mont <- mont[, c(6, 7, 4, 1, 3, 2, 5)]
+```
+
+__Question 1b__
+```{r}
+#first create vectors with what you want to loop over
+office <- unique(mont$office)
+office
+
+precinct <- unique(mont$precinct)
+precinct
+
+#create a matrix to store the results of the loop
+office.precinct <- matrix(NA, nrow=length(precinct), ncol=length(office))
+
+#loop over the votes for the precincts and offices
+for(j in 1: length(office)){
+  
+  for(i in 1:length(precinct)){
+    office.precinct[i,j] <-  sum(mont$votes[mont$precinct==precinct[i] & mont$office==office[j]], 
+                                 na.rm=T)
+  }
+  
+}
+
+#you can use the max function to find the maximum number of votes in one precinct/office
+#combination
+max(office.precinct)
+
+#which will tell you the exact row / column of the office / precinct
+which(office.precinct == max(office.precinct), arr.ind = T)
+
+#I can subset from my vectors to find the names of the combination
+office[3]
+
+precinct[23]
+```
+The office-precinct combination that had the highest number of votes is the 305 F precinct and Governor office with 4675 votes.
+
+__Question 1c__
+```{r}
+#You can first find the mean since this is the statistic we want
+mean(mont$votes[mont$party=="Democrat" & mont$office=="GOVERNOR"],na.rm=T)
+mean(mont$votes[mont$party=="Republican" & mont$office=="GOVERNOR"],na.rm=T)
+
+#you can then use a t test to find out if either means are statistically significant
+diff.test <- t.test(mont$votes[mont$party=="Democrat" & mont$office=="GOVERNOR"],
+                    mont$votes[mont$party=="Republican" & mont$office=="GOVERNOR"])
+
+diff.test
+```
+The average number of votes for the Democratic candidate for Governor was 955. The average number of votes for the Republican candidate for Governor was 559. These two numbers are statistically distinguishable from one another. If the average number of votes for the Democratic and Republican candidates for Governor is the same, we would expect to see a difference in the means 0.44% of the time. Since the p-value (0.0044) is so low, we can reject the null hypothesis. There is significant statistical evidence to support that the two means are statistically distinguishable from each other.
+
+__Question 2a__
+```{r}
+# You can use the sample function to simulate fliping a coin
+dodgers.win.prob <- c(1,1,1,1,1,1,0,0,0,0)
+
+sample(dodgers.win.prob, size = 7, replace = TRUE) #output: 0 0 1 1 1 0 1
+
+dodgers <- sum(sample(dodgers.win.prob, size = 7, replace = TRUE))
+```
+In my simulation, the Dodgers won a majority of the games (actually four exactly), therefore winning the world series.
+
+__Question 2b__
+```{r}
+#first create an empty vector to put the results
+dodgers.wins <- rep(NA, 10000)
+
+#Then you can use a for loop to simulate the same 7-game world series 10,000 times
+for(i in 1:10000){
+  dodgers.wins[i]<- sum(sample(dodgers.win.prob, size = 7, replace = TRUE))
+  
+}
+
+#you can create a probability table of the results
+prob.dodgers.wins <- prop.table(table(dodgers.wins))
+print(prob.dodgers.wins)
+
+#to find the proportion of times the Dodgers won 4 or more games, you can sum the results
+sum(prob.dodgers.wins[5:8])
+```
+The Dodgers win four or more games 71.33% of the time.
+
+__Question 2c__
+```{r}
+#You can use sequence to make a vector with every second game
+odd.games <- seq(7, 151, by = 2)
+dodgers.win.95 <- rep(NA, length(odd.games))
+
+#you can use a double for loop to find the wins for the length of the series
+for(j in 1:length(odd.games)){
+  for(i in 1:10000){
+    dodgers.wins[i]<- sum(sample(dodgers.win.prob, size = odd.games[j], replace = TRUE))
+    
+  }
+  dodgers.win.95[j]<- prop.table(table(dodgers.wins >= (odd.games[j]/2)))["TRUE"]
+}
+
+print(dodgers.win.95)
+
+#you can use the plot function to make a graph of the proportion of times the better team
+# wins and the series length
+plot(x = odd.games, y = dodgers.win.95, xlab = "Series Length", ylab = 
+"Proportion of Times the Better Team Wins", main = "Simulated World Series Wins")
+abline(h=0.95)
+```
+The series would have to be around 67 games in order for the better team to win 95% of the 10,000 simulated world series games.
+
+__Question 2d__
+Given the current series length, we cannot reject the null hypothesis that the better team should win 50% of the time. Because the standard is that better team should win 95% of the time, our value of 71.33% is statistically insignificant when they only play seven games.
+
+
+### Problem Set 4
+```{r}
+fem <- read.csv("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/washington_replication_data.csv")
+
+#You can use the dim full get the number of members in Congress since each row corresponds to a member
+dim(fem)
+
+#you can use the sum function to add the number of females and divide it by the total number of members to
+#get the proportion of females in Congress
+sum(fem$female)/435
+
+#doing this gets the same answer
+mean(fem$female, na.rm = T)
+
+#you can use the sum function to add the number of republicans (when party = 2) and divide it by the 
+#total number of members to get the proportion of females in Congress
+sum(fem$party==2)/435
+
+#doing this gets the same answer
+mean(fem$party == 2, na.rm = T)
+
+#you can create logical variables for democrats and women in order to find the proportions
+fem$women <- fem$female == 1
+fem$democrat <- fem$party == 1
+mean(fem$women[fem$democrat], na.rm = T)
+
+#you can do the same thing for republicans
+fem$rep <- fem$party == 2
+mean(fem$women[fem$rep], na.rm = T)
+```
+There are 435 members of Congress in the dataset. 11.03% of the representations are women. 52.41% of the representatives are republicans. 16.50% of democrats are women. 6.14% of republicans are women.
+
+__Question 1b__
+```{r}
+#you can use the summary function to find the summary statistics of the AAUW variable
+summary(fem$aauw)
+
+#you can use the table function to see how many legislators have each score
+table(fem$aauw)
+
+#you can create logical variables for democrats and people who have a score of 100 in order to 
+#find the proportions
+fem$dem.100 <- fem$aauw == 100
+sum(fem$women[fem$dem.100], na.rm = T)
+
+#you can create logical variables for democrats and people who have a score of 0 in order to 
+#find the proportions
+fem$dem.0 <- fem$aauw == 0
+sum(fem$women[fem$dem.0], na.rm = T)
+```
+The mean of the AAUW’s legislative score variable is 47.31, the median is 38, the minimum is 0, and the maximum is 100. 135 legislators have a score of 0, while 112 legislators have a score of 100. 30 democrats have a score of 100, while 5 have a score of 0.
+
+__Question 1c__
+```{r}
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg1 <- lm(aauw ~ female, data=fem)
+summary(reg1)
+```
+The coefficient for the intercept (legislative support for feminist issues) is 43.765 and the coefficient for the legislator’s gender (whether or not they are female) is 32.11. Women are more likely to support feminist issues than men by 32.11 points, on average. When the legislator is male (when the female variable equals zero), the average legislative support for feminist issues is 43.765 points.
+
+__Question 1d__
+```{r}
+#you can create a republican variable by subsetting for the people who responded 2 to the party question
+fem$republican <- NA
+fem$republican[fem$party == 1] <- 0
+fem$republican[fem$party == 2] <- 1
+fem$republican[fem$party == 3] <- 0
+
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg2 <- lm(aauw ~ female + republican, data=fem)
+summary(reg2)
+```
+The coefficient for the intercept (legislative support for feminist issues) is 84.072, the coefficient for the legislator’s gender (whether or not they are female) is 13.063, and the coefficient for the legislator being republican is -72.891. When the legislator is male and a democrat (or independent), the average legislative support for feminist issues is 84.072. Women are more likely to support feminist issues than men by 13.063 points, on average, when holding republicans fixed. Republicans are less likely to support feminist issues than Democrats or Independents by 72.891 points, on average, when holding women fixed.
+
+__Question 1e__
+```{r}
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg3 <- lm(aauw ~ female + demvote, data=fem)
+summary(reg3)
+
+#this tells you the change when you increase democratic vote share by 10 percentage points
+216.619/10
+```
+Holding gender fixed, the AAUW score increases by 21.662 points when you increase the Democratic vote share by 10 percentage points.
+
+__Question 1f__
+```{r}
+#you can create separte variables for the different religions
+#none coded
+fem$rel.none <- NA
+fem$rel.none[fem$rgroup == 0] <- 1
+fem$rel.none[fem$rgroup == 1] <- 0
+fem$rel.none[fem$rgroup == 2] <- 0
+fem$rel.none[fem$rgroup == 3] <- 0
+fem$rel.none[fem$rgroup == 4] <- 0
+
+#protestant
+fem$rel.prot <- NA
+fem$rel.prot[fem$rgroup == 0] <- 0
+fem$rel.prot[fem$rgroup == 1] <- 1
+fem$rel.prot[fem$rgroup == 2] <- 0
+fem$rel.prot[fem$rgroup == 3] <- 0
+fem$rel.prot[fem$rgroup == 4] <- 0
+
+#catholic/orthodox
+fem$rel.cath <- NA
+fem$rel.cath[fem$rgroup == 0] <- 0
+fem$rel.cath[fem$rgroup == 1] <- 0
+fem$rel.cath[fem$rgroup == 2] <- 1
+fem$rel.cath[fem$rgroup == 3] <- 0
+fem$rel.cath[fem$rgroup == 4] <- 0
+
+#christian
+fem$rel.chris <- NA
+fem$rel.chris[fem$rgroup == 0] <- 0
+fem$rel.chris[fem$rgroup == 1] <- 0
+fem$rel.chris[fem$rgroup == 2] <- 0
+fem$rel.chris[fem$rgroup == 3] <- 1
+fem$rel.chris[fem$rgroup == 4] <- 0
+
+#jewish
+fem$rel.jew <- NA
+fem$rel.jew[fem$rgroup == 0] <- 0
+fem$rel.jew[fem$rgroup == 1] <- 0
+fem$rel.jew[fem$rgroup == 2] <- 0
+fem$rel.jew[fem$rgroup == 3] <- 0
+fem$rel.jew[fem$rgroup == 4] <- 1
+
+#you can use the linear model function to run a regression, and the summary function to display the output
+reg4 <- lm(aauw ~ female + demvote + rel.prot + rel.cath + rel.chris + rel.jew, data=fem)
+summary(reg4)
+
+#this tells you the change when you increase democratic vote share by 10 percentage points
+201.269/10
+```
+When the legislator is male, has no religion, and has a 0 for the democratic vote share, the average legislative support for feminist issues is 17.924. When holding religion and democratic vote share fixed, women are more likely to support feminist issues than men by 17.924 points. When holding religion and sex fixed, the democratic vote share increases by 20.1269 points. When holding sex, democratic vote share, Catholics, Christians, and Jews fixed, legislators who are Protestant are less likely than those who have no religion to support feminist issues by 35.144 points. When holding sex, democratic vote share, Protestants, Christians, and Jews fixed, legislators who are Catholic are less likely than those who have no religion to support feminist issues by 31.692 points. When holding sex, democratic vote share, Catholics, Protestants, and Jews fixed, legislators who are Christian are less likely than those who have no religion to support feminist issues by 39.369 points. When holding sex, democratic vote share, Catholics, Christians, and Protestants fixed, legislators who are Jewish are less likely than those who have no religion to support feminist issues by 7.602 points.
+
+
+### Problem Set 6
+
+Because of the importance of the economy during an election and the different platforms on taxes and spending by both the Democratic and Republican parties, as well as the large difference between the average feeling thermometer score in regard to approval of the economy, I chose to model how a respondent feels about how the President (Barack Obama) is handling the economy to help explain why people like Donald Trump.
+```{r}
+
+```
+
+After running a bivariate regression between these two variables, I found that people who approved of how Obama was handling the economy were less likely to like Trump by 33 points than someone who disapproved of how the economy was handled. I also found that the average support for Trump when someone does not approve of how the economy was handled by Obama was 58 points.
+
+When controlling for party, sex, and age, people who approved of how Obama was handling the economy were still less likely to like Trump, but now by 21 points. Also similar to the bivariate regression, when someone was over 65 years old, male, republican, and disapproved of how Obama was handling the economy, the average support for Trump was 73 points. When holding sex and age fixed, democrats were less likely to like Trump than republicans by 23 points, while independents were less likely to like Trump than republicans by 15 points. When holding party and sex fixed, people who were aged 30 to 49 were less likely to like Trump than people aged 65 and older by 14 points. I did not see any significant difference in support for Trump between males and females, between people aged 18 to 29 and people aged 65 and older, and between people aged 50 to 64 and people aged 65 and older.
+
+Both of the results for how the economy was being handled by Obama from the regressions are statistically significant, with p-values less than 0.01, meaning that we can reject the null hypothesis that approval of how Obama was handling the economy would not impact whether or not people like Trump.
+
+
+### Final Project - Public Defender Representation Leads to Longer Prison Sentences
+Public defenders make up the backbone of our society. They guarantee the right to representation, a fair trial, and above all else, the ability to have someone with real, legal knowledge stand up for you in court.
+
+The Sixth amendment guarantees everyone the right to counsel in all criminal prosecutions; however, public defenders are underpaid and overworked, as well as have little time to prepare for each case. In effect, the Sixth amendment was created to make sure that everybody has an adequate defense regardless of the severity of the crime, their ability to pay, or any other circumstance that could interfere with a fair trial. When public defenders do not have the time or resources to properly craft a defense, it uncovers a systemic crack within the Justice System: is the Sixth amendment actually more detrimental to a defendant than helpful, rendering this guarantee essentially useless?
+
+This idea can be studied by looking at whether or not court appointed counsel has a larger impact on sentence length than other representation types. After analyzing data from official court records for defendants convicted and sentenced to serve time in jail and those convicted and sentenced to pay a fine for Driving While Intoxicated in Minnesota in 1982, the answer is yes, a defendant represented by a public defender is more likely to have a longer prison sentence than someone represented by a private attorney or someone that represented themselves.
+
+
+
+
+On average, people represented by public defenders spend almost 10 days in prison. However, those represented by private attorneys or pro se (those that represented themselves), spend as little as 3.15 days in prison.
+
+To model this further, I examined the relationship between representing yourself in court and being represented by a public defender or private attorney, as well as controlling for age and sex (since females are less likely than males to be convicted of Driving While Intoxicated and people over 65 are less likely to be driving).
+
+
+
+
+When a defendant was male, older than 65 years old, and represented by a public defender, their average sentence length for Driving While Intoxicated was 9.67 days. However, when holding sex and age fixed, having a private attorney as representation is associated with a 7 day decrease in sentence length. Seven fewer days in prison for the same crime because someone was fortunate enough to be represented by a private attorney rather than a public defender clearly indicates that there are foundational problems that need to be investigated within public defender offices as a whole.
+
+After looking at the data, I also thought that it was unusual that so many people were not only representing themselves, but also receiving lessor sentences than people represented by public defenders. Originally, I thought that people who represent themselves might have less serious cases, and therefore get shorter sentences regardless of representation. However, people who represent themselves were actually more likely to have a blood alcohol content over 0.10 (with 0.08 being the legal limit) than those represented by public defenders and private attorneys, as well as be convicted of a second charge of Driving While Intoxicated. This could possibly be caused by whether or not Minnesota public defender offices have less resources than other areas and public defenders are more accustomed to receiving longer sentences for their defendants, but I would need more research and data in order to determine the actual cause.
+
+This leads to the question, why is the Sixth amendment failing so many defendants?
+
+Public defender offices act more like factories, where cases come in the front door and go out the back within the same breath. Each case gets a formulaic defense that is applied within the couple of minutes that public defenders have to review it before acting as representation in court. There is a focus on brevity and completeness, rather than a fair and personalized defense for each individual.
+
+This has, in turn, led to the increased implementation of plea deals, which help to alleviate the number of trials carried out by prosecutors but are used in place of putting in the time and resources to thoroughly review a case. As a result, prisoners are carrying out sentences that are almost always too long for the crime committed but act as a result of an insufficient plea deal.
+
+The crutch of using a plea deal could be a factor in the additional seven days spent in prison by someone represented by a public defender. This highlights the disparity between being able to afford better representation and invoking one’s right to counsel, which should hold up to the “adequate” standard set by the Constitution.
+
+This is clearly a flaw within the American Justice System, but what can be done to fix this?
+
+First, and perhaps most importantly, public defender offices need to have an increase in funding so that they can complete their jobs more effectively. Second, public defender offices should create subdivisions within each office based upon certain infractions and categories within the Justice System. When an office assigns their attorneys to a case based upon their preferential and desired division, the lawyer is more inclined to become passionate and have greater knowledge in the case.
+
+Additional research needs to be completed within other areas of the law to determine if this pattern carries over to crimes other than Driving While Intoxicated. If so, the entire premise of public defender offices needs to be evaluated in order to ensure that the Sixth amendment is effective and can be used as a support to defendants, rather than a detriment to them.
+
+Anyone put on trial deserves, and is required by law, to have an attentive and interested lawyer to defend them. When lawyers take on too many cases, they ultimately contribute to the decline in effectiveness of the Sixth amendment and legal system as a whole. If a legal system cannot act effectively, there is no way to guarantee that justice will guide the decisions of prosecutors and defenders alike.
+
+
+## Statistical Methods in Political Science
+
+<h2>Statistical Methods in Political Science</h2>
+
+### Midterm
+
+```{r, echo=FALSE, results=FALSE} 
+library(foreign)
+library(dplyr)
+library(stargazer)
+library(Hmisc)
+library(weights)
+
+Kaiser <- read.dta("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/KaiserFamilyFoundationPoll.DTA", convert.factors = T)
+head(Kaiser)
+```
+
+__Theory__
+
+As COVID-19 started to worsen throughout the country, there was a stark difference in the way that Democratic versus Republican government officials handled the outbreak. States with Republican governors quickly ended stay at home orders and reopened nonessential businesses, while states with Democratic governors saw extensive statewide lockdowns and stricter rules about going out in public. These two ideals were met with both support and criticism from higher ranking government officials, such as praise by the President for reopening states and criticism from Democratic congressmen who supported a lockdown. These differing views on how to handle the virus were also seen at the local level, with everyday citizens sharing the same ideas about social distancing practices depending on their ideology. Similarly, the support from higher ranking government officials for one practice over the other influenced how people followed protocol.
+
+I theorize that people who identify as liberal are more likely to socially distance than those who identify as conservative. States with a majority of people who identify as liberal have Democratic governors and state governments, so these areas already had lengthy stay at home orders and strict rules in place to limit the virus. People in these states mostly agreed with their government’s policies and were already used to social distancing and quarantining when the states reopened. States with a majority of people who identify as conservative, however, have Republican governments that emphasized keeping businesses and schools open. Florida and Texas, for example, saw crowded beaches and malls all summer while New York, and especially New York City, had quiet streets and closed restaurants. The reasons why people with different ideologies followed different social distancing practices also has to do with the core beliefs of those ideologies. Conservatives heavily value the economy, so it was expected for conservative governments to not order mandatory lockdowns in order for nonessential businesses to stay open. Liberals, however, generally believe in government action to solve problems and protect its citizens, so following lockdown orders and strictly social distancing was expected. I hypothesize that ideological views caused liberals to socially distance more than conservatives.
+
+__Empirical Tests__
+
+Based on my theory, I hypothesize that people who identify as liberal were less likely to partake in everyday activities (such as shopping for food, medicine, or essential household items, visiting close friends or family, going to work, using public transportation, and dining at a restaurant) than people who identify as conservative. A maintained assumption for this theory is that all of these activities have the same level of importance to each person. Shopping for food, medicine, or essential household items is necessary for people to survive, while dining at a restaurant depends on the person’s comfort level. This would cause me to expect that the percentage of people who were liberal and went shopping for those items is similar to the percentage of people who were conservative and went shopping for those items, while the other activities would vary depending on how greatly that person needed to complete them.
+
+Additionally, I hypothesize that people who approve of Trump were more likely to partake in these activities than people who don’t approve of Trump. A maintained assumption of this is that people who approve of Trump therefore value his opinion and will follow his example (such as not socially distancing). However, some people may not take his opinion into consideration when deciding whether or not to participate in these activities. Also, people who approve of Trump mostly identify as conservative, while those who do not identify as liberal. Thus, I would expect the same as before that people who are liberal were less likely to partake in these activities then people who are conservative.
+
+__Variable Coding__
+```{r, echo=FALSE, results=FALSE}
+#visiting close family or friends
+Kaiser$AA2 <- 0
+Kaiser$AA2[Kaiser$Q18B == "Not at all"] = 1
+
+#going to work
+Kaiser$AA3 <- 0
+Kaiser$AA3[Kaiser$Q18C == "Not at all"] = 1
+
+#using public transit
+Kaiser$AA4 <- 0
+Kaiser$AA4[Kaiser$Q18D == "Not at all"] = 1
+
+#dining at a restaurant
+Kaiser$AA5 <- 0
+Kaiser$AA5[Kaiser$Q18E == "Not at all"] = 1
+
+#whether or not they did not go to work, visit family or friends, use public transit, and
+#dine at a restaurant
+Kaiser$Abstained.activities <- 0
+Kaiser$Abstained.activities[Kaiser$AA2 == 1 & Kaiser$AA3 == 1  & 
+                               Kaiser$AA4 == 1 & Kaiser$AA5 == 1] = 1
+
+table(Kaiser$Abstained.activities)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for conservative ideology  
+Kaiser$Conservative <- NA
+Kaiser$Conservative[Kaiser$ideology == "Liberal"] = 0
+Kaiser$Conservative[Kaiser$ideology == "Conservative"] = 1
+Kaiser$Conservative[Kaiser$ideology == "Moderate"] = 0
+Kaiser$Conservative[Kaiser$ideology == "Don't Know"] = 0
+Kaiser$Conservative[Kaiser$ideology == "Refused"] = 0
+
+#creating a variable for moderate ideology  
+Kaiser$Moderate <- NA
+Kaiser$Moderate[Kaiser$ideology == "Liberal"] = 0
+Kaiser$Moderate[Kaiser$ideology == "Conservative"] = 0
+Kaiser$Moderate[Kaiser$ideology == "Moderate"] = 1
+Kaiser$Moderate[Kaiser$ideology == "Don't Know"] = 0
+Kaiser$Moderate[Kaiser$ideology == "Refused"] = 0
+```
+In order to test my theory and hypothesis, I use data from a study completed by the Kaiser Family Foundation. The study was completed from June 8, 2020 to June 14, 2020, and focuses on the perception of health, race, and COVID-19 in the United States.
+
+My dependent variable is constructed using a combination of four everyday activities that people abstained from. In question 18 of the survey, the respondents were asked how often they (18A) shop for food, medicine, or essential items, (18B) visit close friends or family, (18C) go to work, (18D) use public transit, and (18E) dine at a restaurant. The respondents had four response options: 1) “4 times or more”, 2)” 2-3 times”, 3) “1 time”, or 4) “Not at all.” Because shopping for food, medicine, or essential items was necessary for everybody, no matter their ideology, to continue during the pandemic, my dependent variable is a combination between questions 18B, 18C, 18D, and 18E. Also, since I am looking at whether or not people abstained from these activities, I only focus on whether or not the respondent said 4, or not at all, to any of the four options. My dependent variable is coded as a dummy variable that equals 1 if the respondent abstained from any of the four activities (visiting close family or friends, going to work, using public transit, or dining in a restaurant) and 0 if they participated in any of these activities at least once. A measurement assumption for this variable is that I am measuring social distancing as a whole by only four activities, when in reality people could be going out in public for a variety of reasons that do not match up with the variable.
+
+My key independent variables are two dummy variables coded for whether or not someone is conservative or moderate. The “Conservative” dummy variable is coded as 1 if the respondent answered the ideology question as conservative and 0 if they responded as liberal, moderate, don’t know, or refused. The “Moderate” dummy variable is coded as 1 if the respondent the ideology question as moderate and 0 if they responded as liberal, conservative, don’t know, or refused. Both variables are coded as missing if someone did not answer the question. A measurement assumption for this variable is that people only conform to these specific ideologies, when in reality ideology is measured on more of a spectrum.
+
+__Control Variables__
+```{r, echo=FALSE, results=FALSE}
+##creating a variable for Trump approval (people who strongly or somewhat disapprove Trump are the excluded group)
+
+# creating a variable for people who strongly or somewhat approve
+Kaiser$trump.approve <- NA
+Kaiser$trump.approve[Kaiser$trumpapp == "Strongly approve"] = 1
+Kaiser$trump.approve[Kaiser$trumpapp == "Somewhat approve"] = 1
+Kaiser$trump.approve[Kaiser$trumpapp == "Somewhat disapprove"] = 0
+Kaiser$trump.approve[Kaiser$trumpapp == "Strongly disapprove"] = 0
+Kaiser$trump.approve[Kaiser$trumpapp == "Don't Know"] = 0
+Kaiser$trump.approve[Kaiser$trumpapp == "Refused"] = 0
+```
+
+```{r, echo=FALSE, results=FALSE}
+##creating a variable for age (18-29 are the excluded group)
+
+#creating a variable for 18-29
+Kaiser$age.1829 <- 0
+Kaiser$age.1829[Kaiser$age >= 18 & Kaiser$age <= 29] <- 1
+Kaiser$age.1829[Kaiser$age == 99] <- NA
+
+#creating a variable for 30-49
+Kaiser$age.3049 <- 0
+Kaiser$age.3049[Kaiser$age >= 30 & Kaiser$age <= 49] <- 1
+Kaiser$age.3049[Kaiser$age == 99] <- NA
+
+#creating a variable for 50-64
+Kaiser$age.5064 <- 0
+Kaiser$age.5064[Kaiser$age >= 50 & Kaiser$age <= 64] <- 1
+Kaiser$age.5064[Kaiser$age == 99] <- NA
+```
+
+```{r, echo=FALSE, results=FALSE}
+##creating a variable for race (white people are the excluded group)
+attributes(Kaiser$race)
+Kaiser$minority <- NA
+Kaiser$minority[Kaiser$race == "White"] = 0
+Kaiser$minority[Kaiser$race == "Black or African-American"] = 1
+Kaiser$minority[Kaiser$race == "Asain"] = 1
+Kaiser$minority[Kaiser$race == "Other or mixed race"] = 1
+Kaiser$minority[Kaiser$race == "Don't Know"] = 0
+Kaiser$minority[Kaiser$race == "Refused"] = 0
+```
+One control variable when analyzing the relationship between ideology and social distancing is whether or not someone approves of Trump. Because Trump is in such a large position of power and has control over the narrative of the virus, people look up to him to determine how they should act. When Trump does not socially distance or wear a mask, normal people see this as a sign that they should not either. I coded this variable (trump.approve) as a dummy variable that equals one if someone strongly or somewhat approves of Trump and 0 if they somewhat disapprove, strongly disapprove, don’t know, ore refused. I would expect someone who is liberal to somewhat or strongly disapprove of Trump, and therefore made it my excluded group.
+
+Another control variable when analyzing the relationship between ideology and social distancing is a person’s age. I expect people over the age of 65 to social distance more, as the elderly are at a higher risk for catching the virus than those that are younger. As a result, I made people 65 years old to 97 years old my excluded group. I created dummy variables for each age group (18-29, 30-49, 50-64), with that specific group being coded as 1 and the other responses being coded as 0.
+
+A third control variable is a person’s race. On average, people who are White are more likely to be liberal than people of another race. The biggest block of the Democratic vote, for example, has shifted to white liberals from African Americans. Because of this, I excluded people who identify as White from my regression. I created a dummy variable to represent minority groups, with 1 being for people who responded that they were Black or African American, Asian, other or mixed race, don’t know, or refused and 0 for people who responded that they were White.
+
+__Descriptive Statistics__
+```{r, echo=FALSE}
+subKaiser <- subset(Kaiser, select = c(Abstained.activities, Conservative, Moderate, trump.approve, age.1829, age.3049, age.5064, minority), na.rm = T)
+
+stargazer(subKaiser, type = "text", title="Table 1: Descriptive Statistics on Ideology and Social Distancing", summary.stat = c("n", "mean", "sd", "min", "max"),
+          covariate.labels= c("Abstained from Activities",
+                              "Conservatie Ideology", "Moderate Ideology",
+                              "Trump Approval", "Age 18-29", "Age 35-49", "Age 50-64", 
+                              "Minority")) 
+```
+Table 1 presents descriptive statistics for my dependent variable, independent variables, and control variables. The table depicts the number of observations, mean, standard deviation, minimum, and maximum values for the following variables: Abstained From Activities, Conservative Ideology, Moderate Ideology, Trump Approval, Age 18-29, Age 35-49, Age 64, and Minorities.
+
+__Results__
+```{r, echo=FALSE, results=FALSE}
+#plot for conservatives
+plotdata <- aggregate(Kaiser$Abstained.activities, by=list(Kaiser$Conservative), FUN=mean)
+plotdata
+colnames(plotdata) <- c("Conservative or Not", "Mean Number of Abstained Activities")
+levels(plotdata$`Conservative or Not`) <- c("yes", "no")
+barplot(plotdata$`Mean Number of Abstained Activities`, names = plotdata$`Conservative or Not`, xlab = "Conservative: Yes = 1, No = 0", ylab = "Average Number of Abstained from Activities", main = "Figure 1: Abstained From Acitvities and Conservative", ylim = c(0, 0.5), col=c("gray10","gray50"))
+```
+Figure 1 shows, as I predicted, that conservatives were less likely to socially distance than liberals or moderates. The “0” block represents people who responded to the survey as liberal, moderate, don’t know, or other, and is about 0.8 units higher than the conservative, or “1”, block.
+```{r, echo=FALSE, results=FALSE}
+# Baseline analysis of whether ideology is related to social distancing
+baseline <- lm(Abstained.activities ~ Conservative + Moderate, data = subKaiser)
+summary(baseline)
+```
+
+```{r, echo=FALSE, results=FALSE}
+# Full analysis of whether ideology is related to social distancing with control variables
+full <- lm(Abstained.activities ~ Conservative + Moderate + trump.approve + age.1829  + age.3049 + age.5064 + minority, data = subKaiser)
+summary(full)
+```
+
+```{r, echo=FALSE, results=FALSE}
+# Restricts dataset to only liberals 
+libdata <- subset(subKaiser, subset = Conservative + Moderate == 0)
+
+#Full analysis for just liberals
+full.lib <- lm(Abstained.activities ~ trump.approve + age.1829  + age.3049 + age.5064 + minority, data = libdata)
+summary(full.lib)
+
+prop.table(table(libdata$trump.approve))
+```
+
+```{r, echo=FALSE}
+stargazer(baseline, full, full.lib, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Table 2: Correlation of Abstained From Activities During COVID-19", 
+          model.names = FALSE, 
+          column.labels = c("Ideology","All", "Liberals"),
+          covariate.labels = c("Conservative", "Moderate","Trump Approval",
+                               "Age 18-29", "Age 30-49", "Age 50-64", "Minority Groups", "Constant"), type="text")
+```
+Table 2 presents a regression analysis for three subsets, all regressed on the dependent variable of abstained activities. The first column represents just the independent variable of ideology, for both conservatives and moderates. The average number of activities liberals abstained from was 0.26 units, while conservatives were 0.08 units less likely to abstain from any activities. This provides evidence for my hypothesis, as liberals were more likely to socially distance than those who identify as conservative. Moderates were 0.006 units less likely to abstain from any activities than liberals, which was also expected as moderates fall between liberals and conservatives on the ideology spectrum and subsequently should have fallen in the middle of the regression.
+
+The second column in the regression includes all of the control variables that I used to test my theory. The average number of activities liberals abstained from activities was 0.437 units, while conservatives were 0.073 unites less likely to abstain from activities, holding fixed Trump approval, minority status, and age. This coefficient most likely increased because it now included my excluded groups of liberals, people who are white, people who are 65 years old and older, and people who do not approve of Trump. Theoretically, all of these categories would lead to increased social distancing, which is seen when the coefficient changes. The coefficient on Trump Approval indicates that people who support Trump are an additional 0.049 units less likely to abstain from any activities than people who do not support Trump. This was expected, since people who approve of Trump are likely to follow his behavior of not social distancing. Additionally, the coefficients on all three age groups (18-29, 20-49, 50-64) are negative, indicating that they are less likely to social distance than people who are aged 65 years old and older. This result was expected, as people who are younger are both at less of a risk of the virus and do not take the virus as seriously as those who are older. Finally, the coefficient on the minority groups variable indicates that people who identify as a minority are 0.022 units more likely to social distance than those that identify as White. Originally, I had hypothesized that people who identify as White would socially distance more since they make up the largest demographic of liberals. However, this result indicates that people who make up a minority group are more likely to socially distance than those who are White.
+
+Similarly, to the second column, column three shows the same general patterns for the coefficients of the age and minority group variables. However, among liberals, people who approve of Trump are 0.091 units more likely to socially distance than liberals who do not approve of Trump. This result was not expected, as I would think that people who approve of Trump (who promotes not social distancing) would be less likely than people who do not approve of Trump (liberals especially) to socially distance. When looking at the data though, only 14.45% of liberals approve of Trump, while 85.55% disapprove (out of 357 observations). This makes it clear that the result is just unusual and there was little data to work with.
+
+__Conclusion__
+
+I was able to find evidence that people who identify as liberal are more likely to socially distance than those who identify as conservative. Because social distancing is such a broad topic, I would have wanted to have more information on the extent to which people social distanced (for example visiting family or friends while staying six feet apart and wearing a mask versus going inside of someone else’s house). This most likely would have changed the respondent’s attitude towards social distancing, as going inside of another person’s house does not adhere to the “definition” of social distancing set forth by the CDC. As a control variable, I would have wanted to look at the type of job a respondent has. If a respondent has a job where they are deemed an essential worker, then they would have had to respond yes to the “Did you go to work” (18C) question even if it was involuntary. I would have also wanted to look at a respondent’s religion. If a respondent goes to church twice a week, for example, then they might have a more relaxed attitude on social distancing if they were still going throughout the pandemic.
+
+If I was able to look at these variables as well, I would expect the regression coefficient to increase. The majority of people in the country were not deemed essential workers, so I would expect more people to socially distance than the proportion of those who had to go to work. I would also expect the coefficient to increase in regard to religion because when the survey was taken in June, most places of worship were closed due to the pandemic. This would have caused more people to social distance if they were not able to practice their religion in person.
+
+In regard to measurement error, it worries me that ideology is measured by only three choices. I would have wanted to have a more continuous variable to measure ideology, rather than just three options. In today’s political climate, there are numerous divisions within each political party and ideology separating one person’s view of being liberal or conservative from another. Right now, my study only analyzes ideology as if it is cut and dry, when in reality there are many different options to the question. This might have made respondents more open to answering the question if they had more options, especially if they responded as they don’t know.
+
+
+### Final
+
+__Introduction__
+
+The process of scientific jury selection was first applied to a major case in the Harrisburg Seven trial in 1972. During the trial, social scientists used demographical information of the jurors to identify whether or not they would be biased towards a conviction and subsequently to serve on the jury. Ever since this case, prosecutors and defense attorneys alike have become accustomed to considering demographics – such as race, age, sex, economic background, marital status, religion, and relationship with the law – when picking a jury. During the voir dire process, lawyers have the opportunity to use peremptory and causal challenges in order to dismiss jurors that would not maintain fairness when listening to the case. A challenge for cause occurs when a lawyer removes someone for a legal reason (these are unlimited during a trial). A peremptory challenge occurs when a lawyer removes someone without a reason or explanation, but cannot be on the basis of race, ethnicity, or sex (the number is limited by the statute being tried). Increasingly, lawyers have been using these challenges in a subtle (in order to remain legal) way to achieve a jury that is more likely to either side in favor or against the defendant, depending on whether it is the prosecution or defense. According to the Equal Justice Initiative’s 2010 report on illegal racial discrimination in jury selection, 8 out of 10 African Americans in Houston County, Alabama that qualified for jury service have been struck by prosecutors from death penalty cases. It was also reported that in Jefferson Parish, Louisiana, there is no effective African American representation on the jury in 80 percent of criminal trials. This idea of deciding a case before presenting evidence just based upon racial biases and stereotypes seems like it should be a significant problem in the evaluation of trials and within the criminal justice system as a whole. This led me to the question “Are jurors more sympathetic to defendants of the same race?” and to my hypothesis that “juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant.”
+
+In order to test my hypothesis, I analyzed data on four courthouses (Bronx County Supreme Court in New York, Los Angeles County Superior Court in California, Maricopa County Superior Court in Arizona, and District of Columbia Superior Court in Washington, DC). I ran a baseline regression between whether or not the defendant had at least one conviction and the proportion of the jury whose members are less than 50% racially similar to the defendant, as well as a controlled regression including victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white. For both regressions, I found that the defendant was more likely to be convicted when the jury was less than 50% racially similar to the defendant than when the jury was at least 50% racially similar to the defendant, providing evidence for my hypothesis.
+
+__Theory and Previous Literature__
+
+While completing preliminary research, two sources emerged as predominantly important for this paper. In Professor of Law at Washington University School of Law Peter A. Joy’s 2015 paper for the Northwestern University Law Review entitled “Race Matters in Jury Selection,” he analyzed a study conducted by Samuel Sommers and Phoebe Ellsworth on implicit bias during the voir dire process. During the study, one group of mock jurors received a questionnaire about their racial attitudes and racial biases in the legal system while the other group was asked questions that disregarded race as a whole. According to Joy, the purpose of the questions was “not to identify racial bias in particular jurors, but rather to cause prospective jurors to think about their attitudes toward race to help jurors consciously guard against implicit bias.” The study found that both White and African American jurors were less likely to convict African American defendants after being asked the race-related questions during the voir dire, as well as that all-White juries were more likely to convict African American defendants than White defendants (Joy 2015). Ideally, all jurors would be asked these race-based questions in the real world during their voir dire in order to spark introspection and make themselves aware of any biases they may hold. However, race-relevant questions are only allowed during capital punishment cases, and the inclusion of a race-relevant voir dire is up to the discretion of the trial judge in all other cases. Originally, I planned on studying multiple demographics and how they impacted a juror’s decision on the defendant’s sentence as a whole. However, after this explanatory research, this paper became the foundation of my theory: implicit racial bias impacts jury decision making.
+
+Similarly, in Justin D. Levinson (Associate Professor of Law at the University of Hawaii), Huajian Cai (Professor at the Key Laboratory of Mental Health and Institute of Psychology for the Chinese Academy of Sciences), and Danielle Young’s (member of the Department of Psychology at the University of Hawaii) research paper for the Ohio State Journal of Criminal Law entitled “Guilty By Implicit Racial Bias: The Guilty/Not Guilty Implicit Association Test,” they completed a study on how the Implicit Association Test (IAT) can be used in a legal setting. The study had participants (67 jury eligible students from the University of Hawaii) complete multiple tasks in order to measure racial beliefs and preferences. The first test was a Guilty/Not Guilty IAT test developed as a race IAT with “the attribute concepts of Guilty and Not Guilty and target concepts of Black and White” (Levinson 2010). The second test was a Pleasant/Unpleasant IAT test also developed as a race IAT to evaluate the concepts of Pleasant and Unpleasant with the target concepts of Black and White. The participants were also given the Modern Racism Scale, which has a series of questions in regard to racial beliefs, a feeling thermometer, which evaluates explicit racial preferences, and finally a robbery evidence evaluation task, which asked participants to decide whether a defendant was guilty or not guilty in a mock trial. The study found that participants in the Guilty/Not Guilty IAT displayed a “significant association between Black and Guilty compared to White and Guilty” and that participants in the Pleasant/Unpleasant IAT displayed a “significant association between Black and Unpleasant compared to White and Unpleasant” (Levinson 2010). Ultimately, Levinson, Cai, and Young were able to conclude that people are more likely to perceive black people as guilty, and that the implicit associations led to “predicted judgments of the probative value of evidence” (Levinson 2010). This study was crucial to the refinement of my theory and hypothesis, as it is such a significant problem that some trials are already decided before hearing any evidence, completely violating the “fair trial” requirement set forth by the Constitution.
+
+After reviewing this previous literature, I have decided to focus on the proportion of jurors whose race matches the race of the defendant and whether or not that impacts their trial outcome. I have also decided to look at jury sympathy for the victim and defendant, as the second study proves the prominence of implicit biases when making decisions in regard to trial outcome. My research will add a unique perspective to this literature as I will be analyzing data from four different courthouses, all of which are located in demographically different areas (Bronx County, New York, Los Angeles County, California, Maricopa County, Arizona, and Washington, DC). I will also be analyzing the outcomes of the trials, rather than just the process of jury selection. This will allow me to connect the issue of racial biases in jury decision making to these different cities in order to highlight this significant fault within the justice system and the fact that it is present within all juries and not one particular area.
+
+__Data__
+```{r, echo=FALSE, results=FALSE}
+library(foreign)
+attorney <- read.dta("data/Attorney.dta")
+case <- read.dta("data/Case.dta")
+count.sheet.long <- read.dta("data/Countsheet.dta")
+judge <- read.dta("data/Judge.dta")
+jury <- read.dta("data/Juror.dta")
+```
+
+```{r, echo=FALSE, results=FALSE} 
+#Reshaping Count Sheet Data
+
+# The floor function drops any number after the decimal point
+count.sheet.long$caseno1 <- floor(count.sheet.long$CASENO)
+# Gets the number after the decimal point by subtracting caseno1
+# Muliplies by 10 to make into an integer
+count.sheet.long$caseno2 <- (count.sheet.long$CASENO - count.sheet.long$caseno1)*10
+head(count.sheet.long)
+# Rounds to make into integer
+count.sheet.long$caseno2 <- round(count.sheet.long$caseno2)
+head(count.sheet.long)
+table(count.sheet.long$caseno2)
+# Adds 1 if caseno2 == 0 
+count.sheet.long$caseno2[count.sheet.long$caseno2 == 0] <- 1
+table(count.sheet.long$caseno2)
+```
+
+```{r, echo=FALSE, results=FALSE} 
+#Make data wide using reshape function
+
+count.sheet.wide <- reshape(count.sheet.long, idvar = c("caseno1", "SITE"), timevar = "caseno2", direction = "wide")
+head(count.sheet.wide)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Subsetting the case data
+
+case.1 <- subset(case, subset = NUMDEFTS == 1)
+
+case.final <- subset(case.1, select = c(CASENO, SITE, DEFTGEND, DEFTRACE, DEFTREPR, CRIMHIST, VICTGEND, VICTGND2, VICTGND3, VICTGND4, VICTRACE, VICTRCE2, VICTRAC3, VICTRAC4)) 
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Subsetting the count sheet data
+
+library(tidyverse)
+count.sheet.final <- subset(count.sheet.wide, select = c(SITE, CASENO.1, CASETYPE.1, COUNT1.1, COUNT2.1, COUNT3.1, COUNT4.1, COUNT5.1, COUNT6.1, TOTCOUNT.1, TOTCONV.1, TOTACQUT.1, SENTENC.1))
+
+count.sheet.final <- rename(count.sheet.final, c("CASENO" = "CASENO.1"))
+```
+
+```{r, echo=FALSE, results=FALSE}
+#subsetting the judge survey data
+
+judge.final <- subset(judge, select = c(CASENO, SITE, EFTTEST, ICTTEST, THELAW, ODEFEND, NDERSTD)) 
+```
+
+```{r, echo=FALSE, results=FALSE}
+#subsetting the attorney survey data
+
+attorney.1 <- subset(attorney, select = c(CASENO, SITE, ATTYTYPE, NOTAGREE, AGE, GENDER)) 
+```
+
+```{r, echo=FALSE, results=FALSE} 
+#Reshaping the Attorney Data
+
+attorney.final <- reshape(attorney.1, idvar = c("CASENO", "SITE"), timevar = "ATTYTYPE", direction = "wide")
+```
+
+```{r, echo=FALSE, results=FALSE}
+#subsetting the jury survey data
+
+jury.1 <- subset(jury, select = c(CASENO, SITE, JURORNO, DEFTEVID, DSYMPATH, VSYMPATH, DEFSTRNG, NVCNGMD, FAVORWHO, DIFFVERD, ONEPERSN, GENDER, AGE, SCHOOL, RACE, RELIGON, INCOME, JOBSTAT, OCCUPAT)) 
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Reshaping the Jury Data
+
+jury.final <- reshape(jury.1, idvar = c("CASENO", "SITE"), timevar = "JURORNO", direction = "wide")
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Merging the data
+
+law <- Reduce(function(x, y) merge(x, y), list(case.final, count.sheet.final, attorney.final, judge.final, jury.final))
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 1
+
+attributes(law$RACE.1)
+
+law$race.1.white <- 0
+law$race.1.white[law$RACE.1 == "White/Caucasian"] <- 1
+law$race.1.white[law$RACE.1 == "White/Hispanic"] <- 1
+law$race.1.white[law$RACE.1 == "Unknown"] <- 0
+law$race.1.white[law$RACE.1 == "Nonwhite/Hispanic"] <- 0
+law$race.1.white[law$RACE.1 == "Black/African American"] <- 0
+law$race.1.white[law$RACE.1 == "Native American"] <- 0
+law$race.1.white[law$RACE.1 == "Asian/Pacific Islander"] <- 0
+law$race.1.white[law$RACE.1 == "Other - please specifiy:"] <- 0
+
+law$race.1.notwhite <- 0
+law$race.1.notwhite[law$RACE.1 == "White/Caucasian"] <- 0
+law$race.1.notwhite[law$RACE.1 == "White/Hispanic"] <- 0
+law$race.1.notwhite[law$RACE.1 == "Nonwhite/Hispanic"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Black/African American"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Native American"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Asian/Pacific Islander"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Other - please specifiy:"] <- 1
+law$race.1.notwhite[law$RACE.1 == "Unknown"] <- 0
+
+law$race.1.unknown <- 0
+law$race.1.unknown[law$RACE.1 == "White/Caucasian"] <- 0
+law$race.1.unknown[law$RACE.1 == "White/Hispanic"] <- 0
+law$race.1.unknown[law$RACE.1 == "Nonwhite/Hispanic"] <- 0
+law$race.1.unknown[law$RACE.1 == "Black/African American"] <- 0
+law$race.1.unknown[law$RACE.1 == "Native American"] <- 0
+law$race.1.unknown[law$RACE.1 == "Asian/Pacific Islander"] <- 0
+law$race.1.unknown[law$RACE.1 == "Other - please specifiy:"] <- 0
+law$race.1.unknown[law$RACE.1 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 2
+
+law$race.2.white <- 0
+law$race.2.white[law$RACE.2 == "White/Caucasian"] <- 1
+law$race.2.white[law$RACE.2 == "White/Hispanic"] <- 1
+law$race.2.white[law$RACE.2 == "Unknown"] <- 0
+law$race.2.white[law$RACE.2 == "Nonwhite/Hispanic"] <- 0
+law$race.2.white[law$RACE.2 == "Black/African American"] <- 0
+law$race.2.white[law$RACE.2 == "Native American"] <- 0
+law$race.2.white[law$RACE.2 == "Asian/Pacific Islander"] <- 0
+law$race.2.white[law$RACE.2 == "Other - please specifiy:"] <- 0
+
+law$race.2.notwhite <- 0
+law$race.2.notwhite[law$RACE.2 == "White/Caucasian"] <- 0
+law$race.2.notwhite[law$RACE.2 == "White/Hispanic"] <- 0
+law$race.2.notwhite[law$RACE.2 == "Nonwhite/Hispanic"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Black/African American"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Native American"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Asian/Pacific Islander"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Other - please specifiy:"] <- 1
+law$race.2.notwhite[law$RACE.2 == "Unknown"] <- 0
+
+law$race.2.unknown <- 0
+law$race.2.unknown[law$RACE.2 == "White/Caucasian"] <- 0
+law$race.2.unknown[law$RACE.2 == "White/Hispanic"] <- 0
+law$race.2.unknown[law$RACE.2 == "Nonwhite/Hispanic"] <- 0
+law$race.2.unknown[law$RACE.2 == "Black/African American"] <- 0
+law$race.2.unknown[law$RACE.2 == "Native American"] <- 0
+law$race.2.unknown[law$RACE.2 == "Asian/Pacific Islander"] <- 0
+law$race.2.unknown[law$RACE.2 == "Other - please specifiy:"] <- 0
+law$race.2.unknown[law$RACE.2 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 3
+
+law$race.3.white <- 0
+law$race.3.white[law$RACE.3 == "White/Caucasian"] <- 1
+law$race.3.white[law$RACE.3 == "White/Hispanic"] <- 1
+law$race.3.white[law$RACE.3 == "Unknown"] <- 0
+law$race.3.white[law$RACE.3 == "Nonwhite/Hispanic"] <- 0
+law$race.3.white[law$RACE.3 == "Black/African American"] <- 0
+law$race.3.white[law$RACE.3 == "Native American"] <- 0
+law$race.3.white[law$RACE.3 == "Asian/Pacific Islander"] <- 0
+law$race.3.white[law$RACE.3 == "Other - please specifiy:"] <- 0
+
+law$race.3.notwhite <- 0
+law$race.3.notwhite[law$RACE.3 == "White/Caucasian"] <- 0
+law$race.3.notwhite[law$RACE.3 == "White/Hispanic"] <- 0
+law$race.3.notwhite[law$RACE.3 == "Nonwhite/Hispanic"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Black/African American"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Native American"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Asian/Pacific Islander"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Other - please specifiy:"] <- 1
+law$race.3.notwhite[law$RACE.3 == "Unknown"] <- 0
+
+law$race.3.unknown <- 0
+law$race.3.unknown[law$RACE.3 == "White/Caucasian"] <- 0
+law$race.3.unknown[law$RACE.3 == "White/Hispanic"] <- 0
+law$race.3.unknown[law$RACE.3 == "Nonwhite/Hispanic"] <- 0
+law$race.3.unknown[law$RACE.3 == "Black/African American"] <- 0
+law$race.3.unknown[law$RACE.3 == "Native American"] <- 0
+law$race.3.unknown[law$RACE.3 == "Asian/Pacific Islander"] <- 0
+law$race.3.unknown[law$RACE.3 == "Other - please specifiy:"] <- 0
+law$race.3.unknown[law$RACE.3 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 4
+
+law$race.4.white <- 0
+law$race.4.white[law$RACE.4 == "White/Caucasian"] <- 1
+law$race.4.white[law$RACE.4 == "White/Hispanic"] <- 1
+law$race.4.white[law$RACE.4 == "Unknown"] <- 0
+law$race.4.white[law$RACE.4 == "Nonwhite/Hispanic"] <- 0
+law$race.4.white[law$RACE.4 == "Black/African American"] <- 0
+law$race.4.white[law$RACE.4 == "Native American"] <- 0
+law$race.4.white[law$RACE.4 == "Asian/Pacific Islander"] <- 0
+law$race.4.white[law$RACE.4 == "Other - please specifiy:"] <- 0
+
+law$race.4.notwhite <- 0
+law$race.4.notwhite[law$RACE.4 == "White/Caucasian"] <- 0
+law$race.4.notwhite[law$RACE.4 == "White/Hispanic"] <- 0
+law$race.4.notwhite[law$RACE.4 == "Nonwhite/Hispanic"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Black/African American"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Native American"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Asian/Pacific Islander"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Other - please specifiy:"] <- 1
+law$race.4.notwhite[law$RACE.4 == "Unknown"] <- 0
+
+law$race.4.unknown <- 0
+law$race.4.unknown[law$RACE.4 == "White/Caucasian"] <- 0
+law$race.4.unknown[law$RACE.4 == "White/Hispanic"] <- 0
+law$race.4.unknown[law$RACE.4 == "Nonwhite/Hispanic"] <- 0
+law$race.4.unknown[law$RACE.4 == "Black/African American"] <- 0
+law$race.4.unknown[law$RACE.4 == "Native American"] <- 0
+law$race.4.unknown[law$RACE.4 == "Asian/Pacific Islander"] <- 0
+law$race.4.unknown[law$RACE.4 == "Other - please specifiy:"] <- 0
+law$race.4.unknown[law$RACE.4 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 5
+
+law$race.5.white <- 0
+law$race.5.white[law$RACE.5 == "White/Caucasian"] <- 1
+law$race.5.white[law$RACE.5 == "White/Hispanic"] <- 1
+law$race.5.white[law$RACE.5 == "Unknown"] <- 0
+law$race.5.white[law$RACE.5 == "Nonwhite/Hispanic"] <- 0
+law$race.5.white[law$RACE.5 == "Black/African American"] <- 0
+law$race.5.white[law$RACE.5 == "Native American"] <- 0
+law$race.5.white[law$RACE.5 == "Asian/Pacific Islander"] <- 0
+law$race.5.white[law$RACE.5 == "Other - please specifiy:"] <- 0
+
+law$race.5.notwhite <- 0
+law$race.5.notwhite[law$RACE.5 == "White/Caucasian"] <- 0
+law$race.5.notwhite[law$RACE.5 == "White/Hispanic"] <- 0
+law$race.5.notwhite[law$RACE.5 == "Nonwhite/Hispanic"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Black/African American"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Native American"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Asian/Pacific Islander"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Other - please specifiy:"] <- 1
+law$race.5.notwhite[law$RACE.5 == "Unknown"] <- 0
+
+law$race.5.unknown <- 0
+law$race.5.unknown[law$RACE.5 == "White/Caucasian"] <- 0
+law$race.5.unknown[law$RACE.5 == "White/Hispanic"] <- 0
+law$race.5.unknown[law$RACE.5 == "Nonwhite/Hispanic"] <- 0
+law$race.5.unknown[law$RACE.5 == "Black/African American"] <- 0
+law$race.5.unknown[law$RACE.5 == "Native American"] <- 0
+law$race.5.unknown[law$RACE.5 == "Asian/Pacific Islander"] <- 0
+law$race.5.unknown[law$RACE.5 == "Other - please specifiy:"] <- 0
+law$race.5.unknown[law$RACE.5 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 6
+
+law$race.6.white <- 0
+law$race.6.white[law$RACE.6 == "White/Caucasian"] <- 1
+law$race.6.white[law$RACE.6 == "White/Hispanic"] <- 1
+law$race.6.white[law$RACE.6 == "Unknown"] <- 0
+law$race.6.white[law$RACE.6 == "Nonwhite/Hispanic"] <- 0
+law$race.6.white[law$RACE.6 == "Black/African American"] <- 0
+law$race.6.white[law$RACE.6 == "Native American"] <- 0
+law$race.6.white[law$RACE.6 == "Asian/Pacific Islander"] <- 0
+law$race.6.white[law$RACE.6 == "Other - please specifiy:"] <- 0
+
+law$race.6.notwhite <- 0
+law$race.6.notwhite[law$RACE.6 == "White/Caucasian"] <- 0
+law$race.6.notwhite[law$RACE.6 == "White/Hispanic"] <- 0
+law$race.6.notwhite[law$RACE.6 == "Nonwhite/Hispanic"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Black/African American"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Native American"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Asian/Pacific Islander"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Other - please specifiy:"] <- 1
+law$race.6.notwhite[law$RACE.6 == "Unknown"] <- 0
+
+law$race.6.unknown <- 0
+law$race.6.unknown[law$RACE.6 == "White/Caucasian"] <- 0
+law$race.6.unknown[law$RACE.6 == "White/Hispanic"] <- 0
+law$race.6.unknown[law$RACE.6 == "Nonwhite/Hispanic"] <- 0
+law$race.6.unknown[law$RACE.6 == "Black/African American"] <- 0
+law$race.6.unknown[law$RACE.6 == "Native American"] <- 0
+law$race.6.unknown[law$RACE.6 == "Asian/Pacific Islander"] <- 0
+law$race.6.unknown[law$RACE.6 == "Other - please specifiy:"] <- 0
+law$race.6.unknown[law$RACE.6 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 7
+
+law$race.7.white <- 0
+law$race.7.white[law$RACE.7 == "White/Caucasian"] <- 1
+law$race.7.white[law$RACE.7 == "White/Hispanic"] <- 1
+law$race.7.white[law$RACE.7 == "Unknown"] <- 0
+law$race.7.white[law$RACE.7 == "Nonwhite/Hispanic"] <- 0
+law$race.7.white[law$RACE.7 == "Black/African American"] <- 0
+law$race.7.white[law$RACE.7 == "Native American"] <- 0
+law$race.7.white[law$RACE.7 == "Asian/Pacific Islander"] <- 0
+law$race.7.white[law$RACE.7 == "Other - please specifiy:"] <- 0
+
+law$race.7.notwhite <- 0
+law$race.7.notwhite[law$RACE.7 == "White/Caucasian"] <- 0
+law$race.7.notwhite[law$RACE.7 == "White/Hispanic"] <- 0
+law$race.7.notwhite[law$RACE.7 == "Nonwhite/Hispanic"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Black/African American"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Native American"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Asian/Pacific Islander"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Other - please specifiy:"] <- 1
+law$race.7.notwhite[law$RACE.7 == "Unknown"] <- 0
+
+law$race.7.unknown <- 0
+law$race.7.unknown[law$RACE.7 == "White/Caucasian"] <- 0
+law$race.7.unknown[law$RACE.7 == "White/Hispanic"] <- 0
+law$race.7.unknown[law$RACE.7 == "Nonwhite/Hispanic"] <- 0
+law$race.7.unknown[law$RACE.7 == "Black/African American"] <- 0
+law$race.7.unknown[law$RACE.7 == "Native American"] <- 0
+law$race.7.unknown[law$RACE.7 == "Asian/Pacific Islander"] <- 0
+law$race.7.unknown[law$RACE.7 == "Other - please specifiy:"] <- 0
+law$race.7.unknown[law$RACE.7 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 8
+
+law$race.8.white <- 0
+law$race.8.white[law$RACE.8 == "White/Caucasian"] <- 1
+law$race.8.white[law$RACE.8 == "White/Hispanic"] <- 1
+law$race.8.white[law$RACE.8 == "Unknown"] <- 0
+law$race.8.white[law$RACE.8 == "Nonwhite/Hispanic"] <- 0
+law$race.8.white[law$RACE.8 == "Black/African American"] <- 0
+law$race.8.white[law$RACE.8 == "Native American"] <- 0
+law$race.8.white[law$RACE.8 == "Asian/Pacific Islander"] <- 0
+law$race.8.white[law$RACE.8 == "Other - please specifiy:"] <- 0
+
+law$race.8.notwhite <- 0
+law$race.8.notwhite[law$RACE.8 == "White/Caucasian"] <- 0
+law$race.8.notwhite[law$RACE.8 == "White/Hispanic"] <- 0
+law$race.8.notwhite[law$RACE.8 == "Nonwhite/Hispanic"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Black/African American"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Native American"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Asian/Pacific Islander"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Other - please specifiy:"] <- 1
+law$race.8.notwhite[law$RACE.8 == "Unknown"] <- 0
+
+law$race.8.unknown <- 0
+law$race.8.unknown[law$RACE.8 == "White/Caucasian"] <- 0
+law$race.8.unknown[law$RACE.8 == "White/Hispanic"] <- 0
+law$race.8.unknown[law$RACE.8 == "Nonwhite/Hispanic"] <- 0
+law$race.8.unknown[law$RACE.8 == "Black/African American"] <- 0
+law$race.8.unknown[law$RACE.8 == "Native American"] <- 0
+law$race.8.unknown[law$RACE.8 == "Asian/Pacific Islander"] <- 0
+law$race.8.unknown[law$RACE.8 == "Other - please specifiy:"] <- 0
+law$race.8.unknown[law$RACE.8 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 9
+
+law$race.9.white <- 0
+law$race.9.white[law$RACE.9 == "White/Caucasian"] <- 1
+law$race.9.white[law$RACE.9 == "White/Hispanic"] <- 1
+law$race.9.white[law$RACE.9 == "Unknown"] <- 0
+law$race.9.white[law$RACE.9 == "Nonwhite/Hispanic"] <- 0
+law$race.9.white[law$RACE.9 == "Black/African American"] <- 0
+law$race.9.white[law$RACE.9 == "Native American"] <- 0
+law$race.9.white[law$RACE.9 == "Asian/Pacific Islander"] <- 0
+law$race.9.white[law$RACE.9 == "Other - please specifiy:"] <- 0
+
+law$race.9.notwhite <- 0
+law$race.9.notwhite[law$RACE.9 == "White/Caucasian"] <- 0
+law$race.9.notwhite[law$RACE.9 == "White/Hispanic"] <- 0
+law$race.9.notwhite[law$RACE.9 == "Nonwhite/Hispanic"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Black/African American"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Native American"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Asian/Pacific Islander"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Other - please specifiy:"] <- 1
+law$race.9.notwhite[law$RACE.9 == "Unknown"] <- 0
+
+law$race.9.unknown <- 0
+law$race.9.unknown[law$RACE.9 == "White/Caucasian"] <- 0
+law$race.9.unknown[law$RACE.9 == "White/Hispanic"] <- 0
+law$race.9.unknown[law$RACE.9 == "Nonwhite/Hispanic"] <- 0
+law$race.9.unknown[law$RACE.9 == "Black/African American"] <- 0
+law$race.9.unknown[law$RACE.9 == "Native American"] <- 0
+law$race.9.unknown[law$RACE.9 == "Asian/Pacific Islander"] <- 0
+law$race.9.unknown[law$RACE.9 == "Other - please specifiy:"] <- 0
+law$race.9.unknown[law$RACE.9 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 10
+
+law$race.10.white <- 0
+law$race.10.white[law$RACE.10 == "White/Caucasian"] <- 1
+law$race.10.white[law$RACE.10 == "White/Hispanic"] <- 1
+law$race.10.white[law$RACE.10 == "Unknown"] <- 0
+law$race.10.white[law$RACE.10 == "Nonwhite/Hispanic"] <- 0
+law$race.10.white[law$RACE.10 == "Black/African American"] <- 0
+law$race.10.white[law$RACE.10 == "Native American"] <- 0
+law$race.10.white[law$RACE.10 == "Asian/Pacific Islander"] <- 0
+law$race.10.white[law$RACE.10 == "Other - please specifiy:"] <- 0
+
+law$race.10.notwhite <- 0
+law$race.10.notwhite[law$RACE.10 == "White/Caucasian"] <- 0
+law$race.10.notwhite[law$RACE.10 == "White/Hispanic"] <- 0
+law$race.10.notwhite[law$RACE.10 == "Nonwhite/Hispanic"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Black/African American"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Native American"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Asian/Pacific Islander"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Other - please specifiy:"] <- 1
+law$race.10.notwhite[law$RACE.10 == "Unknown"] <- 0
+
+law$race.10.unknown <- 0
+law$race.10.unknown[law$RACE.10 == "White/Caucasian"] <- 0
+law$race.10.unknown[law$RACE.10 == "White/Hispanic"] <- 0
+law$race.10.unknown[law$RACE.10 == "Nonwhite/Hispanic"] <- 0
+law$race.10.unknown[law$RACE.10 == "Black/African American"] <- 0
+law$race.10.unknown[law$RACE.10 == "Native American"] <- 0
+law$race.10.unknown[law$RACE.10 == "Asian/Pacific Islander"] <- 0
+law$race.10.unknown[law$RACE.10 == "Other - please specifiy:"] <- 0
+law$race.10.unknown[law$RACE.10 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 11
+
+law$race.11.white <- 0
+law$race.11.white[law$RACE.11 == "White/Caucasian"] <- 1
+law$race.11.white[law$RACE.11 == "White/Hispanic"] <- 1
+law$race.11.white[law$RACE.11 == "Unknown"] <- 0
+law$race.11.white[law$RACE.11 == "Nonwhite/Hispanic"] <- 0
+law$race.11.white[law$RACE.11 == "Black/African American"] <- 0
+law$race.11.white[law$RACE.11 == "Native American"] <- 0
+law$race.11.white[law$RACE.11 == "Asian/Pacific Islander"] <- 0
+law$race.11.white[law$RACE.11 == "Other - please specifiy:"] <- 0
+
+law$race.11.notwhite <- 0
+law$race.11.notwhite[law$RACE.11 == "White/Caucasian"] <- 0
+law$race.11.notwhite[law$RACE.11 == "White/Hispanic"] <- 0
+law$race.11.notwhite[law$RACE.11 == "Nonwhite/Hispanic"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Black/African American"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Native American"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Asian/Pacific Islander"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Other - please specifiy:"] <- 1
+law$race.11.notwhite[law$RACE.11 == "Unknown"] <- 0
+
+law$race.11.unknown <- 0
+law$race.11.unknown[law$RACE.11 == "White/Caucasian"] <- 0
+law$race.11.unknown[law$RACE.11 == "White/Hispanic"] <- 0
+law$race.11.unknown[law$RACE.11 == "Nonwhite/Hispanic"] <- 0
+law$race.11.unknown[law$RACE.11 == "Black/African American"] <- 0
+law$race.11.unknown[law$RACE.11 == "Native American"] <- 0
+law$race.11.unknown[law$RACE.11 == "Asian/Pacific Islander"] <- 0
+law$race.11.unknown[law$RACE.11 == "Other - please specifiy:"] <- 0
+law$race.11.unknown[law$RACE.11 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for juror 12
+
+law$race.12.white <- 0
+law$race.12.white[law$RACE.12 == "White/Caucasian"] <- 1
+law$race.12.white[law$RACE.12 == "White/Hispanic"] <- 1
+law$race.12.white[law$RACE.12 == "Unknown"] <- 0
+law$race.12.white[law$RACE.12 == "Nonwhite/Hispanic"] <- 0
+law$race.12.white[law$RACE.12 == "Black/African American"] <- 0
+law$race.12.white[law$RACE.12 == "Native American"] <- 0
+law$race.12.white[law$RACE.12 == "Asian/Pacific Islander"] <- 0
+law$race.12.white[law$RACE.12 == "Other - please specifiy:"] <- 0
+
+law$race.12.notwhite <- 0
+law$race.12.notwhite[law$RACE.12 == "White/Caucasian"] <- 0
+law$race.12.notwhite[law$RACE.12 == "White/Hispanic"] <- 0
+law$race.12.notwhite[law$RACE.12 == "Nonwhite/Hispanic"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Black/African American"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Native American"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Asian/Pacific Islander"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Other - please specifiy:"] <- 1
+law$race.12.notwhite[law$RACE.12 == "Unknown"] <- 0
+
+law$race.12.unknown <- 0
+law$race.12.unknown[law$RACE.12 == "White/Caucasian"] <- 0
+law$race.12.unknown[law$RACE.12 == "White/Hispanic"] <- 0
+law$race.12.unknown[law$RACE.12 == "Nonwhite/Hispanic"] <- 0
+law$race.12.unknown[law$RACE.12 == "Black/African American"] <- 0
+law$race.12.unknown[law$RACE.12 == "Native American"] <- 0
+law$race.12.unknown[law$RACE.12 == "Asian/Pacific Islander"] <- 0
+law$race.12.unknown[law$RACE.12 == "Other - please specifiy:"] <- 0
+law$race.12.unknown[law$RACE.12 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#adding up the race variables for the jury
+
+law$jury.white <- NA
+law$jury.white <- law$race.1.white + law$race.2.white + law$race.3.white + law$race.4.white + law$race.5.white + law$race.6.white + law$race.7.white + law$race.8.white + law$race.9.white + law$race.10.white + law$race.11.white + law$race.12.white 
+
+law$jury.notwhite <- NA
+law$jury.notwhite <- law$race.1.notwhite + law$race.2.notwhite + law$race.3.notwhite + law$race.4.notwhite + law$race.5.notwhite + law$race.6.notwhite + law$race.7.notwhite + law$race.8.notwhite + law$race.9.notwhite + law$race.10.notwhite + law$race.11.notwhite + law$race.12.notwhite 
+
+law$jury.unknown <- NA
+law$jury.unknown <- law$race.1.unknown + law$race.2.unknown + law$race.3.unknown + law$race.4.unknown + law$race.5.unknown + law$race.6.unknown + law$race.7.unknown + law$race.8.unknown + law$race.9.unknown + law$race.10.unknown + law$race.11.unknown + law$race.12.unknown 
+
+table(law$jury.white)
+table(law$jury.notwhite)
+table(law$jury.unknown)
+table(law$def.notwhite)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for the defendant
+
+attributes(law$DEFTRACE)
+table(law$DEFTRACE)
+
+law$def.white <- 0
+law$def.white[law$DEFTRACE == "White - not Hispanic"] <- 1
+law$def.white[law$DEFTRACE == "White - Hispanic"] <- 1
+law$def.white[law$DEFTRACE == "Black - not Hispanic"] <- 0
+law$def.white[law$DEFTRACE == "Black - Hispanic"] <- 0
+law$def.white[law$DEFTRACE == "Native American"] <- 0
+law$def.white[law$DEFTRACE == "Asian"] <- 0
+law$def.white[law$DEFTRACE == "Other (please specify):"] <- 0
+law$def.white[law$DEFTRACE == "Unknown"] <- 0
+
+law$def.notwhite <- 0
+law$def.notwhite[law$DEFTRACE == "White - not Hispanic"] <- 0
+law$def.notwhite[law$DEFTRACE == "White - Hispanic"] <- 0
+law$def.notwhite[law$DEFTRACE == "Black - not Hispanic"] <- 1
+law$def.notwhite[law$DEFTRACE == "Black - Hispanic"] <- 1
+law$def.notwhite[law$DEFTRACE == "Native American"] <- 1
+law$def.notwhite[law$DEFTRACE == "Asian"] <- 1
+law$def.notwhite[law$DEFTRACE == "Other (please specify):"] <- 1
+law$def.notwhite[law$DEFTRACE == "Unknown"] <- 0
+
+law$def.unknown <- 0
+law$def.unknown[law$DEFTRACE == "White - not Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "White - Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "Black - not Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "Black - Hispanic"] <- 0
+law$def.unknown[law$DEFTRACE == "Native American"] <- 0
+law$def.unknown[law$DEFTRACE == "Asian"] <- 0
+law$def.unknown[law$DEFTRACE == "Other (please specify):"] <- 0
+law$def.unknown[law$DEFTRACE == "Unknown"] <- 1
+
+print(subset(law, law$def.unknown == 1))
+```
+
+```{r, echo=FALSE, results=FALSE}
+#Creating race variables for the victims
+
+law$vict.white <- NA
+law$vict.white[law$VICTRACE == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRACE == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRACE == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRACE == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRACE == "Native American"] <- 0
+law$vict.white[law$VICTRACE == "Asian"] <- 0
+law$vict.white[law$VICTRACE == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRACE == "Unknown"] <- 0
+law$vict.white[law$VICTRCE2 == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRCE2 == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRCE2 == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRCE2 == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRCE2 == "Native American"] <- 0
+law$vict.white[law$VICTRCE2 == "Asian"] <- 0
+law$vict.white[law$VICTRCE2 == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRCE2 == "Unknown"] <- 0
+law$vict.white[law$VICTRAC3 == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRAC3 == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRAC3 == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRAC3 == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRAC3 == "Native American"] <- 0
+law$vict.white[law$VICTRAC3 == "Asian"] <- 0
+law$vict.white[law$VICTRAC3 == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRAC3 == "Unknown"] <- 0
+law$vict.white[law$VICTRAC4 == "White - not Hispanic"] <- 1
+law$vict.white[law$VICTRAC4 == "White - Hispanic"] <- 1
+law$vict.white[law$VICTRAC4 == "Black - not Hispanic"] <- 0
+law$vict.white[law$VICTRAC4 == "Black - Hispanic"] <- 0
+law$vict.white[law$VICTRAC4 == "Native American"] <- 0
+law$vict.white[law$VICTRAC4 == "Asian"] <- 0
+law$vict.white[law$VICTRAC4 == "Other (please specify):"] <- 0
+law$vict.white[law$VICTRAC4 == "Unknown"] <- 0
+
+law$vict.notwhite <- NA
+law$vict.notwhite[law$VICTRACE == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRACE == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRACE == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRACE == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRACE == "Native American"] <- 1
+law$vict.notwhite[law$VICTRACE == "Asian"] <- 1
+law$vict.notwhite[law$VICTRACE == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRACE == "Unknown"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRCE2 == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRCE2 == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Native American"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Asian"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRCE2 == "Unknown"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC3 == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC3 == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Native American"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Asian"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRAC3 == "Unknown"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "White - not Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC4 == "White - Hispanic"] <- 0
+law$vict.notwhite[law$VICTRAC4 == "Black - not Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Black - Hispanic"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Native American"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Asian"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Other (please specify):"] <- 1
+law$vict.notwhite[law$VICTRAC4 == "Unknown"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for at least one conviction
+
+law$yes.conv <- 0
+law$yes.conv[law$COUNT1.1 == "Conviction" | law$COUNT2.1 == "Conviction" | law$COUNT3.1 == "Conviction" | law$COUNT4.1 == "Conviction" | law$COUNT5.1 == "Conviction" | law$COUNT6.1 == "Conviction"] <- 1
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for at least one jury member to think the victim was very believable 
+
+law$believe.vict <- 0
+law$believe.vict[law$VSYMPATH.1 == "Very believable" | law$VSYMPATH.2 == "Very believable" | law$VSYMPATH.3 == "Very believable" | law$VSYMPATH.4 == "Very believable" | law$VSYMPATH.5 == "Very believable" | law$VSYMPATH.6 == "Very believable" | law$VSYMPATH.7 == "Very believable" | law$VSYMPATH.8 == "Very believable" | law$VSYMPATH.9 == "Very believable" | law$VSYMPATH.10 == "Very believable" | law$VSYMPATH.11 == "Very believable" | law$VSYMPATH.12 == "Very believable"] <- 1
+table(law$believe.vict)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for at least one jury member to have sympathy for the defendant 
+
+law$def.sympt <- 0
+law$def.sympt[law$DSYMPATH.1 == "A great deal of sympathy" | law$DSYMPATH.2 == "A great deal of sympathy" | law$DSYMPATH.3 == "A great deal of sympathy" | law$DSYMPATH.4 == "A great deal of sympathy" | law$DSYMPATH.5 == "A great deal of sympathy" | law$DSYMPATH.6 == "A great deal of sympathy" | law$DSYMPATH.7 == "A great deal of sympathy" | law$DSYMPATH.8 == "A great deal of sympathy" | law$DSYMPATH.9 == "A great deal of sympathy" | law$DSYMPATH.10 == "A great deal of sympathy" | law$DSYMPATH.11 == "A great deal of sympathy" | law$DSYMPATH.12 == "A great deal of sympathy"] <- 1
+table(law$def.sympt)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating variables for the severity of the charge
+
+attributes(law$CASETYPE.1)
+law$felony <- NA
+law$felony[law$CASETYPE.1 == "Murder, first degree"] <- 1
+law$felony[law$CASETYPE.1 == "Murder, second degree"] <- 1
+law$felony[law$CASETYPE.1 == "Manslaughter"] <- 1
+law$felony[law$CASETYPE.1 == "Rape/sexual battery/sex conduct w/minor"] <- 1
+law$felony[law$CASETYPE.1 == "Robbery"] <- 1
+law$felony[law$CASETYPE.1 == "Assault (not sexual)"] <- 0
+law$felony[law$CASETYPE.1 == "Child abuse/neglect"] <- 0
+law$felony[law$CASETYPE.1 == "Burglary"] <- 1
+law$felony[law$CASETYPE.1 == "Larceny/theft"] <- 0
+law$felony[law$CASETYPE.1 == "Arson"] <- 1
+law$felony[law$CASETYPE.1 == "Illegal drug, possession"] <- 1
+law$felony[law$CASETYPE.1 == "Illegal drug, sale"] <- 1
+law$felony[law$CASETYPE.1 == "Illegal drug, manufacture"] <- 1
+law$felony[law$CASETYPE.1 == "DUI/DWI"] <- 0
+law$felony[law$CASETYPE.1 == "Attempted murder"] <- 1
+law$felony[law$CASETYPE.1 == "Weapons"] <- 1
+law$felony[law$CASETYPE.1 == "Forgery"] <- 0
+law$felony[law$CASETYPE.1 == "Unlawful flight/leaving scene/failure to stop/resist arrest"] <- 0
+law$felony[law$CASETYPE.1 == "Other"] <- 0
+law$felony[law$CASETYPE.1 == "Unknown"] <- 0
+
+law$misdemeanor <- NA
+law$misdemeanor[law$CASETYPE.1 == "Murder, first degree"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Murder, second degree"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Manslaughter"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Rape/sexual battery/sex conduct w/minor"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Robbery"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Assault (not sexual)"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Child abuse/neglect"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Burglary"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Larceny/theft"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Arson"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Illegal drug, possession"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Illegal drug, sale"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Illegal drug, manufacture"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "DUI/DWI"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Attempted murder"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Weapons"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Forgery"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Unlawful flight/leaving scene/failure to stop/resist arrest"] <- 1
+law$misdemeanor[law$CASETYPE.1 == "Other"] <- 0
+law$misdemeanor[law$CASETYPE.1 == "Unknown"] <- 0
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating a variable for the proportion of the jury that matches the race of the defendant 
+law$prop.race <- NA
+law$prop.race <- ifelse(!is.na(law$def.notwhite == 1), print(law$jury.notwhite/(law$jury.white + law$jury.notwhite)), print(law$jury.white/(law$jury.white + law$jury.notwhite)))
+
+```
+
+```{r, echo=FALSE, results=FALSE}
+#creating variables for whether the proportion of jurors whose race matches the defendant is more than / less than 0.50
+
+law$prop.race.big50 <- NA
+law$prop.race.big50[law$prop.race >= 0.50] <- 1
+law$prop.race.big50[law$prop.race < 0.50] <- 0
+
+law$prop.race.less50 <- NA
+law$prop.race.less50[law$prop.race >= 0.50] <- 0
+law$prop.race.less50[law$prop.race < 0.50] <- 1
+```
+I will use the data from the “Evaluation of Hung Juries in Bronx County, New York, Los Angeles County, California, Maricopa County, Arizona, and Washington, DC, 2000-2001 (ICPSR 3689)” by Paula Hannaford-Agor, Valerie Hans, Nicole Mott, and G. Thomas Munsterman. The data includes information on four courts (Bronx County Supreme Court in New York, Los Angeles County Superior Court in California, Maricopa County Superior Court in Arizona, and District of Columbia Superior Court in Washington, DC). Each court was sent a case data form and count sheet data form, as well as three questionnaires for the judges, attorneys, and jurors. The case data form includes the demographic information for the defendant and the victim(s) and the type of representation for the defendant. The count sheet data includes the case type, the jury’s decision for each count the defendant was charged with, the total number of convictions, and the sentence length. The judge questionnaire includes the evaluation of the evidence, case complexity, likelihood that the jury understood the case, importance of the victim’s testimony, and importance of the defendant’s testimony. The attorney questionnaire includes information assessing the case complexity, type of defense, whether or not the jury would become hung, and their own demographical information. The juror questionnaire includes responses regarding case complexity, whether or not the evidence was convincing, whether or not they had sympathy towards the defendant or victim(s), whether or not the defense had a strong case, which side they favored before, during, and after deliberations, and demographical information on themselves.
+
+In order to analyze this data as a whole, I reshaped the attorney and jury datasets so that each row corresponded to a singular court site and case number. Once the data was widened, I was able to merge all five datasets together to create one larger dataset, entitled “law.” To construct my key independent variable (the proportion of the jury whose members are less than 50% racially similar to the defendant), I first created three dummy variables for the race of each jury member (White, not White, and unknown). Once all 36 variables were created (since trials could have up to 12 jurors), I added them together so that I would have a total count of the jury members of each race per case number (becoming the variables jury.white, jury.notwhite, and jury.unknown). Next, I created the same three dummy variables for the defendant’s race (def.white, def.notwhite, and def.unknown). Once these six variables were created, I constructed the continuous proportion variable (becoming the variable prop.race) by matching the race of the defendant with the number of people who matched that race on the jury and dividing that number by the total number of jurors for that case. I constructed my actual independent variable (becoming prop.race.less50) as a dummy variable that equals 1 if the proportion of the jury whose race matches the defendant was less than half of the members and 0 if the proportion of the jury is equal to or more than half of the members. Because my hypothesis is that juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant, I made the group in which the proportion of the jury whose race is equal to or more than half the same as the defendant the excluded group.
+
+Afterwards, I constructed my dependent variable by combining the results for whether or not a defendant had a least one conviction for the six possible counts they could have been charged with in that particular case (becoming the variable yes.conv). The variable is coded as 1 if they had at least one conviction and 0 if they had no convictions. A measurement assumption of this variable, however, is that I am assuming that these juries had negative racial biases, when it could have been the opposite and positive, resulting in a lesser sentence or charge rather than a conviction for the defendant. Additionally, I chose to control for four different variables that all could influence both the proportion of jury members with a similar race to the defendant and whether or not the defendant was convicted on at least one count. First, I chose to control for whether or not the jury felt “a great deal of sympathy” for the defendant. It seems like having a large amount of sympathy for the defendant would cause the jury to rule in favor of the defendant, regardless of their race. I coded this variable (def.sympt) as a dummy variable that equals 1 if at least one of the jury members felt a great deal of sympathy for the defendant and 0 if none of the jury members felt a great deal of sympathy for the defendant. I would expect that someone who has no sympathy towards the defendant would rule more harshly, so I made that my excluded group. Similarly, I chose to control for whether or not the jury felt that the victim(s) was very believable. It seems like thinking that the victim(s) was very believable would cause the jury to rule against the defendant, regardless of race. I coded this variable (believe.vict) as a dummy variable that equals 1 if at least one of the jury members felt that the victim(s) was very believable and 0 if none of the jury members felt that the victims(s) was very believable. I would expect that someone who does not think that the victim was believable would rule less harshly against the defendant, so I made that my excluded group. My third control variable is the crime the defendant was charged with. I created two variables: the first (felony) equals 1 if the crime is classified as a felony and 0 if the crime is classified as a misdemeanor and the second (misdemeanor) equals 1 if the crime is classified as a misdemeanor and 0 if the crime is classified as a felony. I would expect that if someone was charged with a crime as serious as murder or rape, a juror would weigh that more heavily than whether or not they were the same race. Because of this, I made the felony variable my excluded group. Finally, my fourth control variable is the victim’s race. Because of the preconceived biases made by the jury in the research I previously discussed in my Literature Review, I decided to look at whether or not the victim was White, as most people in the study associated White with “Not Guilty” and “Pleasant.” I created two variables: the first (vict.white) equals 1 if the victim was White and 0 if victim was any other race and the second (vict.notwhite) equals 1 if the victim was any race other than White and 0 if the victim was White. Because I would expect the jury to favor White victims, I made that my excluded group.
+```{r, echo=FALSE}
+#cretaing a descriptive statistics table
+
+sublaw <- subset(law, select = c(yes.conv, prop.race.less50, believe.vict, def.sympt, vict.notwhite, misdemeanor), na.rm = T)
+
+stargazer(sublaw, type = "text", title="Table 1: Descriptive Statistics for Convictions and Proportion of Similar Race", summary.stat = c("n", "mean", "sd", "min", "max"),
+          covariate.labels= c("At least one conviction",
+                              "Proportion of the jury whose members are less than 50% racially similar to the defendant", "Victim Believability","Defendant Sympathy", "Not White Victim", "Misdemeanor")) 
+```
+Table 1 presents descriptive statistics for my dependent variable, independent variable, and control variables. The table depicts the number of observations, mean, standard deviation, minimum, and maximum values for the following variables: the defendant having at least one conviction, the proportion of the jury whose members are less than 50% racially similar to the defendant, at least one jury member thinking the victim was very believable, at least one jury member having sympathy for the defendant, if the case had a victim that was not White, and if the crime was a misdemeanor.
+
+__Hypothesis and Empirical Tests__
+
+Like I previously mentioned, my hypothesis is that “juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant.” I plan on testing this hypothesis through a quantitative analysis by running a regression between whether or not the defendant had at least one conviction and the proportion of the jury whose members are less than 50% racially similar to the defendant. By doing this, I will be able to see how much more likely juries with a greater proportion of members who are the same race as the defendant are to rule in favor of the defendant than juries with a smaller proportion.
+
+In this case, my null hypothesis is that juries in which at least 50% of the jurors are the same race as the defendant would make the same decision on the outcome of a case as juries that were not mostly the same race as the defendant. In order to reject my null hypothesis, I would need to see the coefficient for the proportion of the jury whose members are less than 50% racially similar to the defendant be zero after running the regression, meaning that there was no difference in the likelihood of having at least one conviction between juries that were more or less racially similar to the defendant. I would also need to see the p-value for the proportion of the jury whose members are less than 50% racially similar to the defendant be 0.05 or less, meaning that there was such a small chance of committing a type I error, or rejecting the null hypothesis that juries in which at least 50% of the jurors are the same race as the defendant would make the same decision on the outcome of a case as juries that were not mostly the same race as the defendant, when it is true.
+
+__Results__
+```{r, echo=FALSE}
+#plotting Average Proportion of time that someone is convicted when they are not white / white
+
+#percentage of the time that someone is convicted when they are not white 
+mean1 <- mean(law$yes.conv[law$prop.race.big50 ==1 & law$def.notwhite ==1], na.rm = T) # 0.5211268
+mean2 <- mean(law$yes.conv[law$prop.race.less50 ==1 & law$def.notwhite ==1], na.rm = T) # 0.65625
+
+#percentage of the time that someone is convicted when they are white 
+mean3 <- mean(law$yes.conv[law$prop.race.big50 ==1 & law$def.notwhite ==0], na.rm = T)  # 0.6086957
+mean4 <- mean(law$yes.conv[law$prop.race.less50 ==1 & law$def.notwhite ==0], na.rm = T) # 0.6923077
+
+conv <- c("Not White", "Not White", "White", "White")
+
+law.graph <- data.frame(avg.prop=c(0.52, 0.66, 0.61, 0.69),
+                 Legend=c("Jury's at least 50% same race as defendant", "Jury's less than 50% same race as defendant", "Jury's at least 50% same race as defendant", "Jury's less than 50% same race as defendant"), conv)
+
+law.bar <- ggplot(law.graph, aes(x = Legend, y = avg.prop, fill = Legend)) + 
+  geom_bar(stat="identity", position = "dodge") +
+  geom_text(aes(label=avg.prop), vjust=-0.3, size=4) +
+  ylab("Average Proportion of Times that Someone is Convicted") +
+  scale_fill_manual(values = c("hotpink1", "lightskyblue", "hotpink1", "lightskyblue")) +
+  facet_wrap(vars(conv),
+             ncol = 2, 
+             nrow = 1) +
+  xlab("% Jury Same Race as Defendant") +
+  ggtitle("Figure 1: Average Proportion of Times that Someone is Convicted with a 
+          Jury Similar in Race to the Defendant") +  
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0, 0.70)) + 
+  scale_x_discrete(labels=c("At least 50%", "Less than 50%", "At least 50%", "Less than 50%"))
+law.bar
+
+ggsave(filename = "law.bar.png", 
+       plot = law.bar,
+       width = 12, 
+       height = 7)
+```
+Figure 1 displays the average proportion of times that someone is convicted with a jury similar in race to the defendant. The first panel displays the average proportions when the jury members were both at least 50% racially similar to the defendant and less than 50% racially similar to the defendant for when the defendant was convicted on at least one count and was not white. The second panel also displays the average proportions when the jury members were both at least 50% racially similar to the defendant and less than 50% racially similar to the defendant, but now for when the defendant was convicted on at least one count and was white.
+
+Both panels highlight, as I hypothesized, the difference in jury decision making when the jury is made up of a different percent of members that match the race of the defendant. When the jury is made up of at least 50% of members of the same race as the defendant, they are more likely to not convict the defendant than juries made up of members that are less than 50% of the same race. If the defendant was not white and the majority of the jury was not white, the defendant was less likely to be convicted by a larger margin than if the defendant was white and the majority of the jury was also white.
+
+To model this further, I ran two regressions between having at least one conviction and the proportion of the jury whose members were less than 50% racially similar to the defendant, controlling for victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white in the second regression.
+```{r, echo=FALSE, results=FALSE}
+#running a baseline regression between whether or not the defendant had a least 1 conviction and the proportion of the jury that had the same race as the defendant
+
+reg.baseline <- lm(yes.conv ~ prop.race.less50, data=law)
+summary(reg.baseline)
+```
+
+```{r, echo=FALSE, results=FALSE}
+#running the same regression but with controls
+
+reg.controls <- lm(yes.conv ~ prop.race.less50 + believe.vict + def.sympt + vict.notwhite + misdemeanor, data=law)
+summary(reg.controls)
+```
+
+```{r, echo=FALSE}
+#creating a table of the regression results
+
+stargazer(reg.baseline, reg.controls, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Table 2: Proportion of the Jury whose Race Matches the Defendant and Total Convictions",
+          model.names = FALSE, 
+          column.labels = c("Baseline","Controls"),
+          covariate.labels = c("Prop of the jury less than 50% racially similar to defendant", "Victim Believability","Sympathy for the Defendant","Not White Victim", "Misdemeanor", "Constant"), type="text")
+```
+Table 2 presents both regression analyses, regressed on the dependent variable of having at least one conviction. The average chance of the defendant having at least one conviction in their case when the jury was at least 50% racially similar to the defendant was 54.3 percentage points. When the proportion of the jury whose members were less than 50% racially similar to the defendant, the defendant was more likely to be convicted by 12.4 percentage points. This baseline provides evidence for my hypothesis, as juries with more members who matched the race of the defendant were less likely to convict the defendant. Additionally, the p-value for the average chance of the defendant having at least one conviction in their case when the jury was at least 50% racially similar to the defendant is 2 X 10 ^ -16. Since this is an extremely small value, I can reject the null hypothesis that juries in which at least 50% of the jurors are the same race as the defendant would make the same decision on the outcome of a case as juries that were not mostly the same race as the defendant.
+
+Furthermore, when no jury members thought that the victim was believable or had sympathy for the defendant, the crime was a felony, and the victim was white, the average chance of a defendant having at least one conviction in their case when the jury was at least 50% racially similar to the defendant was 80.1 percentage points. When the proportion of the jury whose members were less than 50% racially similar to the defendant, the defendant was more likely to be convicted by 16.5 percentage points than when the jury was at least 50% racially similar to the defendant, holding fixed victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white. I expected there to be an increase in the coefficient, as juries without a majority of the same race should be more likely to convict when there is no overarching demographical connection. When at least one jury member thought that the victim was very believable, the defendant was more likely to be convicted than if none of the jury members thought that the victim was very believable by only 0.4 percentage points. I expected there to be an increase in the likelihood of a conviction since I assumed the jury would feel bad for the victim, but the small increase could be accounted for by the fact that maybe only one out of the 12 jurors believed the victim, or they believed the victim but not to a “very believable” extent. When the victim was not white, the defendant was less likely to be convicted than if the victim was white by 36.6 percentage points. This seemed strange at first, as I expected juries to be harsher on defendants when the victim was white. However, the majority of defendants were not white (136 out of 185) and 58% of the time, juries were made up of a majority of people who identified as not white. This indicates that juries had more sympathy towards defendants that were not white, rather than white defendants. This is also proven in Figure 1, as not white defendants with a jury that was mostly not white were less likely to be convicted than white defendants with a jury was mostly white.
+
+Additionally, there were two results from the second regression that surprised me. When at least one jury member had a great deal of sympathy for the defendant, the defendant was more likely to be convicted than if none of the jury had sympathy for the defendant by 19.7 percentage points. I expected this coefficient to be negative, since feeling bad for the defendant would theoretically lead the jury to not convict them. Similarly to the victim believability variable, I was only measuring if a jury member had “a great deal of sympathy” for the defendant, and they could have felt some sympathy but did not reach the “great deal” threshold. Criminal cases also require a unanimous decision by the jury, so it could be possible that at least one juror felt a “great deal of sympathy” but was overpowered by the rest of the jury, leading to a conviction. Likewise, when the crime was a misdemeanor, the defendant was more likely to be convicted than if it was a felony by 14.5 percentage points. I expected this result to be negative as well, since I thought that people charged with felonies would be more likely to be convicted than someone charged with a less serious crime. A juror could possibly have more sympathy for a defendant if the defendant was going to jail versus if they were sentenced to a fine or probation (usually the outcome of misdemeanor cases), and maybe most of the cases in the data did not result in jail or prison sentences, accounting for both of these discrepancies.
+
+__Discussion and Conclusion__
+
+I was able to find evidence that juries in which at least 50% of the jurors are the same race as the defendant are more likely to side in favor of the defendant. For both regressions, the defendant was more likely to be convicted when the jury was less than 50% racially similar to the defendant than when the jury was at least 50% racially similar to the defendant, including when I held fixed victim believability, defendant sympathy, if the crime was a misdemeanor, and if the victim was not white. I also found that when at least one jury member thought that the victim was very believable, the defendant was more likely to be convicted than if none of the jury members thought that the victim was very believable and when the victim was not white, the defendant was less likely to be convicted than if the victim was white. Surprisingly, I found that when at least one jury member had a great deal of sympathy for the defendant, the defendant was more likely to be convicted than if none of the jury had sympathy for the defendant and when the crime was a misdemeanor, the defendant was more likely to be convicted than if it was a felony. More research needs to be conducted on these two variables (for example, splitting the cases up by type of crime rather than overall category) in order to account for these discrepancies.
+
+My results are consistent with previous research completed on the topic. Racially similar juries are more likely to side the same way as each other, as well as in favor of the defendant if they matched the race. In a 2003 study completed by law professor Phoebe C. Ellsworth for the University of Michigan Law School Scholarship Repository researching jury decision making in a race salient and non-race salient mock trial, Ellsworth found that “White mock jurors were more likely to vote to convict the Black defendant (90% of jurors voted to convict) than the White defendant (70% conviction rate).” This is consistent with my results, as juries that were mostly White with a non-White defendant and juries that were mostly not-White with a White defendant were more likely to convict than if the races matched. My results also matched the studies discussed in the Literature Review, as the first paper written by Joy (actually analyzing another study completed by Ellsworth) found that that all-White juries were more likely to convict African American defendants than White defendants. The second paper, written by Levinson, Cai, and Young, also found that people are more likely to perceive black people as guilty and therefore convict them. While I did not look at race in depth and rather as White or not-White, my results are consistent with all three studies and the idea that implicit racial bias impacts jury decision making.
+
+Some potential confounds for interpreting my results and stopping me from finding a causal effect between my variables are other demographical information that I did not have available in the data. Controlling for a juror’s religion could have been useful since different religions value different punishments and sentences. For example, Catholics are less likely to support the death penalty than Protestants and would be more lenient towards a defendant in a death penalty case (Miller 2007). Similarly, controlling for whether or not a juror was married or had kids would be helpful to better explain the relationship between my independent and dependent variables. Picking parents and grandparents for a trial of a teenager, for example, would make the jury more sympathetic towards the defendant when the defendant could have been their own kid. Additionally, a potential confound for interpreting my results is whether or not a juror has any experience or strong opinions on the criminal justice system. If a juror was a lawyer or police officer, or had a family member arrested or in jail, they would have a different opinion and perspective on the case than if they had no or very limited knowledge on the topic. Ideally, I would have been able to control for all of these demographical characteristics, as well as harder to measure variables (empathy, feelings on the legal system, feelings the day of the trial), in order to be more confident that the proportion of the jury being a certain race impacts how the jury decides in the case.
+
+Based on my results, it is clear that jury selection needs to be better regulated so that juries do not have preconceived biases before making life changing decisions. A case should not be decided before evidence is even presented, and attorneys should have a responsibly to create a diverse, fair jury rather than one crafted just to win. Further research needs to be completed on other demographical information in order to create a more comprehensive way to reshape the voir dire process and ensure that the legal system works more efficiently.
+
+__Works Cited__
+
+Hannaford-Agor, Paula L., Hans, Valerie P., Mott, Nicole L., and Munsterman, G. Thomas. Evaluation of Hung Juries in Bronx County, New York, Los Angeles County, California, Maricopa County, Arizona, and Washington, DC, 2000-2001. [distributor], 2006-03-30. Illegal Racial Discrimination in Jury Selection: A Continuing Legacy. (2020, August 21). Retrieved December 17, 2020, from https://eji.org/reports/illegal-racial-discrimination-in-jury-selection/ Joy, P. (109). RACE MATTERS IN JURY SELECTION. Northwestern University Law Review. Levinson, J., Cai, H., & Young, D. (2010). Guilty By Implicit Racial Bias: The Guilty/Not Guilty Implicit Association Test. OHIO STATE JOURNAL OF CRIMINAL LAW, 8, 187-208. Miller, M.K., Hayward, R.D. Religious Characteristics and the Death Penalty. Law Hum Behav 32, 113–123 (2008). Sommers, S., & Ellsworth, P. (2003). How Much Do We Really Know about Race and Juries? A Review of Social Science Theory and Research. University of Michigan Law School Scholarship Repository, 3, 997-1031.
+
+
+## Statistics for the Social Sciences
+
+<h2>Statistics for the Social Sciences</h2>
+
+### Assignment 1
+
+__Problem 1__
+
+__Install the datasets package on the console below using install.packages("datasets"). Now load the library.__
+```{r}
+#Install the dataset package  
+#install.packages("datasets")
+
+#load in the library 
+library(datasets)
+```
+
+__Load the USArrests dataset and rename it dat. Note that this dataset comes with R, in the package datasets, so there’s no need to load data from your computer. Why is it useful to rename the dataset?__
+```{r}
+#Load in the dataset
+USArrests
+
+#rename the USArrests dataset
+dat <- USArrests
+```
+It is useful to rename the dataset because it is easier to work with. If the data set had a longer or more complicated name, it would be difficult and time consuming to type out the dataset name every time when you want to perform a function on the data. It also lets you keep track of your work if you make different versions of it so that it is not contaminated by changes that were meant to be on one version and not the other. This will let you replicate the work if changes were made to different versions.
+
+__Problem 2__
+
+__Use this command to make the state names into a new variable called State.__
+```{r}
+dat$state <- tolower(rownames(USArrests))
+```
+This dataset has the state names as row names, so we just want to make them into a new variable. We also make them all lower case, because that will help us draw a map later - the map function requires the states to be lower case.
+
+__List the variables contained in the dataset USArrests.__
+```{r}
+#find the variables in the dataset
+names(dat)
+```
+The variables in the USArrests dataset are Murder, Assault, UrbanPop, Rape, and State.
+
+__Problem 3__
+
+__What type of variable (from the DVB chapter) is Murder?__
+Murder is a quantitative variable from the DVB chapter since it is a count of numbers.
+
+__What R Type of variable is it?__
+
+Murder is a numeric variable from the R type since it is also a count of numbers and functions such as mean or median can be applied.
+
+__Problem 4__
+
+__What information is contained in this dataset, in general? What do the numbers mean?__
+The dataset contains arrest numbers for 4 types of crimes within all 50 states. Each state has a corresponding arrest rate for murder, assault, and rape, as well as the percent of urban population within the state. The numbers mean the number of arrests per 100,000 people in that state.
+
+__Problem 5__
+
+__Draw a histogram of Murder with proper labels and title.__
+```{r}
+hist(dat$Murder, main = "Histogram of Murder Arrests", xlab = "Number of Murder Arrests", ylab = "Frequency")
+```
+
+__Problem 6__
+
+__Please summarize Murder quantitatively. What are its mean and median? What is the difference between mean and median? What is a quartile, and why do you think R gives you the 1st Qu. and 3rd Qu.?__
+```{r}
+#finding the summary statistics of the murder variable
+summary(dat$Murder)
+```
+The mean of the murder variable is 7.788 murders, while the median is 7.250 murders. The mean is the sum of all data values divided by the number of values, or the average of the values within the dataset. The median, however, is the middle value after all of the values are put in numerical order. When distributions are skewed or there are outliers in the data, the median is better to use than the mean because the mean changes with skew or outliers and the median is more robust. A quartile is each of three values in which the data can be distributed into even fourths. I think that R gives us the 1st quartile and 3rd quartile because they can be used to calculate the interquartile range, which tells us the interval where half of the values within the data set lie. The median is also the 2nd quartile, so the three groups are given that split the data in even fourths.
+
+__Problem 7__
+
+__Repeat the same steps you followed for Murder, for the variables Assault and Rape. Now plot all three histograms together. You can do this by using the command par(mfrow=c(3,1)) and then plotting each of the three.__
+```{r}
+#make a histogram of assault
+hist(dat$Assault, main = "Histogram of Assault Arrests", xlab = "Number of Assault Arrests", ylab = "Frequency")
+
+#make a histogram of rape
+hist(dat$Rape, main = "Histogram of Rape Arrests", xlab = "Number of Rape Arrests", ylab = "Frequency")
+
+#plot all three histograms together
+par(mfrow=c(3,1))
+hist(dat$Murder, main = "Histogram of Murder Arrests", xlab = "Number of Murder Arrests", ylab = "Frequency")
+hist(dat$Assault, main = "Histogram of Assault Arrests", xlab = "Number of Assault Arrests", ylab = "Frequency")
+hist(dat$Rape, main = "Histogram of Rape Arrests", xlab = "Number of Rape Arrests", ylab = "Frequency")
+```
+
+__What does the command par do, in your own words (you can look this up by asking R ?par)?__
+Par can be used to set the parameters on a graph, making it easier to combine multiple graphs into one.
+
+__What can you learn from plotting the histograms together?__
+By plotting these histograms together, you can compare the arrest rates for each crime. Murders happen the least frequently and assaults happen the most frequently. You can also see that the histogram for murder is unimodal and skewed, the histogram for assaults is bimodal, and the histogram for rapes is also unimodal and skewed.
+
+__Problem 8__
+
+__In the console below (not in text), type install.packages("maps") and press Enter, and then type install.packages("ggplot2") and press Enter. This will install the packages so you can load the libraries.__
+```{r}
+#install and load in the maps and ggplot2 packages
+library('maps') 
+library('ggplot2')
+```
+
+__Run this code:__
+```{r}
+ggplot(dat, aes(map_id=state, fill=Murder)) + 
+  geom_map(map=map_data("state")) + 
+  expand_limits(x=map_data("state")$long, y=map_data("state")$lat)
+```
+
+__What does this code do? Explain what each line is doing.__
+The first line above the map code loads the library for both packages. The first line of the map code is creating a plot of murder. The ggplot function is telling R to create a plot, the “dat” is telling R which dataset to use in the plot, and the “aes(map_id=state, fill=Murder))” is telling R to plot each state and fill it with the corresponding murder arrest rate. The geom_map function creates shapes for a reference map, and the map=map_data(“state”) function is telling R to map the data that corresponds with the state variable that we created earlier. The expand_limits function makes sure that the entire map fits within the plot of the graph and the (x=map_data(“state”)long,y=mapdata("state")lat) tells R which data to base the plot limits off of, which in this case is the state data.
+
+### Assignment 2
+
+__Problem 1__
+
+__Load in the data.__
+```{r}
+dat <- read.csv(file = "data/Assignment2datacopy.csv")
+```
+
+__What are the dimensions of the dataset?__
+```{r}
+dim(dat)
+```
+There are 171 columns and 7 rows (or 171 respondents and 7 questions).
+
+__Problem 2__
+
+__Describe the variables in the dataset.__
+```{r}
+names(dat)
+```
+There are 7 variables in the dataset: 1. “mjage” (How old were you the first time you used marijuana or hashish?) 2. “cigage” (How old were you when you first started smoking cigarettes everyday?) 3. “iralcage” (How old were you when you first tried alcohol?) 4. “age2” (Recoded final edited age (since respondents had multiple chances to change their age throughout the survey)) 5. “sexatract” (Sexual attraction) 6. “speakengl” (How well do you speak English) 7. “irsex” (Imputation revised gender)
+
+Mjage, cigage, and iralcage are numeric variables (or quantitative) because the respondent gave an exact number for their answers for each variable and functions like mean can be applied to find the average age the respondents tried marijuana, cigarettes, and alcohol. Age2, sexatract, speakengl, and irsex are categorical variables because the respondents’ answers were split into categories when coded. Because respondents had the opportunity to change their age throughout the interview, the age variable was calculated from the raw birth date and the final edited interview date, the age entered in the questionnaire roster (if it exists), and the pre-interview screener age because interviewees had the opportunity to change their age throughout the interview.
+
+__What is this dataset about? Who collected the data, what kind of sample is it, and what was the purpose of generating the data?__
+The dataset is a small sample from the National Survey of Drug Use and Health, which was conducted by the Center for Behavioral Health Statistics and Quality (CBHSQ, formerly the Office of Applied Studies) within the Substance Abuse and Mental Health Services Administration (SAMHSA) and is conducted by RTI International, Research Triangle Park, North Carolina. The survey was conducted through a computer assisted administration, and was changed from a strictly national design to a state-based sampling plan in 1999. The primary purpose of generating the data was to measure the prevalence and correlation of substance use and mental health issues in the United States, according to the NSDUH 2019 Codebook.
+
+__Problem 3: Age and gender__
+
+__What is the age distribution of the sample like? Make sure you read the codebook to know what the variable values mean.__
+```{r}
+hist(dat$age2, main = "Histogram of Recoded Final Edited Age Categories", xlab = "Recoded Final Edited Age Categories")
+```
+The age variable is skewed to the left, with the majority of the values in the 14-16 bin (which means that the majority of the people in the dataset are 30 to 64 years old, according to the codebook). There are fewer people who were very young when filling out the survey, with only a few in the 4-6 and 6-8 bins (meaning that the respondents in these bins were 15-17 and 18-19, respectively).
+
+__Do you think this age distribution representative of the US population? Why or why not?__
+```{r}
+min(dat$age2) #the youngest respondent was 15 (category 4)
+max(dat$age2) #the oldest respondent was 65 years old or older (category 17)
+```
+Yes, I think that this age distribution is representative of the US population. The survey was conducted in order to evaluate drug use, and I would think that people would not try drugs before turning 15 (the youngest respondent) and very few people would continue using drugs when they are 65 years old or older (the oldest respondent). Also, according to the codebook, the participants were randomly selected to complete the survey, which fulfills one requirement of a representative sample. It makes sense that the number of respondents increased when the respondents were 19 to 23 (8 to 12 categories) as those are the ages when most people would be exposed to marijuana, drugs, and alcohol for the first time, and that the number of respondents increased again when the respondents were 24 to 64 (categories 12 to 16), as those are the ages that people would continue to use marijuana, drugs, and alcohol as adults (especially after potentially being exposed in college). I also think that it makes sense that the majority of respondents were 34 to 64 years old, because older generations are more likely to have smoked cigarettes everyday before perception and knowledge changed.
+
+__Is the sample balanced in terms of gender? If not, are there more females or males?__
+```{r}
+table(dat$irsex, dat$age2)
+```
+The sample is not balanced in terms of gender. There were 91 males included in the dataset and 80 females included.
+
+__Use this code to draw a stacked bar plot to view the relationship between sex and age. What can you conclude from this plot?__
+```{r}
+tab.agesex <- table(dat$irsex, dat$age2)
+barplot(tab.agesex,
+        main = "Stacked barchart",
+        xlab = "Age category", ylab = "Frequency",
+        legend.text = rownames(tab.agesex),
+        beside = FALSE) # Stacked bars (default)
+```
+From this plot, I can conclude that more males answered the survey than females, as most age categories have a higher frequency of males than females (especially in categories 6 and 7). I can also conclude than more older males answered the survey than older females. As indicated in both the plot and the table of sex and age categories, the highest five categories (13, 14, 15, 16, and 17) had more male responses than females (1 more, 4 more, 4 more, 4 more, and 5 more, respectively).
+
+__Problem 4: Substance use__
+
+__For which of the three substances included in the dataset (marijuana, alcohol, and cigarettes) do individuals tend to use the substance earlier?__
+```{r}
+boxplot(dat$mjage, dat$cigage, dat$iralcage, main = "Substance Usage and Age",
+        ylab="Age", xlab="Types of Substances", 
+        names=c("Marijuana or Hashish","Cigarettes","Alcohol"))
+```
+Based on the boxplot of substance usage and age, it looks like individuals tend to use alcohol earlier than marijuana / hashish or earlier than they started smoking cigarettes every day.
+
+```{r}
+min(dat$mjage) 
+min(dat$cigage) 
+min(dat$iralcage) 
+```
+Looking at the minimum values for each type of substance, the minimum recorded age for when an individual first tried marijuana / hashish was 7, the minimum recorded age for when an individual first started smoking cigarettes everyday was 10, and the minimum recorded age for when an individual first tried alcohol was 5. This also confirms that like individuals tend to use alcohol earlier than marijuana / hashish or earlier than they started smoking cigarettes every day.
+
+__Problem 5: Sexual attraction__
+
+__What does the distribution of sexual attraction look like? Is this what you expected?__
+```{r}
+dat.sexat <- subset(dat$sexatract, subset = dat$sexatract<7)
+
+hist(dat.sexat, main = "Distribution of Sexual Attraction", xlab = "Sexual Attraction")
+```
+The distribution of sexual attraction is skewed to the right, with the majority of respondents answering that they are only attracted to the opposite sex (category one). The next greatest frequency of response is that the respondent is mostly attracted to the opposite sex (category 2), and then followed by the respondent is equally attracted to males and females (category 3). This is exactly what I expected because I would think that an overwhelming majority of people would be straight as that is most common in the United States.
+
+__What is the distribution of sexual attraction by gender?__
+```{r}
+table(dat$irsex, dat$sexatract)
+
+library(dplyr) 
+
+dat$sexatract <- dat$sexatract %>% na_if(., "85")
+dat$sexatract <- dat$sexatract %>% na_if(., "94")
+dat$sexatract <- dat$sexatract %>% na_if(., "97")
+dat$sexatract <- dat$sexatract %>% na_if(., "98")
+dat$sexatract <- dat$sexatract %>% na_if(., "99")
+
+dat.five <- data.frame(dat$sexatract, dat$irsex)
+
+barplot <- barplot(table(dat.five$dat.irsex, dat.five$dat.sexatract),
+        main = "Sexual Attraction and Gender",
+        xlab = "Sexaul Attraction Category",
+        ylab = "Count",
+        border = "black",
+        col = c("hotpink1", "blue"),
+        ylim = c(0,171), legend.text = c("Males","Females"),
+        )
+barplot
+```
+Looking at the stacked bar plot of sexual attraction and gender, it confirms what was seen in the table that more males than females responded that they are only attracted to the opposite sex (category one). It also confirms that more females than males answered that they are mostly attracted to the opposite sex (category 2) and are equally attracted to males and females (category 3).
+
+__Problem 6: English speaking__
+
+__What does the distribution of English speaking look like in the sample?__
+```{r}
+hist(dat$speakengl, main = "Histogram of English Speakers", xlab = "How Well You Speak English (1 - lowest, 4 - highest)")
+```
+The distribution of English speaking looks extremely skewed to the right, with the majority of respondents answering that they speak English very well (category one).
+
+```{r}
+table(dat$speakengl)
+```
+Looking at the table of respondents who answered the “Speak English” question,161 people answered that the speak English very well, eight answered that they speak English well, and only two answered that they speak English not well. This confirms the skew seen in the histogram.
+
+__Is this what you might expect for a random sample of the US population?__
+This is what I would expect a random sample of the US population to look like, as the majority of people in the US speak English and speak it very well. Even if there were people included in the random sample from places that do not speak as much English, like Texas or Miami, for example, the large amount of people who do speak English well would account for what is seen in the histogram.
+
+__Are there more English speaker females or males?__
+```{r}
+table(dat$irsex, dat$speakengl)
+
+barplot(table(dat$irsex, dat$speakengl),
+        main="English Speaking Level and Gender",
+        xlab="English Speaking Level Category",
+        ylab="Count",
+        col=c("hotpink1", "blue"),
+        ylim = c(0,200),  legend.text = c("Males","Females")
+)
+```
+Looking at the stacked bar plot of English speaking level and gender, it looks like the number of males and females that answered that they spoke English very well was pretty close, will a few more males (exactly 11, according to the table). The plot also confirms that more men responded that they spoke English well than women, and that no men responded that they spoke English not well.
+
+### Exam 1
+
+__Load the data into an R data frame.__
+```{r}
+dat <- read.csv(file = "data/fatal-police-shootings-datacopy.csv")
+```
+
+))Problem 1 (10 points)__
+
+__Describe the dataset. This is the source: https://github.com/washingtonpost/data-police-shootings . Write two sentences (max.) about this.__
+The dataset is made up of every fatal police shooting in the US since January 1, 2015, as collected by the Washington Post. The dataset includes 6594 people and 17 variables, which contain important information about each shooting, such as the name of the person shot, their mental health status, and their race.
+
+__How many observations are there in the data frame?__
+```{r}
+dim(dat)
+```
+There are 6594 observations in the data frame.
+
+__Look at the names of the variables in the data frame. Describe what “body_camera”, “flee”, and “armed” represent, according to the codebook. Again, only write one sentence (max) per variable.__
+```{r}
+names(dat)
+```
+The “body_camera” variable indicates whether or not news reports stated that a police officer that was at the scene of the incident was wearing a body camera and may have recorded parts of the incident. The “flee” variable indicates whether or not news reports have started that the victim was moving away from the officer during the incident. The “armed” variable indicates whether or not the victim was armed with any type of weapon that could have been thought to as possible to cause harm by an officer.
+
+__What are three weapons that you are surprised to find in the “armed” variable? Make a table of the values in “armed” to see the options.__
+```{r}
+head(table(dat$armed))
+```
+Three weapons that I was surprised to find in the dataset were an air conditioner, microphone, and pen.I feel like an air conditioner and microphone are definitely unusual weapons, and the pen does not seem like it would do anything against an officer’s gun.
+
+__Problem 2 (10 points)__
+
+__Describe the age distribution of the sample. Is this what you would expect to see?__
+```{r}
+hist(dat$age, main = "Age Distribution of the Sample", xlab = "Age", xlim = c(0, 100))
+```
+The age distribution of the sample is skewed to the right, with a large number of values between ages 20 and 40. This indicates that most people killed by the police in fatal shootings are young, and that older people between ages 60 and 100 are being killed in fatal police shootings at a much lower rate. This is exactly what I expected to see in the age distribution because younger people, especially in the 20 to 40 year old range, are more likely to have encounters with the police, as well as be healthy and be able to try to talk to or provoke the police and try to run away.
+
+__To understand the center of the age distribution, would you use a mean or a median, and why? Find the one you picked.__
+```{r}
+median(dat$age, na.rm = TRUE)
+```
+To understand the center of the age distribution, I would use the median because the data is skewed to the right and the median is a more robust measure of skewed data as the mean changes with skew or outliers. The median of the age distribution for this dataset is 35 years old, and I removed the missing values since there are only 308 of them out of 6594 observations and they indicate that the person’s age was unknown or missing.
+
+__Describe the gender distribution of the sample. Do you find this surprising?__
+```{r}
+table(dat$gender)
+
+counts <- table(dat$gender, useNA = "ifany")
+barplot(counts, main = "Gender Distrubution", xlab = "Gender", ylab = "Counts", names=c("None", "Females", "Males"))
+```
+The gender distribution is definitely skewed, with 6005 more males being fatally shot by police officers than females. This can also be seen in the barplot, with the majority of respondents being males. There were also 3 unknown values in the data, indicating no gender according to the codebook. I do not find this surprising, however, because the majority of police shootings that we hear about in the news are of males, with the rare occurrence of a female. While females are definitely still being killed by the police, it is happening disproportionately to males which is indicated by both the news and the data.
+
+__Problem 3 (10 points)__
+
+__How many police officers had a body camera, according to news reports? What proportion is this of all the incidents in the data? Are you surprised that it is so high or low?__
+```{r}
+table(dat$body_camera)
+
+910/6594
+```
+According to the news reports, 910 police officers had a body camera, which is about 13.80% of all incidents in the data. I am surprised that this is so low because I would think that after the 2014 killing of Michael Brown and subsequent police shootings, police offices and the public would call for an increased use of body cameras.
+
+__In how many of the incidents was the victim fleeing? What proportion is this of the total number of incidents in the data? Is this what you would expect?__
+```{r}
+table(dat$flee)
+
+1058+845+248 #fleeing
+
+2151/6594
+```
+There are 2151 incidents of the victim fleeing, which is about 32.62% of all incidents in the data. This was calculated by including the 491 unknown observations in the “not fleeing” group, as what this category of observations represents was not included in the codebook and cannot be assumed to be fleeing, especially since there is already an “other” group. This is pretty much what I would expect because I would think that the majority of people when interacting with the police would not flee, since it is known that the consequences would probably be worse because of it.
+
+__Problem 4 (10 points)__
+
+__Describe the relationship between the variables “body camera” and “flee” using a stacked barplot. What can you conclude from this relationship?__
+
+__Hint 1: The categories along the x-axis are the options for “flee”, each bar contains information about whether the police officer had a body camera (vertically), and the height along the y-axis shows the frequency of that category).__
+
+__Hint 2: Also, if you are unsure about the syntax for barplot, run ?barplot in R and see some examples at the bottom of the documentation. This is usually a good way to look up the syntax of R code. You can also Google it.__
+
+```{r}
+library(ggplot2) 
+ggplot(dat, aes(fill=body_camera, y=frequency(body_camera), x=flee)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Stacked Barplot of Body Camera Usage and Victim Fleeing") +
+  labs(y="Frequency of Body Camera Usage", x = "How the Victim Fled") +
+  labs(fill = "Body Camera Usage")
+```
+From the plot, it can be seen that everybody that fled from the police did so more often when the police were not wearing a body camera. It looks like not fleeing and the police wearing a body camera are related, as when more police wore a body camera less people fled (since the not fleeing bar had the most police wearing a body camera). You can also see that the most people fled by using a car, which during those indicidents police were less likely to wear a body camera than to actually have it on. While it is unknown what the first bar represents as it is left out of the codebook, it follows the same pattern of the other bars that the police did not wear body cameras more often than they did.
+
+__Describe the relationship between age and race by using a boxplot. What can you conclude from this relationship?__
+
+__Hint 1: The categories along the x-axis are the race categories and the height along the y-axis is age.__
+
+__Hint 2: Also, if you are unsure about the syntax for boxplot, run ?boxplot in R and see some examples at the bottom of the documentation. This is usually a good way to look up the syntax of R code. You can also Google it.__
+```{r}
+boxplot <- ggplot(dat, aes(x=race, y=age)) + 
+  geom_boxplot() +
+  ggtitle("Boxplot of Race and Age")
+boxplot
+```
+The relationship between race and age looks pretty even, with the median values of age for each race category between 25 and 37. The range for all ages except White is between 12 and 62, while the White range extends from about 5 to 80. There are a significant number of outliers, however, for the Black, Hispanic, and White categories. The NAs for age were removed, and the unknown race category was plotted first on the graph but cannot be interpreted as it is not in the codebook. From this relationship, I can conclude that on average, all races of a similar age between 25 and 37 are killed at similar rates. While there are some outliers to this, especially for the Black and Hispanic categories, all of the medians of age for each race is almost identical.
+
+__Extra credit (10 points)__
+
+__What does this code tell us?__
+```{r}
+mydates <- as.Date(dat$date)
+head(mydates)
+(mydates[length(mydates)] - mydates[1])
+```
+The as.Date function in R converts the string of date values into actual dates that functions can be applied to. The head function makes sure that this conversion was done correctly by showing us the first 6 values of the data. The “(mydates[length(mydates)] - mydates[1])” function tells us the time difference between the last observation (which is the entire length of mydates) and the first obeservation (which is "mydates[1]), which ends up being 2458 days.
+
+__On Friday, a new report was published that was described as follows by The Guardian: “More than half of US police killings are mislabelled or not reported, study finds.” Without reading this article now (due to limited time), why do you think police killings might be mislabelled or underreported?__
+I think that police killings may be mislabeled or underreported because police offices do not want to admit to have killing anyone or engaging in illegal or overly forceful activities. I think that there may be disparities between the police reporting shooting and witnesses observing shootings, as police offices may be less likely to do so. I also think that police offices may mislabel the shooting as something that was not their fault so that they do not get attacked by the public for the incident.
+
+__Regarding missing values in problem 4, do you see any? If so, do you think that’s all that’s missing from the data?__
+Yes, I saw missing values in problem 4 in the age category. The race and fleeing variable also had unknown values, as it was not indicated by the codebook. I do not think that this is all that is missing from the data, as other variables, such as gender, also had missing or unknown values. I think that going along with part b, some of the data reported was mislabeled or incorrect, and this may be represented by the missing or unknown values in the data.
+
+
+### Assignment 3
+
+__Load the data.__
+```{r}
+library(readr)
+library(knitr)
+dat.crime <- read_delim("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/crime_simple.txt", delim = "\t")
+```
+
+This is a dataset from a textbook by Brian S. Everitt about crime in the US in 1960. The data originate from the Uniform Crime Report of the FBI and other government sources. The data for 47 states of the USA are given.
+
+Here is the codebook:
+
+R: Crime rate: # of offenses reported to police per million population
+
+Age: The number of males of age 14-24 per 1000 population
+
+S: Indicator variable for Southern states (0 = No, 1 = Yes)
+
+Ed: Mean of years of schooling x 10 for persons of age 25 or older
+
+Ex0: 1960 per capita expenditure on police by state and local government
+
+Ex1: 1959 per capita expenditure on police by state and local government
+
+LF: Labor force participation rate per 1000 civilian urban males age 14-24
+
+M: The number of males per 1000 females
+
+N: State population size in hundred thousands
+
+NW: The number of non-whites per 1000 population
+
+U1: Unemployment rate of urban males per 1000 of age 14-24
+
+U2: Unemployment rate of urban males per 1000 of age 35-39
+
+W: Median value of transferable goods and assets or family income in tens of $
+
+X: The number of families per 1000 earning below 1/2 the median income
+
+We are interested in checking whether the reported crime rate (# of offenses reported to police per million population) and the average education (mean number of years of schooling for persons of age 25 or older) are related.
+
+__Problem 1__
+
+__How many observations are there in the dataset? To what does each observation correspond?__
+```{r}
+dim(dat.crime)
+```
+There are 47 observations in the dataset, with 14 different variables. Each observation corresponds to a particular state.
+
+__Problem 2__
+
+__Draw a scatterplot of the two variables. Calculate the correlation between the two variables. Can you come up with an explanation for this relationship?__
+```{r}
+plot(dat.crime$Ed, dat.crime$R, main = "Scatterplot of Average Education and Reported Crime Rate", xlab = "mean number of years of schooling for persons of age 25 or older times 10", ylab = "# of offenses reported to police per million population")
+
+cor(dat.crime$R, dat.crime$Ed)
+```
+The correlation of the reported crime rate (measured in the number of offenses reported to police per million population) and average education (measured in the mean number of years of schooling for persons of age 25 or older times 10) is 0.32, which is pretty weak. The scatterplot of these variables proves this, as it is positive but fairly spread out. One explanation for this relationship may be that states with bigger cities are populated by people with more years of education than states with rural areas, and states with bigger cities have higher reported crime rates. While these two variables specificaly are not highly correlated (since the value was 0.32), high average education and high reported crime rates are both characteristic of states with big cities.
+
+__Problem 3__
+
+__Regress reported crime rate (y) on average education (x) and call this linear model crime.lm and write the summary of the regression by using this code, which makes it look a little nicer {r, eval=FALSE} kable(summary(crime.lm)$coef, digits = 2).__
+```{r}
+crime.lm <- lm(formula = R ~ Ed, data = dat.crime)
+
+summary(crime.lm)
+```
+
+__Problem 4__
+
+__Are the four assumptions of linear regression satisfied? To answer this, draw the relevant plots. (Write a maximum of one sentence per assumption.)__
+```{r}
+#linearity and independence assumptions - residuals vs. x plot
+plot(dat.crime$Ed, crime.lm$residuals, ylim=c(-15,15), main="Residuals vs. Average Education", xlab="mean number of years of schooling for persons of age 25 or older times 10", ylab="Residuals")
+abline(h = 0, lty="dashed")
+
+#linearity assumption - residuals vs. fitted
+plot(crime.lm, which=1)
+```
+Both the residuals vs. x plot and residuals vs. fitted plot show no clear linear patterns and the residuals appear evenly spread out above and below both lines, so it satisfies the linearity assumption (because there are also only 47 observations, with the number that are given we can assume this is good enough for linear regression).
+
+Looking again at the residuals vs. x plot, we see that there are no patterns in the plot, so the independence assumption is fulfilled.
+
+```{r}
+#equal variance / homoscedasticity assumption - resuiduals vs. predicted values
+plot(crime.lm, which=3)
+```
+Looking at the residuals plotted against the predicted values, the red line looks pretty flat and there are no significant trends in the red line, so the equal variance / homoscedasticity assumption looks satisfied, but the scatterplot we made earlier shows no strong linear association.
+
+```{r}
+#Normal population assumption - residuals vs. leverage plot
+plot(crime.lm, which=5)
+
+#Normal population assumption - Normal qq plot
+plot(crime.lm, which=2)
+```
+The residuals vs. leverage plot fulfills the normal population assumption as the values are within Cook’s distance, but the normal qq plot looks like there is an issue with some of the values curving, especially since we know these are not outliers.
+
+__Problem 5__
+
+__Is the relationship between reported crime and average education statistically significant? Report the estimated coefficient of the slope, the standard error, and the p-value. What does it mean for the relationship to be statistically significant?__
+The relationship between reported crime rates and average education is statistically significant. The coefficient of the slope is 1.1161, which means that on average, for every additional year of average education, the reported crime rate increases by 1.1161 offenses reported to police per million population. The standard error is 0.4878, which means that the number of offenses reported to the police per million population can vary by 0.4878 offenses. The p-value is 0.02688, which means that we can reject the null hypothesis and conclude that there is a relationship between reported crime rates and average education. For the relationship to be statistically significant, it would mean that the p-value is less than 0.05, telling us that it is unlikely that the relationship between reported crime rates and average education is due to chance.
+
+__Problem 6__
+
+__How are reported crime and average education related? In other words, for every unit increase in average education, how does reported crime rate change (per million) per state?__
+On average, for every additional year of average education, the reported crime rate increases by 1.1161 offenses reported to police per million population per state.
+
+__Problem 7__
+
+__Can you conclude that if individuals were to receive more education, then crime will be reported more often? Why or why not?__
+You cannot conclude that if individuals were to receive more education, then crime will be reported more often. While the p-value indicates that there is some relationship between the two variables, the correlation between them is only 0.32 and the r-squared value is 0.1042. Neither of these values indicate a strong relationship between average education and reported crime rate. This statement also implies causation, that if people received more education then crime will decrease. Causation cannot be assumed, as there may be other causes or hidden variables that influence the decrease in crime rate with increased education. Similarly, this dataset is in relation to states, not individuals, so this statement could not be proven by this linear model.
+
+
+### Exam 2
+Instructions
+
+Create a folder in your computer (a good place would be under Crim 250, Exams).
+
+Download the dataset from the Canvas website (sim.data.csv) onto that folder, and save your Exam 2.Rmd file in the same folder.
+
+Data description: This dataset provides (simulated) data about 200 police departments in one year. It contains information about the funding received by the department as well as incidents of police brutality. Suppose this dataset (sim.data.csv) was collected by researchers to answer this question: “Does having more funding in a police department lead to fewer incidents of police brutality?”
+
+Codebook:
+
+funds: How much funding the police department received in that year in millions of dollars.
+po.brut: How many incidents of police brutality were reported by the department that year.
+po.dept.code: Police department code
+
+__Problem 1: EDA (10 points)__
+
+__Describe the dataset and variables. Perform exploratory data analysis for the two variables of interest: funds and po.brut.__
+```{r}
+dat <- read.csv(file = '/Users/briannafisher/Dropbox/Github/BriannaFisher/data/sim.data.2.csv')
+
+dim(dat)
+names(dat)
+```
+The dataset has 200 observations and 3 variables, with each observation corresponding to a particular police department. The variables are “po.dept.code”, which is the police department code, “funds”, which is the amount of funding the department received that year in millions of dollars, and “po.brut”, which is the number of incidents of police brutality reported by the department that year.
+
+```{r}
+plot(dat$funds, dat$po.brut, main = "Scatterplot of Department Funding and Police Brutality", xlab = "Department Funding in Millions of Dollars that Year", ylab = "Number of Incidents of Police Brutality that Year", xlim = c(0,100))
+
+cor(dat$funds, dat$po.brut)
+```
+Looking at the scatterplot of department funding and police brutality, it looks like the two have a strong, negative association. As department funding increases, it looks like reported police brutality incidents decreases. The two variables also have a correlation of -0.985, indicating that the two are strongly, negatively correlated.
+
+__Problem 2: Linear regression (30 points)__
+
+__Perform a simple linear regression to answer the question of interest. To do this, name your linear model “reg.output” and write the summary of the regression by using “summary(reg.output)”.__
+```{r}
+reg.output <- lm(formula = po.brut ~ funds, data = dat)
+summary(reg.output)
+```
+
+__Report the estimated coefficient, standard error, and p-value of the slope. Is the relationship between funds and incidents statistically significant? Explain.__
+The relationship between reported incidents of police brutality and department funding is statistically significant. The estimated coefficient is -0.367, which means that one unit higher of funding is associated with 0.367 less reported incidents of police brutality. The standard error is 0.0045, which means that the number of reported incidents of police brutality can vary by 0.0045 incidents. The p-value is less than 2.2e-16, which means that we can reject the null hypothesis and conclude that there is a relationship between reported incidents of police brutality and department funding. For the relationship to be statistically significant, it would mean that the p-value is less than 0.05 (which 2.2e-16 is), telling us that it is unlikely that the relationship between reported incidents of police brutality and department funding is due to chance.
+
+__Draw a scatterplot of po.brut (y-axis) and funds (x-axis). Right below your plot command, use abline to draw the fitted regression line, like this:__
+```{r}
+plot(dat$funds, dat$po.brut, main = "Scatterplot of Department Funding and Police Brutality", xlab = "Department Funding in Millions of Dollars that Year", ylab = "Number of Incidents of Police Brutality that Year", xlim = c(0,100))
+abline(reg.output, col = "red", lwd=2)
+```
+
+__Does the line look like a good fit? Why or why not?__
+Looking at the scatterplot, the line does not look like a good fit. The points on the scatterplot look curved, with the values on both ends of the line curving away from the line. If the line was a good fit, it would have no pattern and the data would also form a straight line. However, looking at the regression output, the R squared is 0.9712, indicating that the model fits the data incredibly well. Because my eyes can be deceiving and I changed the x-axis of the plot to include 0 squishing the data more towards the end of the plot, I would go with the R squared value and say that the line is a good fit.
+
+__Are the four assumptions of linear regression satisfied? To answer this, draw the relevant plots. (Write a maximum of one sentence per assumption.) If not, what might you try to do to improve this (if you had more time)?__
+Assumption 1
+```{r}
+#linearity and independence assumptions - residuals vs. x plot
+plot(dat$funds, reg.output$residuals, ylim=c(-15,15), main="Residuals vs. Department Funding", xlab="Department Funding in Millions of Dollars that Year", ylab="Residuals")
+abline(h = 0, lty="dashed")
+
+#linearity assumption - residuals vs. fitted
+plot(reg.output, which=1)
+```
+Because both the residuals vs. x plot and residuals vs. fitted plot show clear curved patterns in the plots instead of no pattern at all, I would say that the linearity assumption is not satisfied.
+
+Assumption 2
+Looking again at the residuals vs. x plot, we see that there is a curved pattern in the plot, so the independence assumption is not satisfied.
+ 
+Assumption 3
+```{r}
+#equal variance / homoscedasticity assumption - resuiduals vs. predicted values
+plot(reg.output, which=3)
+```
+Looking at both the scatterplot from question 1 and the scale-location plot, there is a clear pattern in the plot, so the equal variance / homoscedasticity assumption is not satisfied.
+
+Assumption 4
+```{r}
+#Normal population assumption - residuals vs. leverage plot
+plot(reg.output, which=5)
+
+#Normal population assumption - Normal qq plot
+plot(reg.output, which=2)
+```
+Looking at the residuals vs. leverage plot (it looks like many values are clustered at the top of the line) and the normal qq plot (the values on the ends of the line are curving away from the line), the normal population assumption is not satisfied.
+
+Because none of the assumptions are satisfied, if I had more time I would perform some sort of transformation to the data. I would probably start with logging funds, because I know that wages are usually logged when performing linear regression and funds are a pretty similar type of variable.
+
+__Answer the question of interest based on your analysis: “Does having more funding in a police department lead to fewer incidents of police brutality?”__
+Based on my analysis, it cannot be concluded that having more funding in a police department leads to fewer incidents of police brutality, as this implies causation and there could be hidden variables influencing the relationship. However,it does seem like having more funding in a police department is associated with fewer incidents of police brutality. The scatterplot and correlation show a strong negative relationship between the variables, and the p-value is statistically significant indicating that this relationship is not due to chance. Also, I do not think that the linear model is the best way to represent the data without performing any transformations. All of the assumptions were not satisfied, and even the scatterplot indicates a slight curving pattern. Transforming the data may give more insight into the association between department funding and incidents of police brutality.
+
+__Problem 3: Data ethics (10 points)__
+
+__Describe the dataset. Considering our lecture on data ethics, what concerns do you have about the dataset? Once you perform your analysis to answer the question of interest using this dataset, what concerns might you have about the results?__
+
+Considering our lecture on data ethics, I am concerned that the dataset is biased because the police brutality variable is based off of the reported incidents of police brutality by the departments themselves. There is no way to know if departments are under reporting brutality, so the numbers in the dataset may not be correct or may not actually be reporting the ground truth of police brutality. Once I performed my analysis, I am concerned that the results may interpreted that more funding leads to less brutality (as even stated in the question of interest). This, however, implies causation, and while there is a relationship between the two variables there may be another hidden variable that is truly causing the association. It may be that having more funding leads to better service programs being provided by the police which leads to decreased police brutality, but that is something that cannot be proven with this dataset and analysis. In terms of implications, a policy maker may look at this analysis and think that increasing funding is the best solution to decreasing police brutality, which other research has proven that may not be the case. This analysis could, essentially, cause more harm if all police departments had an increase in funding but the funding was misused or put towards other things than decreasing police brutality.
+
+### Final Project - Marijuana Possession Charges An exploratory look at the relationship between race and sentencing outcomes By Brianna Fisher, Sophie Faircloth, Anna Sophia Lotman, Hannah Wassermann
+
+__INTRODUCTION__
+Following Nixon’s call for the War on Drugs in June 1971, there was a push for mandatory sentencing in drug-related crimes, effectively expanding the role of the federal government in drug-related arrests and sentencing (Drug Policy Alliance, 2021). Recently, there has been an uptick of discussion in the political world and in pop culture of the United States on the War on Drugs, namely regarding the adjustment of the severity of sentencing and its disproportionate effect on minority communities. These racial disparities are particularly discussed in regards to marijuana-related charges, as Black Americans have been found to be four times more likely to be arrested for marijuana charges than White Americans and six times more likely to be incarcerated for drug-related charges (Rahamatulla, 2017). Many agree that a solution to the disproportionate effects of drug-related charges needs to be created, and through the work discussed in this paper, we hope to focus our attention on sentencing outcomes and race for marijuana charges to further understand where disparities lie. Due to the increasing prevalence and history of drug-related sentencing, we wanted to examine the relationships in drug-related sentencing between race and sentencing likelihood, especially focusing on marijuana. We expect, from past studies examined in and outside of this course, that the rate of prison sentencing for Black people would be higher than the rate of prison sentencing of white people. These motivations lead to the research question: Are Black people sentenced federally to prison for marijuana at a higher rate than white people?
+
+__DESCRIPTION OF THE DATA USED__
+The data set we utilized for this review is a record of federal criminal sentences as provided by the US Sentencing Committee (United States Sentencing Commission, 2007). This data set includes information on federal cases sentenced under the guidelines of the Sentencing Reform Act of 1984. Because of the research question prompting this paper, we chose to look at only cases where the defendant was charged with possession of marijuana. We used the “Drug Type 1” variable in the dataset to create a subset with these cases, as this variable indicated that marijuana was the highest penalty incurring drug the defendant was found with. Because we wanted to look at the relationship between race and being sentenced to prison, our independent variable was the defendant’s race (either Black or white cases) and our dependent variable was the type of sentence (either prison or no prison). We extrapolated specifically Black and white instantiations in the race variable so as to control for the number of independent variables being observed. We also decided to control for the defendant’s age, the defendant’s gender, and whether or not the defendant has a criminal record. We thought that these three variables would be the most influential in determining sentence type, both as legal (criminal record) and extralegal (age and gender) variables.
+```{r, echo=FALSE}
+#Reading in our dataset from the federal sentencing 
+library(readr)
+library(knitr)
+originaldata <- read.table("/Users/briannafisher/Dropbox/Github/BriannaFisher/data/sentencing.tsv", sep = '\t', header = TRUE)
+```
+
+```{r, echo=FALSE}
+#Creating a subset of the dataset so that it is easier to work with
+
+dat <- subset(originaldata, select = c(USSCIDN, AGE, MONRACE, MONSEX, CRIMHIST, DRUGTYP1, SENTIMP))
+
+dat1 <-  dat[ which(dat$DRUGTYP1==4) , ]
+
+#The variables we are working with are
+#1. USSCIDN = Unique Case ID Number
+#2. AGE = Defendant Age
+#3. MONRACE = Defendant Race
+#4. MONSEX = Defendant Gender
+#5. CRIMHIST = If the Defendant has a Criminal History
+#6. DRUGTYP1 = Drug Type (Looking specifically at marijuana)
+#7. SENTIMP = Type of Sentence 
+```
+
+```{r, echo=FALSE}
+#We created white, black, prison, and non prison variables to complete the analyses. 
+
+dat2 <-  dat1[ which( dat1$MONRACE==1 | dat1$MONRACE==2 ) , ] # only keep white and black cases
+dat2$race <- dat2$MONRACE
+
+dat2$white <- NA
+dat2$white[dat2$race == "1"] <- 1
+dat2$white[dat2$race == "2"] <- 0
+
+dat2$black <- NA
+dat2$black[dat2$race == "1"] <- 0
+dat2$black[dat2$race == "2"] <- 1
+
+dat2$prison <- ifelse(dat2$SENTIMP==1 | dat2$SENTIMP==2, 1, 0) # 0: not prison, 1: prison
+```
+
+__EXPLORATORY DATA ANALYSIS__
+```{r, echo=FALSE, results=FALSE}
+#We made a bar plot of being sentenced and race
+
+library(ggplot2)
+
+sum(dat2$black) #763
+sum(dat2$white) #5365
+
+table(dat2$black,dat2$prison)
+
+#white and no prison: 299
+#white and prison : 5061
+#black and no prison: 80
+#black and prison: 683
+
+#percentage of the time that someone is sentenced to prison when they are black
+683/763 # 0.89515
+
+#percentage of the time that someone is not sentenced to prison when they are black
+80/763 # 0.10485
+
+#percentage of the time that someone is sentenced to prison when they are white
+5061/5365 # 0.94334
+
+#percentage of the time that someone is not sentenced to prison when they are black
+299/5365 #0.05573
+
+labs <- c("Black", "Black", "White", "White")
+
+prison.graph <- data.frame(avg.prop=c(0.90, 0.10, 0.94, 0.06),
+                 Legend=c("Prison", "No Prison"), labs)
+
+prison.bar <- ggplot(prison.graph, aes(x = Legend, y = avg.prop, fill = Legend)) + 
+  geom_bar(stat="identity", position = "dodge") +
+  geom_text(aes(label=avg.prop), vjust=-0.3, size=4) +
+  ylab("Average Proportion of Being Sentenced to Prison") +
+  scale_fill_manual(values = c("indianred1", "darkturquoise")) +
+  facet_wrap(vars(labs),
+             ncol = 2, 
+             nrow = 1) +
+  xlab("Sentence Outcome") +
+  ggtitle("Average Proportion of Being Sentenced to Prison Depending on Race") +  
+  theme(plot.title = element_text(hjust = 0.3)) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0, 1)) + 
+  scale_x_discrete(labels=c("No Prison", "Prison", "No Prison", "Prison"))
+prison.bar
+
+ggsave(filename = "prison.bar.png", 
+       plot = prison.bar,
+       width = 12, 
+       height = 7)
+```
+To most successfully represent the variables being examined in this paper, we chose to create a bar plot representing the proportion of people sentenced and not sentenced to prison for both races included in the dataset.
+
+__REPRESENTATIVE MODEL AND DIAGNOSTIC INFORMATION__
+For the sake of our data set, we used a logistic regression. A logistic regression model is very similar to a linear regression; however, it is used to evaluate relationships between binary variables. Because our variables - race and sentencing outcome - both have only two options for the purpose of our study, we can examine this relationship between the binaries. Rather than a standard line, the graph of fit is a logit. The application of this model is to categorical variables, and the dependent variable matches the variable type of the independent.
+
+```{r, echo=FALSE, results=FALSE}
+#We first ran a baseline logistic regression to look at the relationship between race and type of sentence 
+
+reg.baseline <- glm(prison ~ black, family=binomial(link='logit'), data=dat2)
+summary(reg.baseline)
+```
+
+__LOGISTIC REGRESSION ASSUMPTIONS__
+```{r, echo=FALSE}
+#We next checked the assumptions of logist regression:
+
+diag.fun.glm = function(glm.out){
+  n <- dim(glm.out$model)[1]
+  par(mfrow=c(2,3))
+  
+  # qq plot
+  #plot(glm.out, 2)
+  qqnorm(rstandard(glm.out, type="deviance"), main="QQ plot of stand. dev. residuals")
+  qqline(rstandard(glm.out, type="deviance"))
+  
+  # std. deviance vs. fitted values with horizontal lines at -2, 2
+  plot(predict.glm(glm.out, type="response"), rstandard(glm.out, type="deviance"), ylab="Stand. deviance resid.", xlab="Fitted values", main="Stand. dev. resid. vs. fitted values"); abline(h=c(0,-2,2), lty=c(1,2,2))
+  
+  # studentized residuals
+  alpha <- 0.05
+  hi <- -qnorm(alpha/(2*n),0,1)
+  lo <- qnorm(alpha/(2*n),0,1)
+  plot(predict.glm(glm.out), rstudent(glm.out, type="deviance"), ylab="Stud. deviance resid.", xlab="Fitted values", main="Stud. dev. resid. vs. fitted values", ylim=c(lo-2,hi+2)); abline(h=c(0, hi, lo), lty=c(1,2,2))  
+  
+  # cook's distance plot
+  cooks <- cooks.distance(glm.out)
+  plot(cooks, type="h", main="Cook's distance", ylab="Cook's distance", xlab="Index")
+  
+  # leverage plot
+  leverage <- hatvalues(glm.out) 
+  plot(leverage, type="h", main="Leverage", ylab="Leverage", xlab="Index")
+  
+  # cook's distance vs. leverage plot
+  plot(glm.out, 5)
+}
+
+#calling all of the plots
+diag.fun.glm(reg.baseline)
+```
+For the sake of our data set, we used a logistic regression. A logistic regression model is very similar to a linear regression; however, it is used to evaluate relationships between binary variables. Because our variables - race and sentencing outcome - both have only two options for the purpose of our study, we can examine this relationship between the binaries. Rather than a standard line, the graph of fit is a logit. The application of this model is to categorical variables, and the dependent variable matches the variable type of the independent.
+
+The Residual vs. Fitted Plots in this figure look to see if there are any curvilinear trends in the plots that were originally missed. Because logistic regression is already curvilinear - as demonstrated by the logit that was previously displayed - these plots do not tell us any definitive information on the validity of this regression.
+
+The QQ plot in the figure determines if the residuals are normally distributed. This plot is not indicative of anything definitive either because residuals do not have to be normally distributed in a logistic regression.
+
+The Residuals vs. Leverage plots help identify outliers, but this plot too is not particularly useful because the results are not definitive either. From the models demonstrated in the assumptions, we do not gain information that definitively determines the strength of the logistic regression model for our data set, but the assumption display is crucial to data analysis so as to examine any particularly significant data that strays from the norm.
+
+__Regression Model__
+```{r, echo=FALSE}
+#We created binary control variables
+
+#creating age group variables
+dat2$age1629 <- 0
+dat2$age1629[dat2$AGE >= 16 & dat2$AGE <= 29] <- 1
+
+dat2$age3049 <- 0
+dat2$age3049[dat2$AGE >= 30 & dat2$AGE <= 49] <- 1
+
+dat2$age5069 <- 0
+dat2$age5069[dat2$AGE >= 50 & dat2$AGE <= 69] <- 1
+
+dat2$age7097 <- 0
+dat2$age7097[dat2$AGE >= 70 & dat2$AGE <= 97] <- 1
+
+#creating gender variables
+dat2$male <- NA
+dat2$male[dat2$MONSEX == "0"] <- 1
+dat2$male[dat2$MONSEX == "1"] <- 0
+
+dat2$female <- NA
+dat2$female[dat2$MONSEX == "0"] <- 0
+dat2$female[dat2$MONSEX == "1"] <- 1
+
+#creating criminal history variables
+dat2$crimyes <- NA
+dat2$crimyes[dat2$CRIMHIST == "0"] <- 0
+dat2$crimyes[dat2$CRIMHIST == "1"] <- 1
+
+dat2$crimno <- NA
+dat2$crimno[dat2$CRIMHIST == "0"] <- 1
+dat2$crimno[dat2$CRIMHIST == "1"] <- 0
+```
+
+```{r, echo=FALSE, results=FALSE}
+#We then ran the same regression with our control variables
+
+reg.controls <- glm(prison ~ black + age7097 + age5069  + age3049 + female + crimno, family=binomial(link='logit'), data=dat2)
+summary(reg.controls)
+```
+
+```{r, echo=FALSE}
+#Creating a table of the regression results
+library(stargazer)
+stargazer(reg.baseline, reg.controls, omit.stat = c("f","adj.rsq","ser","ll","aic","bic"), 
+          title="Logistic Regression Outputs", 
+          model.names = FALSE, 
+          column.labels = c("Baseline","Controls"),
+          covariate.labels = c("Black", "Ages 70-97","Ages 50-69","Ages 30-49", "Female", "No Criminal History" , "Constant"), type="text")
+```
+Looking at the baseline regression, we can see that Black people in the dataset were less likely to be sentenced to prison at a significant rate. Similarly, looking at the controlled regression, we can see that Black people were more likely to not be sentenced when compared to white people in the dataset. We split the age variable into three groups (of 16-29, 30-49, 50-69, and 70-97), leaving the 16-29 group out of the regression as our control because we thought that this group would be most likely to be in possession of marijuana. To our surprise, all three age groups were more likely to be sentenced to prison for marijuana charges than people that were 16-29. This may be due to the fact that there could have been more people in these other groups, or there could have been a large number of minors in the 16-29 group that were not sentenced to prison. We split the gender variable into male or female, leaving out the male group since we thought that this group would be more likely to be sentenced to prison. Looking at the model, we can see that this is true, and females were significantly less likely to be sentenced to prison than males. Finally, we split the criminal history variable into yes or no groups, leaving out the yes group since we thought that this group would be more likely to be sentenced to prison. To our surprise, having no criminal history made the defendant more likely to be sentenced to prison, but by an insignificant amount.
+
+__CAUSAL ANALYSIS__
+Because we used the “Drug Type 1” variable, we assumed that the defendant was either only found with marijuana or the other drug(s) did not incur any penalty. This did not take into account whether or not the defendant was charged with something incurring a felony charge, such as possession of drug paraphernalia or intent to sell. In an ideal world, our data would have been clear about what the defendant was actually charged with on all fronts, rather than just what drugs they were in possession of at the time of their arrest. We also only looked at about 6,000 observations, since we dropped everyone who was not Black or white. However, there were more white people in the dataset and more white people in prison in the dataset, so the groups may not have been proportional.
+
+__DAG:__
+  
+   BEING ARRESTED 
+    ^           |
+    |           v
+    RACE -------> BEING SENTENCED TO PRISON
+
+Additionally, the DAG portrays the situation where the defendant’s race determines whether or not they will be arrested, and therefore the arrest determines whether they will be sentenced. Not everyone who is caught with marijuana is arrested, and not everyone who is arrested for marijuana charges is convicted. Similarly, the biases of the police and prosecutors could be at play, influencing both the arrest and sentence outcome. Because of these confounders, we would not be able to conclude that there was a causal analysis.
+
+__LIMITATIONS AND FUTURE DIRECTIONS__
+
+While setting out to examine sentencing outcomes and their relationship to race for marijuana-related charges, we observed a series of confounds:
+
+Sentencing charges are not equated to arrests. It is worth looking in the future into the relationship between arrests and race for marijuana-related charges.
+Our analysis did not include sentencing duration. Sentencing severity is a large component of the discussion for racial disparities in sentencing, not just the binary of whether someone was sentenced or not.
+Though we controlled for different factors such as past arrests because they are crucial in determining sentencing outcomes they should be analyzed further in conjunction with the information we observed for future studies.
+This dataset is also a really interesting example of how a failure through data analysis can lead to false projections and misleading statistics. This is also a useful showcase of how easily data can also be manipulated depending on the neglect of specific outliers or parameters for the research. As previously stated, this data set is very limited. We don’t feel it can answer our research question in an accurate way, but it still provides a good lesson on the sensitivity of datasets with outlying variables and unobserved confounders.
+
+For future research, it could be extremely valuable to look at the current different sentencing rates across states with different laws regarding the legality and decriminalization of marijuana. All marijuana usage (whether medical or recreational) is a federal crime, so theoretically everyone in the dataset should have been arrested regardless of race. However, this is not the case, and it is important to look at how there are disparities between federal and state sentences. Additionally, state police and prosecutors have much more discretion in deciding who to arrest, and what crimes to charge. We also were only able to look at sentencing as a binary factor without the important information of arrests records in general or whether or not the defendant has been arrested for marijuana in the past. In the future, we want to do a more well-rounded in-depth data analysis including everyone who was arrested (regardless of their conviction status), as well as the state’s current laws regarding marijuana.
+
+__References__
+Commission, U. S. S. (2014, June 25). Monitoring of federal criminal sentences, [united states], 2007. Monitoring of Federal Criminal Sentences, [United States], 2007. Retrieved December 12, 2021, from https://www.icpsr.umich.edu/web/NACJD/studies/22623. Cusick Director, J., Cusick, J., Director, Director, C. M. A., Montecinos, C., Director, A., Director, S. H. A., Hananel, S., Oduyeru Manager, L., Oduyeru, L., Manager, Gordon Director, P., Gordon, P., Director, J. P. D., Parshall, J., Director, D., Pearl, B., Perez, M., Chung, E., … Simpson, E. (2021, October 28). Ending the war on drugs: By the numbers. Center for American Progress. Retrieved December 12, 2021, from https://www.americanprogress.org/article/ending-war-drugs-numbers/. Rahamatulla, A. (2017, March 23). The War on Drugs has failed. what’s next? Ford Foundation. Retrieved December 12, 2021, from https://www.fordfoundation.org/just-matters/just-matters/posts/the-war-on-drugs-has-failed-what-s-next/. We Are The Drug Policy Alliance. (n.d.). A history of the Drug War. Drug Policy Alliance. Retrieved December 12, 2021, from https://drugpolicy.org/issues/brief-history-drug-war.
+
+
+
+
+
+
+
+
+
+
+
 
 
 

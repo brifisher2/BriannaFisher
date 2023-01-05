@@ -8,3 +8,12 @@ dplyr
 stringr
 forcats
 rio
+foreign
+stargazer
+lattice
+survival
+Formula
+Hmisc
+weights
+maps
+knitr
